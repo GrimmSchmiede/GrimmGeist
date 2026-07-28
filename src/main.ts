@@ -10,7 +10,7 @@ import {
   loadApiKey,
   saveApiKey,
 } from "./storage";
-import { historyToContents, sendToGemini, stripCodeFences } from "./gemini";
+import { GeminiApiError, historyToContents, sendToGemini, stripCodeFences } from "./gemini";
 import { checkForUpdates } from "./updater";
 import {
   AppSettings,
@@ -18,6 +18,8 @@ import {
   Chat,
   ChatMessage,
   DAILY_REQUEST_LIMIT,
+  DEFAULT_MODEL,
+  MODEL_OPTIONS,
   PER_MINUTE_REQUEST_LIMIT,
   QuotaState,
 } from "./types";
@@ -30,6 +32,8 @@ let apiKey: string | null = null;
 let quota: QuotaState = { date: "", count: 0 };
 let pendingAttachments: AttachedFile[] = [];
 const requestTimestamps: number[] = [];
+let cooldownTimer: ReturnType<typeof setInterval> | null = null;
+let cooldownUntil = 0;
 
 // ---- DOM ----
 const chatListEl = document.getElementById("chat-list")!;
@@ -42,6 +46,7 @@ const promptInputEl = document.getElementById("prompt-input") as HTMLTextAreaEle
 const sendBtnEl = document.getElementById("send-btn") as HTMLButtonElement;
 const attachBtnEl = document.getElementById("attach-btn")!;
 const newChatBtnEl = document.getElementById("new-chat-btn")!;
+const cooldownNoticeEl = document.getElementById("cooldown-notice")!;
 
 const settingsModalEl = document.getElementById("settings-modal")!;
 const settingsBtnEl = document.getElementById("settings-btn")!;
@@ -74,6 +79,20 @@ function renderMessageBody(text: string): string {
     }
   }
   return html;
+}
+
+function populateModelSelect() {
+  modelSelectEl.innerHTML = "";
+  for (const option of MODEL_OPTIONS) {
+    const el = document.createElement("option");
+    el.value = option.value;
+    el.textContent = option.label;
+    if (option.disabled) {
+      el.disabled = true;
+      if (option.disabledReason) el.title = option.disabledReason;
+    }
+    modelSelectEl.appendChild(el);
+  }
 }
 
 function activeChat(): Chat | null {
@@ -157,7 +176,14 @@ function renderMessages() {
 function updateHeader() {
   const chat = activeChat();
   tokenUsageEl.textContent = `Tokens: ${chat?.totalTokens ?? 0}`;
-  modelSelectEl.value = chat?.model ?? "gemini-2.5-flash";
+
+  // Ältere Chats können noch ein inzwischen entferntes/deaktiviertes Modell (z. B. "gemini-2.5-flash")
+  // referenzieren; auf das aktuelle Standardmodell migrieren, statt eine leere Auswahl anzuzeigen.
+  if (chat && !MODEL_OPTIONS.some((o) => o.value === chat.model && !o.disabled)) {
+    chat.model = DEFAULT_MODEL;
+    persist();
+  }
+  modelSelectEl.value = chat?.model ?? DEFAULT_MODEL;
 
   const nearLimit = quota.count >= DAILY_REQUEST_LIMIT * 0.9;
   quotaUsageEl.textContent = `Anfragen heute: ${quota.count} / ${DAILY_REQUEST_LIMIT}`;
@@ -201,7 +227,7 @@ function createNewChat() {
   const chat: Chat = {
     id: crypto.randomUUID(),
     title: "Neuer Chat",
-    model: modelSelectEl.value || "gemini-2.5-flash",
+    model: modelSelectEl.value || DEFAULT_MODEL,
     messages: [],
     createdAt: Date.now(),
     totalTokens: 0,
@@ -232,6 +258,34 @@ async function attachFiles() {
   renderAttachments();
 }
 
+function isInCooldown(): boolean {
+  return Date.now() < cooldownUntil;
+}
+
+function startCooldown(seconds: number) {
+  cooldownUntil = Date.now() + seconds * 1000;
+  sendBtnEl.disabled = true;
+  cooldownNoticeEl.classList.remove("hidden");
+
+  const tick = () => {
+    const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
+    if (remaining <= 0) {
+      if (cooldownTimer) clearInterval(cooldownTimer);
+      cooldownTimer = null;
+      sendBtnEl.disabled = false;
+      sendBtnEl.textContent = "➤";
+      cooldownNoticeEl.classList.add("hidden");
+      return;
+    }
+    sendBtnEl.textContent = `${remaining}s`;
+    cooldownNoticeEl.textContent = `Kontingent-Limit erreicht. Bitte warte ${remaining}s, bevor du erneut sendest.`;
+  };
+
+  if (cooldownTimer) clearInterval(cooldownTimer);
+  tick();
+  cooldownTimer = setInterval(tick, 500);
+}
+
 function withinRateLimit(): boolean {
   const now = Date.now();
   while (requestTimestamps.length && now - requestTimestamps[0] > 60_000) {
@@ -243,6 +297,11 @@ function withinRateLimit(): boolean {
 async function sendMessage() {
   const text = promptInputEl.value.trim();
   if (!text && pendingAttachments.length === 0) return;
+
+  if (isInCooldown()) {
+    // Server-seitiges Kontingent-Limit aktiv: keine automatischen oder manuellen Wiederholungsversuche zulassen.
+    return;
+  }
 
   if (!apiKey) {
     alert("Bitte zuerst einen Google AI Studio API-Schlüssel in den Einstellungen hinterlegen.");
@@ -307,6 +366,10 @@ async function sendMessage() {
     pendingMessage.pending = false;
     pendingMessage.error = true;
     pendingMessage.text = `Fehler: ${err instanceof Error ? err.message : err}`;
+
+    if (err instanceof GeminiApiError && err.status === 429) {
+      startCooldown(err.retryAfterSeconds ?? 40);
+    }
   }
 
   persist();
@@ -347,6 +410,8 @@ async function saveSettingsFromModal() {
 
 // ---- Init ----
 async function init() {
+  populateModelSelect();
+
   settings = await loadSettings();
   apiKey = await loadApiKey();
   chats = await loadChats();

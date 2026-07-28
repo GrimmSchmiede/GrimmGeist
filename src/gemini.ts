@@ -15,6 +15,35 @@ export interface GeminiResult {
   candidatesTokens: number;
 }
 
+const DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS = 40;
+
+export class GeminiApiError extends Error {
+  status?: number;
+  /** Seconds to wait before retrying, present on HTTP 429 (rate limit / quota exceeded) responses. */
+  retryAfterSeconds?: number;
+
+  constructor(message: string, status?: number, retryAfterSeconds?: number) {
+    super(message);
+    this.name = "GeminiApiError";
+    this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+function parseRetryDelaySeconds(errJson: unknown): number {
+  const details = (errJson as { error?: { details?: Array<Record<string, unknown>> } })?.error?.details;
+  if (Array.isArray(details)) {
+    for (const detail of details) {
+      const retryDelay = detail?.retryDelay;
+      if (typeof retryDelay === "string") {
+        const seconds = parseFloat(retryDelay.replace(/s$/, ""));
+        if (!Number.isNaN(seconds) && seconds > 0) return Math.ceil(seconds);
+      }
+    }
+  }
+  return DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS;
+}
+
 function messageToPromptText(text: string, files?: AttachedFile[]): string {
   if (!files || files.length === 0) return text;
   const fileBlocks = files
@@ -67,13 +96,17 @@ export async function sendToGemini(
 
   if (!res.ok) {
     let message = `HTTP ${res.status}`;
+    let errJson: unknown = null;
     try {
-      const errJson = await res.json();
-      message = errJson?.error?.message ?? message;
+      errJson = await res.json();
+      message = (errJson as { error?: { message?: string } })?.error?.message ?? message;
     } catch {
       // ignore parse failure, keep default message
     }
-    throw new Error(message);
+    if (res.status === 429) {
+      throw new GeminiApiError(message, 429, parseRetryDelaySeconds(errJson));
+    }
+    throw new GeminiApiError(message, res.status);
   }
 
   const data = await res.json();

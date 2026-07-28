@@ -28,11 +28,7 @@
 
       <main class="main">
         <header class="chat-header">
-          <select id="model-select" class="model-select">
-            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
-            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
-          </select>
+          <select id="model-select" class="model-select"></select>
           <div class="status-bar">
             <span id="token-usage" class="status-pill">Tokens: 0</span>
             <span id="quota-usage" class="status-pill">Anfragen heute: 0 / 1000</span>
@@ -43,6 +39,7 @@
 
         <footer class="composer">
           <div id="attachments" class="attachments"></div>
+          <div id="cooldown-notice" class="cooldown-notice hidden"></div>
           <div class="composer-row">
             <button id="attach-btn" class="icon-btn" title="Datei anhängen">📎</button>
             <textarea
