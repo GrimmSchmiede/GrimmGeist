@@ -11,6 +11,7 @@ import {
   saveApiKey,
 } from "./storage";
 import { historyToContents, sendToGemini, stripCodeFences } from "./gemini";
+import { checkForUpdates } from "./updater";
 import {
   AppSettings,
   AttachedFile,
@@ -389,6 +390,8 @@ async function init() {
   settingsModalEl.addEventListener("click", (e) => {
     if (e.target === settingsModalEl) closeSettings();
   });
+
+  checkForUpdates();
 }
 
 init();

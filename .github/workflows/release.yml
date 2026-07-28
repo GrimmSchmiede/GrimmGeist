@@ -49,12 +49,15 @@ jobs:
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: novatwin-v__VERSION__
           releaseName: "NovaTwin v__VERSION__"
           releaseBody: |
             Automatisch von GitHub Actions gebauter Release.
             Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.AppImage`/`.deb`).
-          releaseDraft: true
+            Bereits installierte NovaTwin-Versionen aktualisieren sich automatisch auf diese Version.
+          releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
