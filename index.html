@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NovaTwin</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <button id="new-chat-btn" class="new-chat-btn">
+          <span class="icon">+</span> Neuer Chat
+        </button>
+        <div id="chat-list" class="chat-list"></div>
+        <button id="settings-btn" class="settings-btn" title="Einstellungen">
+          <span class="icon">⚙</span> Einstellungen
+        </button>
+      </aside>
+
+      <main class="main">
+        <header class="chat-header">
+          <select id="model-select" class="model-select">
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite</option>
+          </select>
+          <div class="status-bar">
+            <span id="token-usage" class="status-pill">Tokens: 0</span>
+            <span id="quota-usage" class="status-pill">Anfragen heute: 0 / 1000</span>
+          </div>
+        </header>
+
+        <div id="messages" class="messages"></div>
+
+        <footer class="composer">
+          <div id="attachments" class="attachments"></div>
+          <div class="composer-row">
+            <button id="attach-btn" class="icon-btn" title="Datei anhängen">📎</button>
+            <textarea
+              id="prompt-input"
+              class="prompt-input"
+              placeholder="Nachricht an NovaTwin…"
+              rows="1"
+            ></textarea>
+            <button id="send-btn" class="send-btn" title="Senden">➤</button>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>Einstellungen</h2>
+          <button id="settings-close" class="icon-btn">✕</button>
+        </div>
+        <div class="modal-body">
+          <label class="field-label" for="api-key-input">Google AI Studio API-Schlüssel</label>
+          <input
+            id="api-key-input"
+            class="text-input"
+            type="password"
+            placeholder="AIza…"
+            autocomplete="off"
+          />
+          <p class="field-hint">
+            Wird sicher im Betriebssystem-Schlüsselbund gespeichert (Windows Credential
+            Manager / Linux Secret Service), niemals im Quellcode oder Klartext.
+          </p>
+
+          <label class="field-label" for="system-prompt-input">System-Prompt</label>
+          <textarea id="system-prompt-input" class="text-input" rows="6"></textarea>
+
+          <label class="field-label" for="safety-select">Sicherheitsfilter</label>
+          <select id="safety-select" class="text-input">
+            <option value="BLOCK_NONE">Kein Filter (BLOCK_NONE)</option>
+            <option value="BLOCK_ONLY_HIGH">Nur hohes Risiko blockieren</option>
+            <option value="BLOCK_MEDIUM_AND_ABOVE" selected>Standard (mittel und höher)</option>
+            <option value="BLOCK_LOW_AND_ABOVE">Streng (niedrig und höher)</option>
+          </select>
+
+          <div class="modal-actions">
+            <button id="settings-save" class="primary-btn">Speichern</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
