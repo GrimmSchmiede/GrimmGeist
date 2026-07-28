@@ -9,6 +9,19 @@
   </head>
 
   <body>
+    <div class="titlebar" data-tauri-drag-region>
+      <div class="titlebar-brand" data-tauri-drag-region>
+        <span class="titlebar-logo" data-tauri-drag-region>◆</span>
+        <span class="titlebar-title" data-tauri-drag-region>NovaTwin</span>
+        <span id="titlebar-version" class="titlebar-version" data-tauri-drag-region></span>
+      </div>
+      <div class="titlebar-controls">
+        <button id="titlebar-minimize" class="titlebar-btn" title="Minimieren">🗕</button>
+        <button id="titlebar-maximize" class="titlebar-btn" title="Maximieren">☐</button>
+        <button id="titlebar-close" class="titlebar-btn titlebar-close" title="Schließen">✕</button>
+      </div>
+    </div>
+
     <div id="update-banner" class="update-banner hidden">
       <span id="update-banner-text">Update verfügbar</span>
       <button id="update-install-btn" class="update-install-btn">Jetzt installieren</button>
@@ -34,6 +47,14 @@
             <span id="quota-usage" class="status-pill">Anfragen heute: 0 / 1000</span>
           </div>
         </header>
+
+        <div class="workspace-bar">
+          <button id="workspace-pick-btn" class="icon-btn" title="Arbeitsordner wählen">📁</button>
+          <span id="workspace-path" class="workspace-path">Kein Arbeitsordner verknüpft</span>
+          <button id="workspace-toggle-btn" class="icon-btn hidden" title="Dateien anzeigen">▾</button>
+          <button id="workspace-detach-btn" class="icon-btn hidden" title="Ordner entfernen">✕</button>
+        </div>
+        <div id="workspace-files" class="workspace-files hidden"></div>
 
         <div id="messages" class="messages"></div>
 

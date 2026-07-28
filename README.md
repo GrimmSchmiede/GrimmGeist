@@ -5,15 +5,37 @@ Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Taur
 
 ## Features
 
+- Eigene, ins Design integrierte Titelleiste (keine native OS-Titelleiste) mit Versionsanzeige
 - Sidebar mit Chat-Verlauf, "Neuer Chat"-Button und Einstellungen
-- Modell-Auswahl pro Chat (`gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.5-flash-lite`)
-- Token- und Tageskontingent-Anzeige (Free-Tier-Limit: 1000 Anfragen/Tag, 15/Minute)
+- Modell-Auswahl pro Chat (`gemini-flash-latest`, `gemini-3.1-flash-lite`; `gemini-2.5-pro` ist im
+  Free Tier ausgegraut, da Google dafür Kontingent 0 vergibt)
+- Token- und Tageskontingent-Anzeige (Free-Tier-Limit: 1000 Anfragen/Tag, 15/Minute) inkl.
+  automatischem Cooldown-Timer bei HTTP-429-Antworten (Quota exceeded)
 - Datei-Anhang (Büroklammer) zum Einlesen lokaler Dateien (z. B. `.lua`, `.py`) als Kontext
 - "Datei aktualisieren"-Button, um von Gemini editierten Code direkt auf die Festplatte zurückzuschreiben
+- **Workspace-Ordner pro Chat**: lokalen Projektordner verknüpfen, Gemini sieht die vorhandene
+  Dateistruktur und kann per striktem JSON-Protokoll autonom Dateien darin erstellen, bearbeiten
+  oder löschen (siehe unten)
 - API-Schlüssel wird **nicht** im Code oder als Klartext gespeichert, sondern im
   OS-Schlüsselbund (Windows Credential Manager / Linux Secret Service via `keyring`-Crate)
 - Automatisches Update: Beim Start prüft die App den neuesten GitHub-Release; ist eine neuere,
   signierte Version verfügbar, erscheint ein Banner zum Herunterladen/Installieren + Neustart
+
+### Workspace-Ordner
+
+Über das 📁-Icon im Chat-Header lässt sich pro Chat ein lokaler Ordner verknüpfen. Vor jeder
+Anfrage liest die App die aktuelle Dateiliste des Ordners (rekursiv, `node_modules`/`.git`/
+`target`/… werden übersprungen) und hängt sie an den System-Prompt an. Antwortet Gemini mit
+einem JSON-Objekt der Form
+
+```json
+{ "action": "create|edit|delete", "filename": "relativer/pfad.lua", "content": "…" }
+```
+
+führt die App die Aktion direkt über eigene Rust-Commands aus (kein `tauri-plugin-fs` mit
+`scope: ["**"]` nötig) und zeigt statt des Roh-JSON eine kurze Statuszeile an. Dateinamen mit
+`..`-Traversal oder absoluten Pfaden werden serverseitig abgelehnt, sodass Aktionen nicht aus
+dem gewählten Ordner ausbrechen können.
 
 ## Entwicklung
 

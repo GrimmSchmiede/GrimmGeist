@@ -6,6 +6,13 @@ export interface AttachedFile {
   content: string;
 }
 
+export interface WorkspaceActionResult {
+  action: "create" | "edit" | "delete";
+  filename: string;
+  success: boolean;
+  error?: string;
+}
+
 export interface ChatMessage {
   role: Role;
   text: string;
@@ -16,6 +23,7 @@ export interface ChatMessage {
   };
   pending?: boolean;
   error?: boolean;
+  workspaceAction?: WorkspaceActionResult;
 }
 
 export interface Chat {
@@ -25,6 +33,7 @@ export interface Chat {
   messages: ChatMessage[];
   createdAt: number;
   totalTokens: number;
+  workspacePath?: string;
 }
 
 export interface AppSettings {
@@ -42,6 +51,21 @@ export const DEFAULT_SYSTEM_PROMPT =
   "Wenn der Nutzer eine Datei anhängt und um eine Änderung bittet, antworte mit dem VOLLSTÄNDIGEN neuen " +
   "Dateiinhalt als reinen Text, OHNE Markdown-Codeblöcke (keine ``` Backticks), ohne Erklärungen davor " +
   "oder danach. Wenn keine Datei bearbeitet werden soll, antworte normal in Klartext.";
+
+/** Appended to the system prompt only while a chat has a workspace folder linked. */
+export function buildWorkspaceSystemPromptAddition(fileList: string[]): string {
+  const files = fileList.length ? fileList.map((f) => `- ${f}`).join("\n") : "(Ordner ist leer)";
+  return (
+    "\n\nZUSÄTZLICH hast du Zugriff auf einen lokalen Workspace-Ordner. Vorhandene Dateien darin:\n" +
+    `${files}\n\n` +
+    "Wenn der Nutzer möchte, dass du in DIESEM Workspace-Ordner eine Datei erstellst, bearbeitest " +
+    "oder löschst, antworte AUSSCHLIESSLICH mit einem einzeiligen JSON-Objekt in genau diesem Format " +
+    '(kein Markdown, kein Codeblock, kein Text davor/danach):\n' +
+    '{"action":"create|edit|delete","filename":"relativer/pfad.lua","content":"neuer Dateiinhalt (nur bei create/edit)"}\n' +
+    "Für alle anderen Anfragen (Fragen, Erklärungen, Chat über an den Prompt angehängte Dateien) " +
+    "antworte ganz normal in Klartext, NICHT als JSON."
+  );
+}
 
 export interface ModelOption {
   value: string;

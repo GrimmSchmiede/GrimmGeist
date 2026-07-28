@@ -12,6 +12,14 @@ import {
 } from "./storage";
 import { GeminiApiError, historyToContents, sendToGemini, stripCodeFences } from "./gemini";
 import { checkForUpdates } from "./updater";
+import { initTitlebar } from "./titlebar";
+import {
+  deleteWorkspaceFile,
+  listWorkspaceFiles,
+  pickWorkspaceFolder,
+  tryParseWorkspaceCommand,
+  writeWorkspaceFile,
+} from "./workspace";
 import {
   AppSettings,
   AttachedFile,
@@ -22,6 +30,7 @@ import {
   MODEL_OPTIONS,
   PER_MINUTE_REQUEST_LIMIT,
   QuotaState,
+  buildWorkspaceSystemPromptAddition,
 } from "./types";
 
 // ---- State ----
@@ -34,6 +43,7 @@ let pendingAttachments: AttachedFile[] = [];
 const requestTimestamps: number[] = [];
 let cooldownTimer: ReturnType<typeof setInterval> | null = null;
 let cooldownUntil = 0;
+let workspaceFilesExpanded = false;
 
 // ---- DOM ----
 const chatListEl = document.getElementById("chat-list")!;
@@ -47,6 +57,11 @@ const sendBtnEl = document.getElementById("send-btn") as HTMLButtonElement;
 const attachBtnEl = document.getElementById("attach-btn")!;
 const newChatBtnEl = document.getElementById("new-chat-btn")!;
 const cooldownNoticeEl = document.getElementById("cooldown-notice")!;
+const workspacePickBtnEl = document.getElementById("workspace-pick-btn")!;
+const workspacePathEl = document.getElementById("workspace-path")!;
+const workspaceToggleBtnEl = document.getElementById("workspace-toggle-btn")!;
+const workspaceDetachBtnEl = document.getElementById("workspace-detach-btn")!;
+const workspaceFilesEl = document.getElementById("workspace-files")!;
 
 const settingsModalEl = document.getElementById("settings-modal")!;
 const settingsBtnEl = document.getElementById("settings-btn")!;
@@ -135,9 +150,23 @@ function renderMessages() {
         .join("")}</div>`;
     }
 
+    const bubbleHtml = msg.workspaceAction
+      ? ""
+      : `<div class="bubble">${renderMessageBody(msg.text || (msg.pending ? "…" : ""))}</div>`;
+
+    let workspaceActionHtml = "";
+    if (msg.workspaceAction) {
+      const wa = msg.workspaceAction;
+      const actionLabel = { create: "erstellt", edit: "bearbeitet", delete: "gelöscht" }[wa.action];
+      workspaceActionHtml = wa.success
+        ? `<div class="workspace-action-note success">Datei ${actionLabel}: ${escapeHtml(wa.filename)}</div>`
+        : `<div class="workspace-action-note failed">Aktion „${wa.action}" für ${escapeHtml(wa.filename)} fehlgeschlagen: ${escapeHtml(wa.error ?? "")}</div>`;
+    }
+
     el.innerHTML = `
       <span class="role-label">${roleLabel}</span>
-      <div class="bubble">${renderMessageBody(msg.text || (msg.pending ? "…" : ""))}</div>
+      ${bubbleHtml}
+      ${workspaceActionHtml}
       ${filesHtml}
     `;
 
@@ -204,11 +233,71 @@ function renderAttachments() {
   });
 }
 
+function renderWorkspaceBar() {
+  const chat = activeChat();
+  const path = chat?.workspacePath;
+  workspacePathEl.textContent = path ?? "Kein Arbeitsordner verknüpft";
+  workspacePathEl.classList.toggle("linked", !!path);
+  workspacePathEl.title = path ?? "";
+  workspaceToggleBtnEl.classList.toggle("hidden", !path);
+  workspaceDetachBtnEl.classList.toggle("hidden", !path);
+  workspaceToggleBtnEl.textContent = workspaceFilesExpanded ? "▴" : "▾";
+
+  if (!path) {
+    workspaceFilesEl.classList.add("hidden");
+    workspaceFilesExpanded = false;
+  }
+}
+
+async function renderWorkspaceFiles() {
+  const chat = activeChat();
+  if (!chat?.workspacePath) return;
+  workspaceFilesEl.innerHTML = "Lade Dateien…";
+  try {
+    const files = await listWorkspaceFiles(chat.workspacePath);
+    workspaceFilesEl.innerHTML = files.length
+      ? files.map((f) => `<div class="workspace-file-entry">${escapeHtml(f)}</div>`).join("")
+      : "<div class=\"workspace-file-entry\">(Ordner ist leer)</div>";
+  } catch (err) {
+    workspaceFilesEl.textContent = `Fehler beim Lesen des Ordners: ${err}`;
+  }
+}
+
+async function pickWorkspace() {
+  const chat = activeChat();
+  if (!chat) return;
+  const folder = await pickWorkspaceFolder();
+  if (!folder) return;
+  chat.workspacePath = folder;
+  persist();
+  renderWorkspaceBar();
+  workspaceFilesExpanded = true;
+  workspaceFilesEl.classList.remove("hidden");
+  workspaceToggleBtnEl.textContent = "▴";
+  await renderWorkspaceFiles();
+}
+
+function detachWorkspace() {
+  const chat = activeChat();
+  if (!chat) return;
+  chat.workspacePath = undefined;
+  persist();
+  renderWorkspaceBar();
+}
+
+async function toggleWorkspaceFiles() {
+  workspaceFilesExpanded = !workspaceFilesExpanded;
+  workspaceFilesEl.classList.toggle("hidden", !workspaceFilesExpanded);
+  workspaceToggleBtnEl.textContent = workspaceFilesExpanded ? "▴" : "▾";
+  if (workspaceFilesExpanded) await renderWorkspaceFiles();
+}
+
 function selectChat(id: string) {
   activeChatId = id;
   renderChatList();
   renderMessages();
   updateHeader();
+  renderWorkspaceBar();
 }
 
 function deleteChat(id: string) {
@@ -221,6 +310,7 @@ function deleteChat(id: string) {
   renderChatList();
   renderMessages();
   updateHeader();
+  renderWorkspaceBar();
 }
 
 function createNewChat() {
@@ -238,6 +328,7 @@ function createNewChat() {
   renderChatList();
   renderMessages();
   updateHeader();
+  renderWorkspaceBar();
 }
 
 async function attachFiles() {
@@ -346,10 +437,46 @@ async function sendMessage() {
   requestTimestamps.push(Date.now());
 
   try {
-    const contents = historyToContents(chat.messages.slice(0, -1));
-    const result = await sendToGemini(apiKey, chat.model, settings.systemPrompt, settings.safetyThreshold, contents);
+    let systemPrompt = settings.systemPrompt;
+    if (chat.workspacePath) {
+      try {
+        const files = await listWorkspaceFiles(chat.workspacePath);
+        systemPrompt += buildWorkspaceSystemPromptAddition(files);
+      } catch (err) {
+        console.debug("Workspace-Dateiliste konnte nicht gelesen werden:", err);
+      }
+    }
 
-    pendingMessage.text = result.text;
+    const contents = historyToContents(chat.messages.slice(0, -1));
+    const result = await sendToGemini(apiKey, chat.model, systemPrompt, settings.safetyThreshold, contents);
+
+    const workspaceCommand = chat.workspacePath ? tryParseWorkspaceCommand(result.text) : null;
+
+    if (workspaceCommand && chat.workspacePath) {
+      try {
+        if (workspaceCommand.action === "delete") {
+          await deleteWorkspaceFile(chat.workspacePath, workspaceCommand.filename);
+        } else {
+          await writeWorkspaceFile(chat.workspacePath, workspaceCommand.filename, workspaceCommand.content ?? "");
+        }
+        pendingMessage.workspaceAction = {
+          action: workspaceCommand.action,
+          filename: workspaceCommand.filename,
+          success: true,
+        };
+      } catch (err) {
+        pendingMessage.workspaceAction = {
+          action: workspaceCommand.action,
+          filename: workspaceCommand.filename,
+          success: false,
+          error: err instanceof Error ? err.message : String(err),
+        };
+      }
+      if (workspaceFilesExpanded) await renderWorkspaceFiles();
+    } else {
+      pendingMessage.text = result.text;
+    }
+
     pendingMessage.pending = false;
     pendingMessage.usage = {
       promptTokens: result.promptTokens,
@@ -429,8 +556,12 @@ async function init() {
   renderChatList();
   renderMessages();
   updateHeader();
+  renderWorkspaceBar();
 
   newChatBtnEl.addEventListener("click", createNewChat);
+  workspacePickBtnEl.addEventListener("click", pickWorkspace);
+  workspaceDetachBtnEl.addEventListener("click", detachWorkspace);
+  workspaceToggleBtnEl.addEventListener("click", toggleWorkspaceFiles);
   attachBtnEl.addEventListener("click", attachFiles);
   sendBtnEl.addEventListener("click", sendMessage);
   promptInputEl.addEventListener("input", autoGrowTextarea);
@@ -457,6 +588,7 @@ async function init() {
   });
 
   checkForUpdates();
+  initTitlebar();
 }
 
 init();
