@@ -86,6 +86,17 @@ Updates werden mit einem lokal erzeugten Minisign-Schlüsselpaar signiert:
   verloren, können keine weiteren signierten Updates mehr veröffentlicht werden und bestehende
   Installationen lassen sich nicht mehr automatisch aktualisieren.
 
+## Bekannte Linux-Probleme
+
+**Fenster bleibt komplett weiß/schwarz:** Ein häufiger WebKitGTK-Bug auf manchen Linux-Systemen
+(VMs, bestimmte Mesa/GPU-Treiber, einige Wayland-Setups). Ab v0.3.1 setzt die App automatisch
+`WEBKIT_DISABLE_COMPOSITING_MODE=1` und `WEBKIT_DISABLE_DMABUF_RENDERER=1` beim Start, was das
+Problem in den meisten Fällen behebt. Tritt es trotzdem noch auf, testweise manuell setzen:
+
+```bash
+WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTwin_*.AppImage
+```
+
 ## API-Schlüssel einrichten
 
 1. App starten, unten links auf **Einstellungen** klicken.

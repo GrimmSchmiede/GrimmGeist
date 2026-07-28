@@ -2,5 +2,14 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
+    // Works around a well-known WebKitGTK bug on Linux where the window renders completely
+    // white/black (seen on VMs, some Mesa/GPU driver combos and Wayland setups) unless the
+    // compositing/DMA-BUF renderer is disabled. Must be set before WebKitGTK initializes.
+    #[cfg(target_os = "linux")]
+    {
+        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
     novatwin_lib::run()
 }
