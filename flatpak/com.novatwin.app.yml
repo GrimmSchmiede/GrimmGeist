@@ -18,6 +18,11 @@ finish-args:
   - --filesystem=home
   # keyring crate stores the API key via the Secret Service (GNOME Keyring / KWallet)
   - --talk-name=org.freedesktop.secrets
+  # WebKitGTK's own internal (bubblewrap) sandbox nested inside Flatpak's sandbox breaks the
+  # localhost connection it uses internally to serve app assets ("could not connect to
+  # localhost", blank window). Flatpak's own sandbox already isolates the app, so WebKit's
+  # redundant inner sandbox is disabled - standard fix for WebKitGTK apps under Flatpak.
+  - --env=WEBKIT_FORCE_SANDBOX=0
 
 modules:
   - name: novatwin

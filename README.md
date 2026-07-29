@@ -106,6 +106,12 @@ Problem in den meisten Fällen behebt. Tritt es trotzdem noch auf, testweise man
 WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTwin_*.AppImage
 ```
 
+**Flatpak: weißes Fenster mit "could not connect to localhost":** WebKitGTKs eigene interne
+(bubblewrap-)Sandbox, verschachtelt in Flatpaks Sandbox, blockiert die localhost-Verbindung, über
+die Tauri intern die App-Assets ausliefert. Ab v0.3.6 setzt das Flatpak-Manifest dafür
+`WEBKIT_FORCE_SANDBOX=0` (Flatpaks eigene Sandbox bleibt bestehen, nur WebKits redundante innere
+Sandbox wird deaktiviert – Standard-Fix für WebKitGTK-Apps unter Flatpak).
+
 ## API-Schlüssel einrichten
 
 1. App starten, unten links auf **Einstellungen** klicken.
