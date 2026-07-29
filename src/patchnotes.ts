@@ -6,6 +6,23 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.5.1",
+    de: [
+      "Fehler behoben: Chats umbenennen funktionierte nicht zuverlässig - jetzt per Rechtsklick auf einen Chat mit Menü für Umbenennen/Löschen",
+      "Fehler behoben: Live-Editor ließ sich nicht ausblenden (ein CSS-Konflikt überschrieb das Verstecken)",
+      "Klapp-Griff mit Pfeil-Symbol (‹/›) am Rand der Editor-Spalte ersetzt das bisherige, wenig eindeutige Umschalt-Icon - immer sichtbar, unabhängig vom Workspace-Ordner",
+      "Sichtbarer Speichern-Button für eigene Änderungen im Editor (zusätzlich zu Strg+S, Tooltip zeigt den Shortcut)",
+      "An eine Nachricht angehängte Einzeldateien lassen sich jetzt ebenfalls per Klick im Live-Editor öffnen, auch ohne verknüpften Workspace-Ordner",
+    ],
+    en: [
+      "Fixed: renaming chats didn't work reliably - now via right-click on a chat with a rename/delete menu",
+      "Fixed: the live editor couldn't be hidden (a CSS rule-order conflict overrode the hide state)",
+      "A collapse handle with an arrow icon (‹/›) on the edge of the editor column replaces the previous, unclear toggle icon - always visible, independent of any workspace folder",
+      "Visible save button for your own edits in the editor (in addition to Ctrl+S, tooltip shows the shortcut)",
+      "Files attached to a single message can now also be opened in the live editor by clicking them, even without a linked workspace folder",
+    ],
+  },
+  {
     version: "0.5.0",
     de: [
       "Neu: Live-Editor (Monaco/VS-Code-Engine) als eigene Spalte zwischen Chat-Verlauf und Chat-Fenster, ein-/ausblendbar über das Symbol in der Workspace-Leiste",

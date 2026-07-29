@@ -32,6 +32,7 @@ import { t, setLanguage, getLanguage } from "./i18n";
 import { PATCH_NOTES } from "./patchnotes";
 import {
   initEditor,
+  openAbsoluteFileInEditor,
   openWorkspaceFileInEditor,
   removeTabIfOpen,
   setTabAILock,
@@ -86,7 +87,6 @@ const workspacePathEl = document.getElementById("workspace-path")!;
 const workspaceToggleBtnEl = document.getElementById("workspace-toggle-btn")!;
 const workspaceDetachBtnEl = document.getElementById("workspace-detach-btn")!;
 const workspaceFilesEl = document.getElementById("workspace-files")!;
-const editorToggleBtnEl = document.getElementById("editor-toggle-btn")!;
 
 const settingsModalEl = document.getElementById("settings-modal")!;
 const settingsBtnEl = document.getElementById("settings-btn")!;
@@ -187,12 +187,12 @@ function renderChatList() {
   for (const chat of [...chats].sort((a, b) => b.createdAt - a.createdAt)) {
     const item = document.createElement("div");
     item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
-    item.innerHTML = `<span class="chat-title" title="${t.renameChatTitle}">${escapeHtml(chat.title)}</span><button class="delete-chat" title="${t.deleteChatTitle}">✕</button>`;
+    item.innerHTML = `<span class="chat-title">${escapeHtml(chat.title)}</span><button class="delete-chat" title="${t.deleteChatTitle}">✕</button>`;
     const titleEl = item.querySelector(".chat-title") as HTMLElement;
     titleEl.addEventListener("click", () => selectChat(chat.id));
-    titleEl.addEventListener("dblclick", (e) => {
-      e.stopPropagation();
-      startChatRename(chat, titleEl);
+    item.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      showChatContextMenu(e.clientX, e.clientY, chat, titleEl);
     });
     item.querySelector(".delete-chat")!.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -200,6 +200,37 @@ function renderChatList() {
     });
     chatListEl.appendChild(item);
   }
+}
+
+let chatContextMenuEl: HTMLElement | null = null;
+
+function hideChatContextMenu() {
+  chatContextMenuEl?.remove();
+  chatContextMenuEl = null;
+  document.removeEventListener("click", hideChatContextMenu);
+}
+
+function showChatContextMenu(x: number, y: number, chat: Chat, titleEl: HTMLElement) {
+  hideChatContextMenu();
+  const menu = document.createElement("div");
+  menu.className = "context-menu";
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+  menu.innerHTML = `
+    <button class="context-menu-item" data-action="rename">✏️ ${t.renameChatTitle}</button>
+    <button class="context-menu-item danger" data-action="delete">🗑️ ${t.deleteChatTitle}</button>
+  `;
+  menu.querySelector('[data-action="rename"]')!.addEventListener("click", () => {
+    hideChatContextMenu();
+    startChatRename(chat, titleEl);
+  });
+  menu.querySelector('[data-action="delete"]')!.addEventListener("click", () => {
+    hideChatContextMenu();
+    deleteChat(chat.id);
+  });
+  document.body.appendChild(menu);
+  chatContextMenuEl = menu;
+  setTimeout(() => document.addEventListener("click", hideChatContextMenu), 0);
 }
 
 function stopPendingTimer() {
@@ -240,7 +271,7 @@ function renderMessages() {
     let filesHtml = "";
     if (msg.files && msg.files.length) {
       filesHtml = `<div class="file-actions">${msg.files
-        .map((f) => `<span class="file-tag">📎 ${escapeHtml(f.name)}</span>`)
+        .map((f, i) => `<span class="file-tag" data-file-idx="${i}" title="${t.openInEditorTitle}">📎 ${escapeHtml(f.name)}</span>`)
         .join("")}</div>`;
     }
 
@@ -273,6 +304,13 @@ function renderMessages() {
       ${workspaceActionHtml}
       ${filesHtml}
     `;
+
+    if (msg.files && msg.files.length) {
+      el.querySelectorAll<HTMLElement>(".file-tag[data-file-idx]").forEach((tagEl) => {
+        const file = msg.files![Number(tagEl.dataset.fileIdx)];
+        if (file) tagEl.addEventListener("click", () => openAbsoluteFileInEditor(file.path, file.name, file.content));
+      });
+    }
 
     // Offer "Datei aktualisieren" for model responses that follow a user message with attachments
     if (msg.role === "model" && !msg.pending && !msg.error) {
@@ -349,12 +387,10 @@ function renderWorkspaceBar() {
   workspacePathEl.title = path ?? "";
   workspaceToggleBtnEl.classList.toggle("hidden", !path);
   workspaceDetachBtnEl.classList.toggle("hidden", !path);
-  editorToggleBtnEl.classList.toggle("hidden", !path);
   workspaceToggleBtnEl.title = workspaceFilesExpanded ? t.hideFilesTitle : t.showFilesTitle;
   workspaceToggleBtnEl.textContent = workspaceFilesExpanded ? "▴" : "▾";
   workspaceDetachBtnEl.title = t.detachWorkspaceTitle;
   workspacePickBtnEl.title = t.pickWorkspaceTitle;
-  editorToggleBtnEl.title = t.toggleEditorTitle;
 
   setEditorWorkspacePath(path ?? null);
 

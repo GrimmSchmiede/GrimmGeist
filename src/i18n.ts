@@ -9,6 +9,10 @@ interface Dict {
   hideFilesTitle: string;
   detachWorkspaceTitle: string;
   toggleEditorTitle: string;
+  showEditorTitle: string;
+  hideEditorTitle: string;
+  saveFileTitle: string;
+  openInEditorTitle: string;
   openEditorEmpty: string;
   loadingFiles: string;
   emptyFolder: string;
@@ -67,6 +71,10 @@ const de: Dict = {
   hideFilesTitle: "Dateien verbergen",
   detachWorkspaceTitle: "Ordner entfernen",
   toggleEditorTitle: "Live-Editor ein-/ausblenden",
+  showEditorTitle: "Live-Editor einblenden",
+  hideEditorTitle: "Live-Editor ausblenden",
+  saveFileTitle: "Speichern (Strg+S)",
+  openInEditorTitle: "Im Live-Editor öffnen",
   openEditorEmpty: "Öffne eine Datei aus der Dateiliste, um sie hier zu bearbeiten.",
   loadingFiles: "Lade Dateien…",
   emptyFolder: "(Ordner ist leer)",
@@ -87,7 +95,7 @@ const de: Dict = {
   updatedFileBtn: (name) => `Aktualisiert: ${name}`,
   updateFileError: (err) => `Fehler beim Schreiben der Datei: ${err}`,
   deleteChatTitle: "Löschen",
-  renameChatTitle: "Umbenennen (Doppelklick)",
+  renameChatTitle: "Umbenennen",
   updateAvailable: (v) => `Update verfügbar: Version ${v}`,
   installUpdate: "Jetzt installieren",
   installing: "Wird installiert…",
@@ -126,6 +134,10 @@ const en: Dict = {
   hideFilesTitle: "Hide files",
   detachWorkspaceTitle: "Remove folder",
   toggleEditorTitle: "Toggle live editor",
+  showEditorTitle: "Show live editor",
+  hideEditorTitle: "Hide live editor",
+  saveFileTitle: "Save (Ctrl+S)",
+  openInEditorTitle: "Open in live editor",
   openEditorEmpty: "Open a file from the file list to edit it here.",
   loadingFiles: "Loading files…",
   emptyFolder: "(Folder is empty)",
@@ -146,7 +158,7 @@ const en: Dict = {
   updatedFileBtn: (name) => `Updated: ${name}`,
   updateFileError: (err) => `Failed to write file: ${err}`,
   deleteChatTitle: "Delete",
-  renameChatTitle: "Rename (double-click)",
+  renameChatTitle: "Rename",
   updateAvailable: (v) => `Update available: version ${v}`,
   installUpdate: "Install now",
   installing: "Installing…",

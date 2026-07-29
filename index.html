@@ -59,10 +59,17 @@
       </aside>
 
       <section id="editor-pane" class="editor-pane hidden">
-        <div id="editor-tabs" class="editor-tabs"></div>
+        <div class="editor-toolbar">
+          <div id="editor-tabs" class="editor-tabs"></div>
+          <button id="editor-save-btn" class="icon-btn editor-save-btn hidden" title="Speichern">💾</button>
+        </div>
         <div id="editor-empty" class="editor-empty"></div>
         <div id="editor-container" class="editor-container hidden"></div>
       </section>
+
+      <button id="editor-collapse-handle" class="editor-collapse-handle" title="Live-Editor ein-/ausblenden">
+        <span id="editor-collapse-icon">‹</span>
+      </button>
 
       <main class="main">
         <header class="chat-header">
@@ -77,7 +84,6 @@
           <button id="workspace-pick-btn" class="icon-btn" title="Arbeitsordner wählen">📁</button>
           <span id="workspace-path" class="workspace-path">Kein Arbeitsordner verknüpft</span>
           <button id="workspace-toggle-btn" class="icon-btn hidden" title="Dateien anzeigen">▾</button>
-          <button id="editor-toggle-btn" class="icon-btn hidden" title="Live-Editor ein-/ausblenden">🗗</button>
           <button id="workspace-detach-btn" class="icon-btn hidden" title="Ordner entfernen">✕</button>
         </div>
         <div id="workspace-files" class="workspace-files hidden"></div>

@@ -318,12 +318,65 @@ body {
   border-right: 1px solid var(--border);
 }
 
-.editor-tabs {
-  display: flex;
+.editor-pane.hidden {
+  display: none;
+}
+
+.editor-collapse-handle {
   flex-shrink: 0;
-  overflow-x: auto;
+  width: 14px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt);
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.editor-collapse-handle:hover {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
+.editor-collapse-handle.panel-open {
+  border-right: none;
+  border-left: 1px solid var(--border);
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
   background: var(--bg-alt);
   border-bottom: 1px solid var(--border);
+}
+
+.editor-tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.editor-save-btn {
+  flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.editor-save-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.editor-save-btn:disabled:hover {
+  background: none;
 }
 
 .editor-tab {
@@ -579,6 +632,15 @@ body {
 .message .file-actions .file-tag {
   font-size: 12px;
   color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.message .file-actions .file-tag:hover {
+  background: var(--bg-elevated);
+  color: var(--text);
 }
 
 .update-file-btn {
@@ -894,4 +956,37 @@ body {
   font-size: 13px;
   color: var(--text);
   line-height: 1.5;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+}
+
+.context-menu-item {
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.context-menu-item:hover {
+  background: var(--accent-dim);
+}
+
+.context-menu-item.danger:hover {
+  background: var(--danger);
+  color: #fff;
 }

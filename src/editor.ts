@@ -1,14 +1,16 @@
 import "./monaco-workers";
 import * as monaco from "monaco-editor";
+import { invoke } from "@tauri-apps/api/core";
 import { readWorkspaceFile, writeWorkspaceFile } from "./workspace";
 import { t } from "./i18n";
 
 export interface OpenTab {
-  path: string; // relative to the workspace root
+  path: string; // workspace-relative path, or an absolute path when `absolute` is true
   name: string;
   content: string; // last content written to disk / loaded from disk
   isLockedByAI: boolean;
   dirty: boolean; // unsaved local edits
+  absolute: boolean; // true for files opened via a chat attachment (no workspace involved)
 }
 
 let activeTabs: OpenTab[] = [];
@@ -20,8 +22,10 @@ let suppressChangeEvent = false;
 const editorPaneEl = document.getElementById("editor-pane")!;
 const editorTabsEl = document.getElementById("editor-tabs")!;
 const editorContainerEl = document.getElementById("editor-container")!;
-const editorToggleBtnEl = document.getElementById("editor-toggle-btn")!;
+const editorCollapseHandleEl = document.getElementById("editor-collapse-handle")!;
+const editorCollapseIconEl = document.getElementById("editor-collapse-icon")!;
 const editorEmptyEl = document.getElementById("editor-empty")!;
+const editorSaveBtnEl = document.getElementById("editor-save-btn") as HTMLButtonElement;
 
 function getLanguageFromExtension(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase();
@@ -96,12 +100,16 @@ export function initEditor() {
     if (!tab || tab.isLockedByAI) return;
     tab.dirty = true;
     renderTabBar();
+    updateSaveButton();
   });
 
   // eslint-disable-next-line no-bitwise
   monacoEditorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
     saveActiveTab();
   });
+
+  editorSaveBtnEl.addEventListener("click", saveActiveTab);
+  updateSaveButton();
 }
 
 function renderTabBar() {
@@ -131,6 +139,13 @@ function updateEmptyState() {
   editorContainerEl.classList.toggle("hidden", !hasTabs);
 }
 
+function updateSaveButton() {
+  const tab = activeTabs.find((tb) => tb.path === currentActiveTabPath);
+  editorSaveBtnEl.classList.toggle("hidden", !tab);
+  editorSaveBtnEl.disabled = !tab || !tab.dirty || tab.isLockedByAI;
+  editorSaveBtnEl.title = t.saveFileTitle;
+}
+
 export function switchToTab(path: string) {
   const tab = activeTabs.find((tb) => tb.path === path);
   if (!tab || !monacoEditorInstance) return;
@@ -145,6 +160,7 @@ export function switchToTab(path: string) {
 
   renderTabBar();
   updateEmptyState();
+  updateSaveButton();
 }
 
 export function closeTab(path: string) {
@@ -157,6 +173,7 @@ export function closeTab(path: string) {
       monacoEditorInstance?.setValue("");
       renderTabBar();
       updateEmptyState();
+      updateSaveButton();
     }
   } else {
     renderTabBar();
@@ -166,17 +183,22 @@ export function closeTab(path: string) {
 export function setWorkspacePath(path: string | null) {
   if (path === currentWorkspacePath) return;
   currentWorkspacePath = path;
-  activeTabs = [];
-  currentActiveTabPath = null;
-  monacoEditorInstance?.setValue("");
+  // Keep tabs opened from a chat attachment (absolute path) - only workspace-relative tabs
+  // belong to the folder that just changed/detached.
+  activeTabs = activeTabs.filter((tb) => tb.absolute);
+  if (currentActiveTabPath && !activeTabs.some((tb) => tb.path === currentActiveTabPath)) {
+    currentActiveTabPath = null;
+    monacoEditorInstance?.setValue("");
+  }
   renderTabBar();
   updateEmptyState();
+  updateSaveButton();
 }
 
 /** Opens (or focuses, if already open) a workspace file in the editor and shows the editor pane. */
 export async function openWorkspaceFileInEditor(relativePath: string): Promise<void> {
   if (!currentWorkspacePath) return;
-  const existing = activeTabs.find((tb) => tb.path === relativePath);
+  const existing = activeTabs.find((tb) => tb.path === relativePath && !tb.absolute);
   showEditorPane();
   if (existing) {
     switchToTab(relativePath);
@@ -184,20 +206,40 @@ export async function openWorkspaceFileInEditor(relativePath: string): Promise<v
   }
   const content = await readWorkspaceFile(currentWorkspacePath, relativePath);
   const name = relativePath.split("/").pop() ?? relativePath;
-  activeTabs.push({ path: relativePath, name, content, isLockedByAI: false, dirty: false });
+  activeTabs.push({ path: relativePath, name, content, isLockedByAI: false, dirty: false, absolute: false });
   switchToTab(relativePath);
 }
 
+/** Opens a file the user attached to a chat message (absolute path, content already in memory -
+ * no disk read needed) in the editor and shows the editor pane. Works even without a workspace
+ * folder linked. */
+export function openAbsoluteFileInEditor(path: string, name: string, content: string): void {
+  showEditorPane();
+  const existing = activeTabs.find((tb) => tb.path === path && tb.absolute);
+  if (existing) {
+    switchToTab(path);
+    return;
+  }
+  activeTabs.push({ path, name, content, isLockedByAI: false, dirty: false, absolute: true });
+  switchToTab(path);
+}
+
 async function saveActiveTab() {
-  if (!currentWorkspacePath || !currentActiveTabPath || !monacoEditorInstance) return;
+  if (!currentActiveTabPath || !monacoEditorInstance) return;
   const tab = activeTabs.find((tb) => tb.path === currentActiveTabPath);
   if (!tab || tab.isLockedByAI) return;
   const content = monacoEditorInstance.getValue();
   try {
-    await writeWorkspaceFile(currentWorkspacePath, tab.path, content);
+    if (tab.absolute) {
+      await invoke("write_text_file", { path: tab.path, content });
+    } else {
+      if (!currentWorkspacePath) return;
+      await writeWorkspaceFile(currentWorkspacePath, tab.path, content);
+    }
     tab.content = content;
     tab.dirty = false;
     renderTabBar();
+    updateSaveButton();
   } catch (err) {
     alert(t.updateFileError(String(err)));
   }
@@ -208,17 +250,18 @@ async function saveActiveTab() {
  * event round-trip, since the Gemini call and the write both already happen in this same
  * frontend context. */
 export function setTabAILock(relativePath: string, locked: boolean) {
-  const tab = activeTabs.find((tb) => tb.path === relativePath);
+  const tab = activeTabs.find((tb) => tb.path === relativePath && !tb.absolute);
   if (!tab) return;
   tab.isLockedByAI = locked;
   if (currentActiveTabPath === relativePath && monacoEditorInstance) {
     monacoEditorInstance.updateOptions({ readOnly: locked });
   }
   renderTabBar();
+  updateSaveButton();
 }
 
 export function updateTabContent(relativePath: string, content: string) {
-  const tab = activeTabs.find((tb) => tb.path === relativePath);
+  const tab = activeTabs.find((tb) => tb.path === relativePath && !tb.absolute);
   if (!tab) return;
   tab.content = content;
   tab.dirty = false;
@@ -228,10 +271,11 @@ export function updateTabContent(relativePath: string, content: string) {
     suppressChangeEvent = false;
   }
   renderTabBar();
+  updateSaveButton();
 }
 
 export function removeTabIfOpen(relativePath: string) {
-  if (activeTabs.some((tb) => tb.path === relativePath)) {
+  if (activeTabs.some((tb) => tb.path === relativePath && !tb.absolute)) {
     closeTab(relativePath);
   }
 }
@@ -240,13 +284,22 @@ export function isEditorPaneVisible(): boolean {
   return !editorPaneEl.classList.contains("hidden");
 }
 
+function updateCollapseHandle() {
+  const visible = isEditorPaneVisible();
+  editorCollapseIconEl.textContent = visible ? "‹" : "›";
+  editorCollapseHandleEl.title = visible ? t.hideEditorTitle : t.showEditorTitle;
+  editorCollapseHandleEl.classList.toggle("panel-open", visible);
+}
+
 export function showEditorPane() {
   editorPaneEl.classList.remove("hidden");
+  updateCollapseHandle();
   setTimeout(() => monacoEditorInstance?.layout(), 50);
 }
 
 export function hideEditorPane() {
   editorPaneEl.classList.add("hidden");
+  updateCollapseHandle();
 }
 
 export function toggleEditorPane() {
@@ -257,4 +310,5 @@ export function toggleEditorPane() {
   }
 }
 
-editorToggleBtnEl.addEventListener("click", toggleEditorPane);
+editorCollapseHandleEl.addEventListener("click", toggleEditorPane);
+updateCollapseHandle();
