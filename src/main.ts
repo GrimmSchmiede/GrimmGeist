@@ -31,6 +31,14 @@ import {
 import { t, setLanguage, getLanguage } from "./i18n";
 import { PATCH_NOTES } from "./patchnotes";
 import {
+  initEditor,
+  openWorkspaceFileInEditor,
+  removeTabIfOpen,
+  setTabAILock,
+  setWorkspacePath as setEditorWorkspacePath,
+  updateTabContent,
+} from "./editor";
+import {
   AppSettings,
   AttachedFile,
   Chat,
@@ -78,6 +86,7 @@ const workspacePathEl = document.getElementById("workspace-path")!;
 const workspaceToggleBtnEl = document.getElementById("workspace-toggle-btn")!;
 const workspaceDetachBtnEl = document.getElementById("workspace-detach-btn")!;
 const workspaceFilesEl = document.getElementById("workspace-files")!;
+const editorToggleBtnEl = document.getElementById("editor-toggle-btn")!;
 
 const settingsModalEl = document.getElementById("settings-modal")!;
 const settingsBtnEl = document.getElementById("settings-btn")!;
@@ -340,10 +349,14 @@ function renderWorkspaceBar() {
   workspacePathEl.title = path ?? "";
   workspaceToggleBtnEl.classList.toggle("hidden", !path);
   workspaceDetachBtnEl.classList.toggle("hidden", !path);
+  editorToggleBtnEl.classList.toggle("hidden", !path);
   workspaceToggleBtnEl.title = workspaceFilesExpanded ? t.hideFilesTitle : t.showFilesTitle;
   workspaceToggleBtnEl.textContent = workspaceFilesExpanded ? "▴" : "▾";
   workspaceDetachBtnEl.title = t.detachWorkspaceTitle;
   workspacePickBtnEl.title = t.pickWorkspaceTitle;
+  editorToggleBtnEl.title = t.toggleEditorTitle;
+
+  setEditorWorkspacePath(path ?? null);
 
   if (!path) {
     workspaceFilesEl.classList.add("hidden");
@@ -358,8 +371,11 @@ async function renderWorkspaceFiles() {
   try {
     const files = await listWorkspaceFiles(chat.workspacePath);
     workspaceFilesEl.innerHTML = files.length
-      ? files.map((f) => `<div class="workspace-file-entry">${escapeHtml(f)}</div>`).join("")
+      ? files.map((f) => `<div class="workspace-file-entry" data-path="${escapeHtml(f)}">${escapeHtml(f)}</div>`).join("")
       : `<div class="workspace-file-entry">${escapeHtml(t.emptyFolder)}</div>`;
+    workspaceFilesEl.querySelectorAll<HTMLElement>(".workspace-file-entry[data-path]").forEach((el) => {
+      el.addEventListener("click", () => openWorkspaceFileInEditor(el.dataset.path!));
+    });
   } catch (err) {
     workspaceFilesEl.textContent = `${t.folderReadError}: ${err}`;
   }
@@ -578,11 +594,14 @@ async function sendMessage() {
       if (actions.length) {
         const results: WorkspaceActionResult[] = [];
         for (const cmd of actions) {
+          setTabAILock(cmd.filename, true);
           try {
             if (cmd.action === "delete") {
               await deleteWorkspaceFile(workspacePath, cmd.filename);
+              removeTabIfOpen(cmd.filename);
             } else {
               await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
+              updateTabContent(cmd.filename, cmd.content ?? "");
             }
             results.push({ action: cmd.action, filename: cmd.filename, success: true });
           } catch (err) {
@@ -592,6 +611,8 @@ async function sendMessage() {
               success: false,
               error: err instanceof Error ? err.message : String(err),
             });
+          } finally {
+            setTabAILock(cmd.filename, false);
           }
         }
         pendingMessage.workspaceActions = results;
@@ -683,6 +704,7 @@ function applyStaticTranslations() {
   promptInputEl.placeholder = t.promptPlaceholder;
   document.getElementById("patchnotes-title")!.textContent = t.patchNotesTitle;
   patchnotesCloseEl.title = t.patchNotesClose;
+  document.getElementById("editor-empty")!.textContent = t.openEditorEmpty;
 
   document.getElementById("settings-title")!.textContent = t.settingsTitle;
   document.getElementById("api-key-label")!.textContent = t.apiKeyLabel;
@@ -725,6 +747,7 @@ function closePatchNotes() {
 // ---- Init ----
 async function init() {
   populateModelSelect();
+  initEditor();
 
   settings = await loadSettings();
   setLanguage(settings.language);

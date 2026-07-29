@@ -81,7 +81,10 @@ export function buildWorkspaceSystemPromptAddition(fileList: string[]): string {
     "alle Dateien flach ins Wurzelverzeichnis zu legen. Nutze dafür relative Pfade mit " +
     "Unterordnern im 'filename'-Feld (z. B. \"client/main.lua\"). Nur wenn der Nutzer ausdrücklich " +
     "eine flache Struktur wünscht oder es sich um ein einzelnes, eigenständiges Skript handelt, " +
-    "lege die Datei direkt ins Wurzelverzeichnis."
+    "lege die Datei direkt ins Wurzelverzeichnis.\n\n" +
+    "WICHTIG für 'content': Schreibe IMMER normal formatierten, mehrzeiligen Code mit echten " +
+    "Zeilenumbrüchen und sauberer Einrückung - genau wie in einer IDE. Quetsche NIEMALS den " +
+    "kompletten Dateiinhalt in eine einzige Zeile, nur weil er als JSON-String übertragen wird."
   );
 }
 

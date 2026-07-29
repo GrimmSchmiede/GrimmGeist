@@ -6,6 +6,25 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.5.0",
+    de: [
+      "Neu: Live-Editor (Monaco/VS-Code-Engine) als eigene Spalte zwischen Chat-Verlauf und Chat-Fenster, ein-/ausblendbar über das Symbol in der Workspace-Leiste",
+      "Datei aus der Workspace-Dateiliste anklicken, um sie mit Syntax-Highlighting im Editor zu öffnen (Tab-Leiste mit Schließen-Button)",
+      "Während NovaTwin eine geöffnete Datei bearbeitet, wird der zugehörige Tab automatisch gesperrt (🔒) und danach live mit dem neuen Inhalt aktualisiert",
+      "Eigene Änderungen im Editor mit Strg+S direkt speichern",
+      "Dateien in der Workspace-Liste zeigen jetzt einen Zeiger-Cursor beim Hovern, damit klar ist, dass sie anklickbar sind",
+      "Fehler behoben: von NovaTwin erstellter Code landete manchmal komplett in einer einzigen Zeile statt normal formatiert",
+    ],
+    en: [
+      "New: live editor (Monaco/VS Code engine) as its own column between the chat list and the chat window, toggleable via the icon in the workspace bar",
+      "Click a file in the workspace file list to open it in the editor with syntax highlighting (tab bar with close button)",
+      "While NovaTwin edits an open file, its tab is automatically locked (🔒) and then live-updated with the new content once done",
+      "Save your own edits in the editor directly with Ctrl+S",
+      "Workspace file list entries now show a pointer cursor on hover to make clear they're clickable",
+      "Fixed: code NovaTwin generated sometimes ended up entirely on a single line instead of properly formatted",
+    ],
+  },
+  {
     version: "0.4.0",
     de: [
       "Chat-Namen umbenennbar (Doppelklick in der Seitenleiste)",

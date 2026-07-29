@@ -306,6 +306,95 @@ body {
   color: var(--danger);
 }
 
+/* Live editor */
+.editor-pane {
+  width: 42%;
+  min-width: 320px;
+  max-width: 60%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+}
+
+.editor-tabs {
+  display: flex;
+  flex-shrink: 0;
+  overflow-x: auto;
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-right: 1px solid var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.editor-tab:hover {
+  background: var(--bg-elevated);
+}
+
+.editor-tab.active {
+  color: var(--text);
+  background: var(--bg-elevated);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.editor-tab .tab-lock {
+  font-size: 11px;
+}
+
+.editor-tab .tab-dirty {
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.editor-tab .tab-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.editor-tab .tab-close:hover {
+  color: var(--danger);
+}
+
+.editor-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  color: var(--text-dim);
+  font-size: 13px;
+}
+
+.editor-empty.hidden {
+  display: none;
+}
+
+.editor-container {
+  flex: 1;
+  min-height: 0;
+}
+
+.editor-container.hidden {
+  display: none;
+}
+
 /* Main */
 .main {
   flex: 1;
@@ -391,10 +480,21 @@ body {
 }
 
 .workspace-files .workspace-file-entry {
-  padding: 2px 0;
+  padding: 3px 6px;
+  margin: 0 -6px;
+  border-radius: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.workspace-files .workspace-file-entry[data-path] {
+  cursor: pointer;
+}
+
+.workspace-files .workspace-file-entry[data-path]:hover {
+  background: var(--bg-elevated);
+  color: var(--text);
 }
 
 .workspace-action-note {

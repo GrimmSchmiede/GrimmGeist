@@ -87,7 +87,15 @@ export const WORKSPACE_RESPONSE_SCHEMA = {
         properties: {
           action: { type: "STRING", enum: ["create", "edit", "delete"] },
           filename: { type: "STRING", description: "Pfad relativ zum Workspace-Ordner." },
-          content: { type: "STRING", description: "Vollständiger neuer Dateiinhalt (nur bei create/edit)." },
+          content: {
+            type: "STRING",
+            description:
+              "Vollständiger neuer Dateiinhalt (nur bei create/edit). MUSS normal formatierter, " +
+              "mehrzeiliger Quellcode mit echten Zeilenumbrüchen (\\n) und sauberer Einrückung sein, " +
+              "genau wie in einer echten Datei/IDE - so wie du es auch ohne JSON-Format schreiben " +
+              "würdest. NIEMALS den gesamten Dateiinhalt in eine einzige Zeile komprimieren oder " +
+              "minifizieren, nur weil er in einem JSON-String steht.",
+          },
         },
         required: ["action", "filename"],
       },

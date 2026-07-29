@@ -142,6 +142,13 @@ fn workspace_write_file(workspace: String, filename: String, content: String) ->
     Ok(path.to_string_lossy().to_string())
 }
 
+/// Reads a file inside the workspace folder as UTF-8 text.
+#[tauri::command]
+fn workspace_read_file(workspace: String, filename: String) -> Result<String, String> {
+    let path = safe_workspace_join(&workspace, &filename)?;
+    fs::read_to_string(&path).map_err(|e| format!("Datei konnte nicht gelesen werden: {e}"))
+}
+
 /// Deletes a file inside the workspace folder, if it exists.
 #[tauri::command]
 fn workspace_delete_file(workspace: String, filename: String) -> Result<(), String> {
@@ -167,6 +174,7 @@ pub fn run() {
             load_api_key,
             delete_api_key,
             list_workspace_files,
+            workspace_read_file,
             workspace_write_file,
             workspace_delete_file
         ])

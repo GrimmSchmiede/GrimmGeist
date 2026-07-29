@@ -19,6 +19,10 @@ export async function writeWorkspaceFile(
   return await invoke<string>("workspace_write_file", { workspace, filename, content });
 }
 
+export async function readWorkspaceFile(workspace: string, filename: string): Promise<string> {
+  return await invoke<string>("workspace_read_file", { workspace, filename });
+}
+
 export async function deleteWorkspaceFile(workspace: string, filename: string): Promise<void> {
   await invoke("workspace_delete_file", { workspace, filename });
 }

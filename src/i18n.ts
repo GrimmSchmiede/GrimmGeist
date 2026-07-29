@@ -8,6 +8,8 @@ interface Dict {
   showFilesTitle: string;
   hideFilesTitle: string;
   detachWorkspaceTitle: string;
+  toggleEditorTitle: string;
+  openEditorEmpty: string;
   loadingFiles: string;
   emptyFolder: string;
   folderReadError: string;
@@ -64,6 +66,8 @@ const de: Dict = {
   showFilesTitle: "Dateien anzeigen",
   hideFilesTitle: "Dateien verbergen",
   detachWorkspaceTitle: "Ordner entfernen",
+  toggleEditorTitle: "Live-Editor ein-/ausblenden",
+  openEditorEmpty: "Öffne eine Datei aus der Dateiliste, um sie hier zu bearbeiten.",
   loadingFiles: "Lade Dateien…",
   emptyFolder: "(Ordner ist leer)",
   folderReadError: "Fehler beim Lesen des Ordners",
@@ -121,6 +125,8 @@ const en: Dict = {
   showFilesTitle: "Show files",
   hideFilesTitle: "Hide files",
   detachWorkspaceTitle: "Remove folder",
+  toggleEditorTitle: "Toggle live editor",
+  openEditorEmpty: "Open a file from the file list to edit it here.",
   loadingFiles: "Loading files…",
   emptyFolder: "(Folder is empty)",
   folderReadError: "Failed to read folder",
