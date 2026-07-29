@@ -17,7 +17,7 @@ import {
   deleteWorkspaceFile,
   listWorkspaceFiles,
   pickWorkspaceFolder,
-  tryParseWorkspaceCommand,
+  tryParseWorkspaceCommands,
   writeWorkspaceFile,
 } from "./workspace";
 import {
@@ -30,6 +30,7 @@ import {
   MODEL_OPTIONS,
   PER_MINUTE_REQUEST_LIMIT,
   QuotaState,
+  WorkspaceActionResult,
   buildWorkspaceSystemPromptAddition,
 } from "./types";
 
@@ -150,17 +151,20 @@ function renderMessages() {
         .join("")}</div>`;
     }
 
-    const bubbleHtml = msg.workspaceAction
+    const bubbleHtml = msg.workspaceActions
       ? ""
       : `<div class="bubble">${renderMessageBody(msg.text || (msg.pending ? "…" : ""))}</div>`;
 
     let workspaceActionHtml = "";
-    if (msg.workspaceAction) {
-      const wa = msg.workspaceAction;
-      const actionLabel = { create: "erstellt", edit: "bearbeitet", delete: "gelöscht" }[wa.action];
-      workspaceActionHtml = wa.success
-        ? `<div class="workspace-action-note success">Datei ${actionLabel}: ${escapeHtml(wa.filename)}</div>`
-        : `<div class="workspace-action-note failed">Aktion „${wa.action}" für ${escapeHtml(wa.filename)} fehlgeschlagen: ${escapeHtml(wa.error ?? "")}</div>`;
+    if (msg.workspaceActions) {
+      const actionLabel = { create: "erstellt", edit: "bearbeitet", delete: "gelöscht" };
+      workspaceActionHtml = msg.workspaceActions
+        .map((wa) =>
+          wa.success
+            ? `<div class="workspace-action-note success">Datei ${actionLabel[wa.action]}: ${escapeHtml(wa.filename)}</div>`
+            : `<div class="workspace-action-note failed">Aktion „${wa.action}" für ${escapeHtml(wa.filename)} fehlgeschlagen: ${escapeHtml(wa.error ?? "")}</div>`
+        )
+        .join("");
     }
 
     el.innerHTML = `
@@ -450,28 +454,29 @@ async function sendMessage() {
     const contents = historyToContents(chat.messages.slice(0, -1));
     const result = await sendToGemini(apiKey, chat.model, systemPrompt, settings.safetyThreshold, contents);
 
-    const workspaceCommand = chat.workspacePath ? tryParseWorkspaceCommand(result.text) : null;
+    const workspaceCommands = chat.workspacePath ? tryParseWorkspaceCommands(result.text) : null;
 
-    if (workspaceCommand && chat.workspacePath) {
-      try {
-        if (workspaceCommand.action === "delete") {
-          await deleteWorkspaceFile(chat.workspacePath, workspaceCommand.filename);
-        } else {
-          await writeWorkspaceFile(chat.workspacePath, workspaceCommand.filename, workspaceCommand.content ?? "");
+    if (workspaceCommands && chat.workspacePath) {
+      const workspacePath = chat.workspacePath;
+      const results: WorkspaceActionResult[] = [];
+      for (const cmd of workspaceCommands) {
+        try {
+          if (cmd.action === "delete") {
+            await deleteWorkspaceFile(workspacePath, cmd.filename);
+          } else {
+            await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
+          }
+          results.push({ action: cmd.action, filename: cmd.filename, success: true });
+        } catch (err) {
+          results.push({
+            action: cmd.action,
+            filename: cmd.filename,
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
         }
-        pendingMessage.workspaceAction = {
-          action: workspaceCommand.action,
-          filename: workspaceCommand.filename,
-          success: true,
-        };
-      } catch (err) {
-        pendingMessage.workspaceAction = {
-          action: workspaceCommand.action,
-          filename: workspaceCommand.filename,
-          success: false,
-          error: err instanceof Error ? err.message : String(err),
-        };
       }
+      pendingMessage.workspaceActions = results;
       if (workspaceFilesExpanded) await renderWorkspaceFiles();
     } else {
       pendingMessage.text = result.text;

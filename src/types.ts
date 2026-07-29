@@ -23,7 +23,7 @@ export interface ChatMessage {
   };
   pending?: boolean;
   error?: boolean;
-  workspaceAction?: WorkspaceActionResult;
+  workspaceActions?: WorkspaceActionResult[];
 }
 
 export interface Chat {
@@ -58,12 +58,15 @@ export function buildWorkspaceSystemPromptAddition(fileList: string[]): string {
   return (
     "\n\nZUSÄTZLICH hast du Zugriff auf einen lokalen Workspace-Ordner. Vorhandene Dateien darin:\n" +
     `${files}\n\n` +
-    "Wenn der Nutzer möchte, dass du in DIESEM Workspace-Ordner eine Datei erstellst, bearbeitest " +
+    "Wenn der Nutzer möchte, dass du in DIESEM Workspace-Ordner Dateien erstellst, bearbeitest " +
     "oder löschst, antworte AUSSCHLIESSLICH mit einem einzeiligen JSON-Objekt in genau diesem Format " +
-    '(kein Markdown, kein Codeblock, kein Text davor/danach):\n' +
-    '{"action":"create|edit|delete","filename":"relativer/pfad.lua","content":"neuer Dateiinhalt (nur bei create/edit)"}\n' +
-    "Für alle anderen Anfragen (Fragen, Erklärungen, Chat über an den Prompt angehängte Dateien) " +
-    "antworte ganz normal in Klartext, NICHT als JSON."
+    "(kein Markdown, kein Codeblock, kein Text davor/danach):\n" +
+    '{"actions":[{"action":"create|edit|delete","filename":"relativer/pfad.lua","content":"neuer Dateiinhalt (nur bei create/edit)"}]}\n' +
+    "Das actions-Array kann MEHRERE Einträge enthalten. Wenn die Anfrage mehrere Dateien braucht " +
+    "(z. B. ein komplettes Feature, eine ganze Ressource mit mehreren Skripten/Configs), liefere " +
+    "ALLE dafür nötigen Dateien in EINER Antwort als mehrere Array-Einträge, statt nur eine einzelne " +
+    "Datei zu erstellen und auf Rückfrage zu warten. Für alle anderen Anfragen (Fragen, Erklärungen, " +
+    "Chat über an den Prompt angehängte Dateien) antworte ganz normal in Klartext, NICHT als JSON."
   );
 }
 

@@ -29,20 +29,30 @@ export interface WorkspaceCommand {
   content?: string;
 }
 
-/** Parses a Gemini response as a workspace file-action command, per the JSON protocol in the
- * workspace system-prompt addition. Returns null for any normal chat text (not an error). */
-export function tryParseWorkspaceCommand(text: string): WorkspaceCommand | null {
+function isWorkspaceCommand(value: unknown): value is WorkspaceCommand {
+  return (
+    !!value &&
+    typeof value === "object" &&
+    typeof (value as Record<string, unknown>).filename === "string" &&
+    ["create", "edit", "delete"].includes((value as Record<string, unknown>).action as string)
+  );
+}
+
+/** Parses a Gemini response as one or more workspace file-action commands, per the JSON protocol
+ * in the workspace system-prompt addition. Accepts both the current `{"actions":[...]}` array
+ * format and a bare single-action object (in case the model drops the wrapper). Returns null for
+ * any normal chat text (not an error). */
+export function tryParseWorkspaceCommands(text: string): WorkspaceCommand[] | null {
   const trimmed = text.trim();
   if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
   try {
     const parsed = JSON.parse(trimmed);
-    if (
-      parsed &&
-      typeof parsed === "object" &&
-      typeof parsed.filename === "string" &&
-      ["create", "edit", "delete"].includes(parsed.action)
-    ) {
-      return parsed as WorkspaceCommand;
+    if (parsed && typeof parsed === "object" && Array.isArray((parsed as Record<string, unknown>).actions)) {
+      const actions = (parsed as { actions: unknown[] }).actions.filter(isWorkspaceCommand);
+      return actions.length ? actions : null;
+    }
+    if (isWorkspaceCommand(parsed)) {
+      return [parsed];
     }
   } catch {
     // Not JSON: treat as normal chat text.
