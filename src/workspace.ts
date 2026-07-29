@@ -38,24 +38,26 @@ function isWorkspaceCommand(value: unknown): value is WorkspaceCommand {
   );
 }
 
-/** Parses a Gemini response as one or more workspace file-action commands, per the JSON protocol
- * in the workspace system-prompt addition. Accepts both the current `{"actions":[...]}` array
- * format and a bare single-action object (in case the model drops the wrapper). Returns null for
- * any normal chat text (not an error). */
-export function tryParseWorkspaceCommands(text: string): WorkspaceCommand[] | null {
-  const trimmed = text.trim();
-  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return null;
+export interface WorkspaceResponse {
+  reply: string;
+  actions: WorkspaceCommand[];
+}
+
+/** Parses a workspace-mode Gemini response into its chat reply and file actions. The API is
+ * asked for Structured Output matching WORKSPACE_RESPONSE_SCHEMA (see gemini.ts), so `text` here
+ * is expected to always be valid JSON of the form {"reply": string, "actions": [...]}; this still
+ * degrades gracefully (whole text becomes the reply) if that's ever not the case. */
+export function parseWorkspaceResponse(text: string): WorkspaceResponse {
   try {
-    const parsed = JSON.parse(trimmed);
-    if (parsed && typeof parsed === "object" && Array.isArray((parsed as Record<string, unknown>).actions)) {
-      const actions = (parsed as { actions: unknown[] }).actions.filter(isWorkspaceCommand);
-      return actions.length ? actions : null;
-    }
-    if (isWorkspaceCommand(parsed)) {
-      return [parsed];
+    const parsed = JSON.parse(text.trim());
+    if (parsed && typeof parsed === "object") {
+      const reply = typeof (parsed as Record<string, unknown>).reply === "string" ? (parsed as { reply: string }).reply : "";
+      const actionsRaw = (parsed as Record<string, unknown>).actions;
+      const actions = Array.isArray(actionsRaw) ? actionsRaw.filter(isWorkspaceCommand) : [];
+      if (reply || actions.length) return { reply, actions };
     }
   } catch {
-    // Not JSON: treat as normal chat text.
+    // Not JSON (shouldn't happen with Structured Output, but degrade gracefully).
   }
-  return null;
+  return { reply: text, actions: [] };
 }

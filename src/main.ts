@@ -10,14 +10,20 @@ import {
   loadApiKey,
   saveApiKey,
 } from "./storage";
-import { GeminiApiError, historyToContents, sendToGemini, stripCodeFences } from "./gemini";
+import {
+  GeminiApiError,
+  WORKSPACE_RESPONSE_SCHEMA,
+  historyToContents,
+  sendToGemini,
+  stripCodeFences,
+} from "./gemini";
 import { checkForUpdates } from "./updater";
 import { initTitlebar } from "./titlebar";
 import {
   deleteWorkspaceFile,
   listWorkspaceFiles,
+  parseWorkspaceResponse,
   pickWorkspaceFolder,
-  tryParseWorkspaceCommands,
   writeWorkspaceFile,
 } from "./workspace";
 import {
@@ -151,9 +157,10 @@ function renderMessages() {
         .join("")}</div>`;
     }
 
-    const bubbleHtml = msg.workspaceActions
-      ? ""
-      : `<div class="bubble">${renderMessageBody(msg.text || (msg.pending ? "…" : ""))}</div>`;
+    const bubbleHtml =
+      msg.workspaceActions && !msg.text
+        ? ""
+        : `<div class="bubble">${renderMessageBody(msg.text || (msg.pending ? "…" : ""))}</div>`;
 
     let workspaceActionHtml = "";
     if (msg.workspaceActions) {
@@ -452,32 +459,42 @@ async function sendMessage() {
     }
 
     const contents = historyToContents(chat.messages.slice(0, -1));
-    const result = await sendToGemini(apiKey, chat.model, systemPrompt, settings.safetyThreshold, contents);
+    const result = await sendToGemini(
+      apiKey,
+      chat.model,
+      systemPrompt,
+      settings.safetyThreshold,
+      contents,
+      chat.workspacePath ? WORKSPACE_RESPONSE_SCHEMA : undefined
+    );
 
-    const workspaceCommands = chat.workspacePath ? tryParseWorkspaceCommands(result.text) : null;
-
-    if (workspaceCommands && chat.workspacePath) {
+    if (chat.workspacePath) {
       const workspacePath = chat.workspacePath;
-      const results: WorkspaceActionResult[] = [];
-      for (const cmd of workspaceCommands) {
-        try {
-          if (cmd.action === "delete") {
-            await deleteWorkspaceFile(workspacePath, cmd.filename);
-          } else {
-            await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
+      const { reply, actions } = parseWorkspaceResponse(result.text);
+      pendingMessage.text = reply;
+
+      if (actions.length) {
+        const results: WorkspaceActionResult[] = [];
+        for (const cmd of actions) {
+          try {
+            if (cmd.action === "delete") {
+              await deleteWorkspaceFile(workspacePath, cmd.filename);
+            } else {
+              await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
+            }
+            results.push({ action: cmd.action, filename: cmd.filename, success: true });
+          } catch (err) {
+            results.push({
+              action: cmd.action,
+              filename: cmd.filename,
+              success: false,
+              error: err instanceof Error ? err.message : String(err),
+            });
           }
-          results.push({ action: cmd.action, filename: cmd.filename, success: true });
-        } catch (err) {
-          results.push({
-            action: cmd.action,
-            filename: cmd.filename,
-            success: false,
-            error: err instanceof Error ? err.message : String(err),
-          });
         }
+        pendingMessage.workspaceActions = results;
+        if (workspaceFilesExpanded) await renderWorkspaceFiles();
       }
-      pendingMessage.workspaceActions = results;
-      if (workspaceFilesExpanded) await renderWorkspaceFiles();
     } else {
       pendingMessage.text = result.text;
     }

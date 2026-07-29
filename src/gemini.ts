@@ -68,18 +68,47 @@ const SAFETY_CATEGORIES = [
   "HARM_CATEGORY_DANGEROUS_CONTENT",
 ];
 
+/** Schema for the Gemini API's Structured Output mode (generationConfig.responseSchema).
+ * Forces syntactically valid JSON at the API level instead of hoping the model formats free-text
+ * JSON correctly - the latter reliably breaks once responses contain multi-file source code with
+ * quotes/newlines that need escaping. */
+export const WORKSPACE_RESPONSE_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    reply: {
+      type: "STRING",
+      description: "Normale Chat-Antwort an den Nutzer (Erklärung, Rückfrage, o.ä.). Leer lassen, wenn nur Datei-Aktionen zurückgegeben werden.",
+    },
+    actions: {
+      type: "ARRAY",
+      description: "Datei-Aktionen im verknüpften Workspace-Ordner. Leer lassen, wenn keine Datei geändert werden soll.",
+      items: {
+        type: "OBJECT",
+        properties: {
+          action: { type: "STRING", enum: ["create", "edit", "delete"] },
+          filename: { type: "STRING", description: "Pfad relativ zum Workspace-Ordner." },
+          content: { type: "STRING", description: "Vollständiger neuer Dateiinhalt (nur bei create/edit)." },
+        },
+        required: ["action", "filename"],
+      },
+    },
+  },
+  required: ["reply", "actions"],
+};
+
 export async function sendToGemini(
   apiKey: string,
   model: string,
   systemPrompt: string,
   safetyThreshold: string,
-  contents: GeminiContent[]
+  contents: GeminiContent[],
+  responseSchema?: object
 ): Promise<GeminiResult> {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(
     apiKey
   )}`;
 
-  const body = {
+  const body: Record<string, unknown> = {
     system_instruction: { parts: [{ text: systemPrompt }] },
     contents,
     safetySettings: SAFETY_CATEGORIES.map((category) => ({
@@ -87,6 +116,13 @@ export async function sendToGemini(
       threshold: safetyThreshold,
     })),
   };
+
+  if (responseSchema) {
+    body.generationConfig = {
+      responseMimeType: "application/json",
+      responseSchema,
+    };
+  }
 
   const res = await fetch(url, {
     method: "POST",
