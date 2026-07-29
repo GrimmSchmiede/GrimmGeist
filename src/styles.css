@@ -58,8 +58,10 @@ body {
 }
 
 .titlebar-logo {
-  color: var(--accent);
-  font-size: 13px;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
 }
 
 .titlebar-title {
