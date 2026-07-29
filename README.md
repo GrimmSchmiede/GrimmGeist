@@ -109,8 +109,11 @@ WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTwin_*.
 **Flatpak: weißes Fenster mit "could not connect to localhost":** WebKitGTKs eigene interne
 (bubblewrap-)Sandbox, verschachtelt in Flatpaks Sandbox, blockiert die localhost-Verbindung, über
 die Tauri intern die App-Assets ausliefert. Ab v0.3.6 setzt das Flatpak-Manifest dafür
-`WEBKIT_FORCE_SANDBOX=0` (Flatpaks eigene Sandbox bleibt bestehen, nur WebKits redundante innere
-Sandbox wird deaktiviert – Standard-Fix für WebKitGTK-Apps unter Flatpak).
+`WEBKIT_FORCE_SANDBOX=0`. Ab v0.3.7 zusätzlich `runtime-version: '50'` statt `'47'` – ein
+unabhängig getesteter Community-Build (PR #1) lief bereits ohne den Env-Var-Fix stabil, nur mit
+der neueren Runtime-Version, was nahelegt, dass der zugrunde liegende Bug in neueren
+`org.gnome.Platform`-Versionen bereits upstream behoben ist. Beide Fixes bleiben aus
+Sicherheitsgründen kombiniert bestehen.
 
 ## API-Schlüssel einrichten
 
