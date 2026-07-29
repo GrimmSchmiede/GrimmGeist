@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=NovaTwin
+Comment=Desktop-Chat-Client fuer die Google Gemini API
+Exec=novatwin
+Icon=com.novatwin.app
+Terminal=false
+Categories=Utility;Development;

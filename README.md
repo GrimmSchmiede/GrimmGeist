@@ -59,7 +59,14 @@ Bei jedem Push auf `main` baut `.github/workflows/release.yml` über eine Matrix
 (`windows-latest`, `ubuntu-22.04`) mittels `tauri-apps/tauri-action` automatisch:
 
 - Windows: `.exe` (NSIS) / `.msi`
-- Linux: `.AppImage` / `.deb`
+- Linux: `.AppImage` / `.deb` / `.rpm`
+
+Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `NovaTwin.flatpak` gegen die
+`org.gnome.Platform`-Runtime (bringt eine feste, getestete WebKitGTK-Version mit statt der des
+Host-Systems – behebt Rendering-Probleme wie `EGL_BAD_PARAMETER`, die auf manchen Distros mit
+sehr aktuellem Mesa/WebKitGTK auftreten, z. B. bei AppImages, die WebKitGTK nicht mitbündeln).
+Installation: `.flatpak`-Datei herunterladen, dann `flatpak install NovaTwin.flatpak` bzw. per
+Doppelklick, falls die Dateimanager-Integration vorhanden ist.
 
 Die fertigen Installer werden automatisch als **veröffentlichter Release** (nicht als Draft)
 unter "Releases" im Repository abgelegt – nur ein veröffentlichter Release ist über den

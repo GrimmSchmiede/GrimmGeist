@@ -1,0 +1,37 @@
+app-id: com.novatwin.app
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+command: novatwin
+separate-locales: false
+
+finish-args:
+  # GUI on both Wayland and X11 (with X11 fallback for non-Wayland setups)
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  # GPU access - without this WebKitGTK cannot create a hardware or software GL/EGL context
+  - --device=dri
+  # Gemini API requests + update checks
+  - --share=network
+  # File attachments and workspace folders can be anywhere on disk, chosen via native dialog
+  - --filesystem=home
+  # keyring crate stores the API key via the Secret Service (GNOME Keyring / KWallet)
+  - --talk-name=org.freedesktop.secrets
+
+modules:
+  - name: novatwin
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 novatwin /app/bin/novatwin
+      - install -Dm644 novatwin.desktop /app/share/applications/com.novatwin.app.desktop
+      - install -Dm644 icon-128.png /app/share/icons/hicolor/128x128/apps/com.novatwin.app.png
+    sources:
+      - type: file
+        path: ../src-tauri/target/release/novatwin
+        dest-filename: novatwin
+      - type: file
+        path: novatwin.desktop
+      - type: file
+        path: ../src-tauri/icons/128x128.png
+        dest-filename: icon-128.png
