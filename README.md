@@ -3,6 +3,8 @@
 Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Tauri](https://tauri.app) 2
 (Rust-Backend + Vanilla TypeScript-Frontend).
 
+![NovaTwin Screenshot](docs/screenshot.png)
+
 ## Features
 
 - Eigene, ins Design integrierte Titelleiste (keine native OS-Titelleiste) mit Versionsanzeige
