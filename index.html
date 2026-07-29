@@ -14,9 +14,27 @@
       <div class="titlebar-brand" data-tauri-drag-region>
         <img src="/icon.png" class="titlebar-logo" alt="" data-tauri-drag-region />
         <span class="titlebar-title" data-tauri-drag-region>NovaTwin</span>
-        <span id="titlebar-version" class="titlebar-version" data-tauri-drag-region></span>
+        <button id="titlebar-version" class="titlebar-version" title="Was ist neu"></button>
       </div>
       <div class="titlebar-controls">
+        <div class="lang-switch">
+          <button id="lang-de" class="lang-btn" title="Deutsch">
+            <svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg">
+              <rect width="5" height="1" y="0" fill="#000000" />
+              <rect width="5" height="1" y="1" fill="#DD0000" />
+              <rect width="5" height="1" y="2" fill="#FFCE00" />
+            </svg>
+          </button>
+          <button id="lang-en" class="lang-btn" title="English">
+            <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+              <rect width="60" height="30" fill="#00247d" />
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#ffffff" stroke-width="6" />
+              <path d="M0,0 L60,30 M60,0 L0,30" stroke="#cf142b" stroke-width="2" />
+              <path d="M30,0 V30 M0,15 H60" stroke="#ffffff" stroke-width="10" />
+              <path d="M30,0 V30 M0,15 H60" stroke="#cf142b" stroke-width="6" />
+            </svg>
+          </button>
+        </div>
         <button id="titlebar-minimize" class="titlebar-btn" title="Minimieren">🗕</button>
         <button id="titlebar-maximize" class="titlebar-btn" title="Maximieren">☐</button>
         <button id="titlebar-close" class="titlebar-btn titlebar-close" title="Schließen">✕</button>
@@ -32,11 +50,11 @@
     <div class="app">
       <aside class="sidebar">
         <button id="new-chat-btn" class="new-chat-btn">
-          <span class="icon">+</span> Neuer Chat
+          <span class="icon">+</span> <span id="new-chat-label">Neuer Chat</span>
         </button>
         <div id="chat-list" class="chat-list"></div>
         <button id="settings-btn" class="settings-btn" title="Einstellungen">
-          <span class="icon">⚙</span> Einstellungen
+          <span class="icon">⚙</span> <span id="settings-label">Einstellungen</span>
         </button>
       </aside>
 
@@ -79,11 +97,11 @@
     <div id="settings-modal" class="modal-overlay hidden">
       <div class="modal">
         <div class="modal-header">
-          <h2>Einstellungen</h2>
+          <h2 id="settings-title">Einstellungen</h2>
           <button id="settings-close" class="icon-btn">✕</button>
         </div>
         <div class="modal-body">
-          <label class="field-label" for="api-key-input">Google AI Studio API-Schlüssel</label>
+          <label class="field-label" id="api-key-label" for="api-key-input">Google AI Studio API-Schlüssel</label>
           <input
             id="api-key-input"
             class="text-input"
@@ -91,15 +109,15 @@
             placeholder="AIza…"
             autocomplete="off"
           />
-          <p class="field-hint">
+          <p class="field-hint" id="api-key-hint">
             Wird sicher im Betriebssystem-Schlüsselbund gespeichert (Windows Credential
             Manager / Linux Secret Service), niemals im Quellcode oder Klartext.
           </p>
 
-          <label class="field-label" for="system-prompt-input">System-Prompt</label>
+          <label class="field-label" id="system-prompt-label" for="system-prompt-input">System-Prompt</label>
           <textarea id="system-prompt-input" class="text-input" rows="6"></textarea>
 
-          <label class="field-label" for="safety-select">Sicherheitsfilter</label>
+          <label class="field-label" id="safety-label" for="safety-select">Sicherheitsfilter</label>
           <select id="safety-select" class="text-input">
             <option value="BLOCK_NONE">Kein Filter (BLOCK_NONE)</option>
             <option value="BLOCK_ONLY_HIGH">Nur hohes Risiko blockieren</option>
@@ -111,6 +129,16 @@
             <button id="settings-save" class="primary-btn">Speichern</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <div id="patchnotes-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="patchnotes-title">Was ist neu</h2>
+          <button id="patchnotes-close" class="icon-btn">✕</button>
+        </div>
+        <div id="patchnotes-body" class="modal-body patchnotes-body"></div>
       </div>
     </div>
   </body>

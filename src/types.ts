@@ -22,6 +22,7 @@ export interface ChatMessage {
     candidatesTokens: number;
   };
   pending?: boolean;
+  pendingStartedAt?: number;
   error?: boolean;
   workspaceActions?: WorkspaceActionResult[];
 }
@@ -36,9 +37,12 @@ export interface Chat {
   workspacePath?: string;
 }
 
+export type Language = "de" | "en";
+
 export interface AppSettings {
   systemPrompt: string;
   safetyThreshold: string;
+  language: Language;
 }
 
 export interface QuotaState {
@@ -70,8 +74,22 @@ export function buildWorkspaceSystemPromptAddition(fileList: string[]): string {
     "komplettes Feature oder eine ganze Ressource mit mehreren Skripten/Configs), liefere ALLE " +
     "dafür nötigen Dateien in EINER Antwort als mehrere Einträge im actions-Array, statt nur eine " +
     "einzelne Datei zu erstellen und auf Rückfrage zu warten. Für reine Fragen/Erklärungen ohne " +
-    "Dateiänderung nutze nur 'reply' und lasse 'actions' leer."
+    "Dateiänderung nutze nur 'reply' und lasse 'actions' leer.\n\n" +
+    "WICHTIG für die Dateistruktur: Achte bei mehreren Dateien auf eine sinnvolle, übliche " +
+    "Ordnerstruktur passend zum Projekttyp (z. B. bei FiveM-Ressourcen: client/, server/, html/, " +
+    "config/ - bei Webprojekten: src/, assets/ - bei Python: src/ oder Modul-Unterordner), statt " +
+    "alle Dateien flach ins Wurzelverzeichnis zu legen. Nutze dafür relative Pfade mit " +
+    "Unterordnern im 'filename'-Feld (z. B. \"client/main.lua\"). Nur wenn der Nutzer ausdrücklich " +
+    "eine flache Struktur wünscht oder es sich um ein einzelnes, eigenständiges Skript handelt, " +
+    "lege die Datei direkt ins Wurzelverzeichnis."
   );
+}
+
+/** Appended to every system prompt so Gemini replies in the UI's selected language. */
+export function buildLanguageSystemPromptAddition(language: Language): string {
+  return language === "en"
+    ? "\n\nAlways reply in English, regardless of the language the user writes in."
+    : "\n\nAntworte immer auf Deutsch, unabhängig davon, in welcher Sprache der Nutzer schreibt.";
 }
 
 export interface ModelOption {

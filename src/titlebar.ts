@@ -3,6 +3,10 @@ import { getVersion } from "@tauri-apps/api/app";
 
 const appWindow = getCurrentWindow();
 
+export async function getAppVersion(): Promise<string> {
+  return await getVersion();
+}
+
 export async function initTitlebar(): Promise<void> {
   const versionEl = document.getElementById("titlebar-version")!;
   const minimizeBtn = document.getElementById("titlebar-minimize")!;

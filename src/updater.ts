@@ -1,5 +1,6 @@
 import { check, Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { t } from "./i18n";
 
 const bannerEl = document.getElementById("update-banner")!;
 const bannerTextEl = document.getElementById("update-banner-text")!;
@@ -9,7 +10,9 @@ const dismissBtnEl = document.getElementById("update-dismiss-btn")!;
 let pendingUpdate: Update | null = null;
 
 function showBanner(version: string) {
-  bannerTextEl.textContent = `Update verfügbar: Version ${version}`;
+  bannerTextEl.textContent = t.updateAvailable(version);
+  installBtnEl.textContent = t.installUpdate;
+  dismissBtnEl.title = t.later;
   bannerEl.classList.remove("hidden");
 }
 
@@ -20,14 +23,14 @@ function hideBanner() {
 async function installUpdate() {
   if (!pendingUpdate) return;
   installBtnEl.disabled = true;
-  installBtnEl.textContent = "Wird installiert…";
+  installBtnEl.textContent = t.installing;
   try {
     await pendingUpdate.downloadAndInstall();
     await relaunch();
   } catch (err) {
     installBtnEl.disabled = false;
-    installBtnEl.textContent = "Jetzt installieren";
-    alert(`Update konnte nicht installiert werden: ${err}`);
+    installBtnEl.textContent = t.installUpdate;
+    alert(t.installUpdateError(String(err)));
   }
 }
 

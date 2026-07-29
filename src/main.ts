@@ -9,16 +9,18 @@ import {
   saveQuota,
   loadApiKey,
   saveApiKey,
+  loadLastSeenVersion,
+  saveLastSeenVersion,
 } from "./storage";
 import {
   GeminiApiError,
   WORKSPACE_RESPONSE_SCHEMA,
   historyToContents,
-  sendToGemini,
+  sendToGeminiWithRetry,
   stripCodeFences,
 } from "./gemini";
 import { checkForUpdates } from "./updater";
-import { initTitlebar } from "./titlebar";
+import { initTitlebar, getAppVersion } from "./titlebar";
 import {
   deleteWorkspaceFile,
   listWorkspaceFiles,
@@ -26,6 +28,8 @@ import {
   pickWorkspaceFolder,
   writeWorkspaceFile,
 } from "./workspace";
+import { t, setLanguage, getLanguage } from "./i18n";
+import { PATCH_NOTES } from "./patchnotes";
 import {
   AppSettings,
   AttachedFile,
@@ -33,10 +37,12 @@ import {
   ChatMessage,
   DAILY_REQUEST_LIMIT,
   DEFAULT_MODEL,
+  Language,
   MODEL_OPTIONS,
   PER_MINUTE_REQUEST_LIMIT,
   QuotaState,
   WorkspaceActionResult,
+  buildLanguageSystemPromptAddition,
   buildWorkspaceSystemPromptAddition,
 } from "./types";
 
@@ -51,6 +57,9 @@ const requestTimestamps: number[] = [];
 let cooldownTimer: ReturnType<typeof setInterval> | null = null;
 let cooldownUntil = 0;
 let workspaceFilesExpanded = false;
+let pendingTimerInterval: ReturnType<typeof setInterval> | null = null;
+let pendingStatusNote = "";
+let appVersion = "";
 
 // ---- DOM ----
 const chatListEl = document.getElementById("chat-list")!;
@@ -74,6 +83,12 @@ const settingsModalEl = document.getElementById("settings-modal")!;
 const settingsBtnEl = document.getElementById("settings-btn")!;
 const settingsCloseEl = document.getElementById("settings-close")!;
 const settingsSaveEl = document.getElementById("settings-save")!;
+const langDeBtnEl = document.getElementById("lang-de")!;
+const langEnBtnEl = document.getElementById("lang-en")!;
+const titlebarVersionEl = document.getElementById("titlebar-version")!;
+const patchnotesModalEl = document.getElementById("patchnotes-modal")!;
+const patchnotesCloseEl = document.getElementById("patchnotes-close")!;
+const patchnotesBodyEl = document.getElementById("patchnotes-body")!;
 const apiKeyInputEl = document.getElementById("api-key-input") as HTMLInputElement;
 const systemPromptInputEl = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
 const safetySelectEl = document.getElementById("safety-select") as HTMLSelectElement;
@@ -125,13 +140,51 @@ function persist() {
   saveChats(chats);
 }
 
+function startChatRename(chat: Chat, titleEl: HTMLElement) {
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "chat-title-input";
+  input.value = chat.title;
+  titleEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  let settled = false;
+  const commit = () => {
+    if (settled) return;
+    settled = true;
+    const newTitle = input.value.trim();
+    chat.title = newTitle || chat.title;
+    persist();
+    renderChatList();
+  };
+  const cancel = () => {
+    if (settled) return;
+    settled = true;
+    renderChatList();
+  };
+
+  input.addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") commit();
+    else if (e.key === "Escape") cancel();
+  });
+  input.addEventListener("blur", commit);
+  input.addEventListener("click", (e) => e.stopPropagation());
+}
+
 function renderChatList() {
   chatListEl.innerHTML = "";
   for (const chat of [...chats].sort((a, b) => b.createdAt - a.createdAt)) {
     const item = document.createElement("div");
     item.className = "chat-list-item" + (chat.id === activeChatId ? " active" : "");
-    item.innerHTML = `<span class="chat-title">${escapeHtml(chat.title)}</span><button class="delete-chat" title="Löschen">✕</button>`;
-    item.querySelector(".chat-title")!.addEventListener("click", () => selectChat(chat.id));
+    item.innerHTML = `<span class="chat-title" title="${t.renameChatTitle}">${escapeHtml(chat.title)}</span><button class="delete-chat" title="${t.deleteChatTitle}">✕</button>`;
+    const titleEl = item.querySelector(".chat-title") as HTMLElement;
+    titleEl.addEventListener("click", () => selectChat(chat.id));
+    titleEl.addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      startChatRename(chat, titleEl);
+    });
     item.querySelector(".delete-chat")!.addEventListener("click", (e) => {
       e.stopPropagation();
       deleteChat(chat.id);
@@ -140,7 +193,32 @@ function renderChatList() {
   }
 }
 
+function stopPendingTimer() {
+  if (pendingTimerInterval) {
+    clearInterval(pendingTimerInterval);
+    pendingTimerInterval = null;
+  }
+}
+
+function startPendingTimer(startedAt: number) {
+  stopPendingTimer();
+  const el = document.getElementById("pending-timer-text");
+  if (!el) return;
+  const tick = () => {
+    const timerEl = document.getElementById("pending-timer-text");
+    if (!timerEl) {
+      stopPendingTimer();
+      return;
+    }
+    const elapsed = Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    timerEl.textContent = `${pendingStatusNote || t.thinking}… ${elapsed}s`;
+  };
+  tick();
+  pendingTimerInterval = setInterval(tick, 1000);
+}
+
 function renderMessages() {
+  stopPendingTimer();
   const chat = activeChat();
   messagesEl.innerHTML = "";
   if (!chat) return;
@@ -149,7 +227,7 @@ function renderMessages() {
     const el = document.createElement("div");
     el.className = `message ${msg.role}` + (msg.pending ? " pending" : "") + (msg.error ? " error" : "");
 
-    const roleLabel = msg.role === "user" ? "Du" : "NovaTwin";
+    const roleLabel = msg.role === "user" ? t.you : "NovaTwin";
     let filesHtml = "";
     if (msg.files && msg.files.length) {
       filesHtml = `<div class="file-actions">${msg.files
@@ -157,25 +235,31 @@ function renderMessages() {
         .join("")}</div>`;
     }
 
-    const bubbleHtml =
-      msg.workspaceActions && !msg.text
-        ? ""
-        : `<div class="bubble">${renderMessageBody(msg.text || (msg.pending ? "…" : ""))}</div>`;
+    let bubbleHtml: string;
+    if (msg.pending) {
+      bubbleHtml =
+        '<div class="bubble"><span class="typing-dots"><span></span><span></span><span></span></span>' +
+        '<span id="pending-timer-text" class="pending-timer"></span></div>';
+    } else if (msg.workspaceActions && !msg.text) {
+      bubbleHtml = "";
+    } else {
+      bubbleHtml = `<div class="bubble">${renderMessageBody(msg.text)}</div>`;
+    }
 
     let workspaceActionHtml = "";
     if (msg.workspaceActions) {
-      const actionLabel = { create: "erstellt", edit: "bearbeitet", delete: "gelöscht" };
+      const actionLabel = { create: t.fileCreated, edit: t.fileEdited, delete: t.fileDeleted };
       workspaceActionHtml = msg.workspaceActions
         .map((wa) =>
           wa.success
-            ? `<div class="workspace-action-note success">Datei ${actionLabel[wa.action]}: ${escapeHtml(wa.filename)}</div>`
-            : `<div class="workspace-action-note failed">Aktion „${wa.action}" für ${escapeHtml(wa.filename)} fehlgeschlagen: ${escapeHtml(wa.error ?? "")}</div>`
+            ? `<div class="workspace-action-note success">${escapeHtml(actionLabel[wa.action])}: ${escapeHtml(wa.filename)}</div>`
+            : `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`
         )
         .join("");
     }
 
     el.innerHTML = `
-      <span class="role-label">${roleLabel}</span>
+      <span class="role-label">${escapeHtml(roleLabel)}</span>
       ${bubbleHtml}
       ${workspaceActionHtml}
       ${filesHtml}
@@ -190,15 +274,15 @@ function renderMessages() {
         for (const file of prevUser.files) {
           const btn = document.createElement("button");
           btn.className = "update-file-btn";
-          btn.textContent = `Datei aktualisieren: ${file.name}`;
+          btn.textContent = t.updateFileBtn(file.name);
           btn.addEventListener("click", async () => {
             try {
               const newContent = stripCodeFences(msg.text);
               await invoke("write_text_file", { path: file.path, content: newContent });
-              btn.textContent = `Aktualisiert: ${file.name}`;
+              btn.textContent = t.updatedFileBtn(file.name);
               btn.classList.add("done");
             } catch (err) {
-              alert(`Fehler beim Schreiben der Datei: ${err}`);
+              alert(t.updateFileError(String(err)));
             }
           });
           actions.appendChild(btn);
@@ -208,6 +292,10 @@ function renderMessages() {
     }
 
     messagesEl.appendChild(el);
+
+    if (msg.pending && msg.pendingStartedAt) {
+      startPendingTimer(msg.pendingStartedAt);
+    }
   });
 
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -215,7 +303,7 @@ function renderMessages() {
 
 function updateHeader() {
   const chat = activeChat();
-  tokenUsageEl.textContent = `Tokens: ${chat?.totalTokens ?? 0}`;
+  tokenUsageEl.textContent = t.tokens(chat?.totalTokens ?? 0);
 
   // Ältere Chats können noch ein inzwischen entferntes/deaktiviertes Modell (z. B. "gemini-2.5-flash")
   // referenzieren; auf das aktuelle Standardmodell migrieren, statt eine leere Auswahl anzuzeigen.
@@ -226,7 +314,7 @@ function updateHeader() {
   modelSelectEl.value = chat?.model ?? DEFAULT_MODEL;
 
   const nearLimit = quota.count >= DAILY_REQUEST_LIMIT * 0.9;
-  quotaUsageEl.textContent = `Anfragen heute: ${quota.count} / ${DAILY_REQUEST_LIMIT}`;
+  quotaUsageEl.textContent = t.requestsToday(quota.count, DAILY_REQUEST_LIMIT);
   quotaUsageEl.classList.toggle("warn", nearLimit);
 }
 
@@ -235,7 +323,7 @@ function renderAttachments() {
   pendingAttachments.forEach((file, idx) => {
     const badge = document.createElement("div");
     badge.className = "attachment-badge";
-    badge.innerHTML = `<span>📎 ${escapeHtml(file.name)}</span><button title="Entfernen">✕</button>`;
+    badge.innerHTML = `<span>📎 ${escapeHtml(file.name)}</span><button title="${t.removeAttachmentTitle}">✕</button>`;
     badge.querySelector("button")!.addEventListener("click", () => {
       pendingAttachments.splice(idx, 1);
       renderAttachments();
@@ -247,12 +335,15 @@ function renderAttachments() {
 function renderWorkspaceBar() {
   const chat = activeChat();
   const path = chat?.workspacePath;
-  workspacePathEl.textContent = path ?? "Kein Arbeitsordner verknüpft";
+  workspacePathEl.textContent = path ?? t.noWorkspace;
   workspacePathEl.classList.toggle("linked", !!path);
   workspacePathEl.title = path ?? "";
   workspaceToggleBtnEl.classList.toggle("hidden", !path);
   workspaceDetachBtnEl.classList.toggle("hidden", !path);
+  workspaceToggleBtnEl.title = workspaceFilesExpanded ? t.hideFilesTitle : t.showFilesTitle;
   workspaceToggleBtnEl.textContent = workspaceFilesExpanded ? "▴" : "▾";
+  workspaceDetachBtnEl.title = t.detachWorkspaceTitle;
+  workspacePickBtnEl.title = t.pickWorkspaceTitle;
 
   if (!path) {
     workspaceFilesEl.classList.add("hidden");
@@ -263,14 +354,14 @@ function renderWorkspaceBar() {
 async function renderWorkspaceFiles() {
   const chat = activeChat();
   if (!chat?.workspacePath) return;
-  workspaceFilesEl.innerHTML = "Lade Dateien…";
+  workspaceFilesEl.textContent = t.loadingFiles;
   try {
     const files = await listWorkspaceFiles(chat.workspacePath);
     workspaceFilesEl.innerHTML = files.length
       ? files.map((f) => `<div class="workspace-file-entry">${escapeHtml(f)}</div>`).join("")
-      : "<div class=\"workspace-file-entry\">(Ordner ist leer)</div>";
+      : `<div class="workspace-file-entry">${escapeHtml(t.emptyFolder)}</div>`;
   } catch (err) {
-    workspaceFilesEl.textContent = `Fehler beim Lesen des Ordners: ${err}`;
+    workspaceFilesEl.textContent = `${t.folderReadError}: ${err}`;
   }
 }
 
@@ -327,7 +418,7 @@ function deleteChat(id: string) {
 function createNewChat() {
   const chat: Chat = {
     id: crypto.randomUUID(),
-    title: "Neuer Chat",
+    title: t.newChat,
     model: modelSelectEl.value || DEFAULT_MODEL,
     messages: [],
     createdAt: Date.now(),
@@ -343,7 +434,7 @@ function createNewChat() {
 }
 
 async function attachFiles() {
-  const selected = await open({ multiple: true, title: "Datei anhängen" });
+  const selected = await open({ multiple: true, title: t.attachFileDialogTitle });
   if (!selected) return;
   const paths = Array.isArray(selected) ? selected : [selected];
   for (const path of paths) {
@@ -354,7 +445,7 @@ async function attachFiles() {
       );
       pendingAttachments.push(result);
     } catch (err) {
-      alert(`Datei konnte nicht gelesen werden: ${err}`);
+      alert(t.readFileError(String(err)));
     }
   }
   renderAttachments();
@@ -380,7 +471,7 @@ function startCooldown(seconds: number) {
       return;
     }
     sendBtnEl.textContent = `${remaining}s`;
-    cooldownNoticeEl.textContent = `Kontingent-Limit erreicht. Bitte warte ${remaining}s, bevor du erneut sendest.`;
+    cooldownNoticeEl.textContent = t.cooldownNotice(remaining);
   };
 
   if (cooldownTimer) clearInterval(cooldownTimer);
@@ -406,18 +497,18 @@ async function sendMessage() {
   }
 
   if (!apiKey) {
-    alert("Bitte zuerst einen Google AI Studio API-Schlüssel in den Einstellungen hinterlegen.");
+    alert(t.needApiKey);
     openSettings();
     return;
   }
 
   if (quota.date === todayStr() && quota.count >= DAILY_REQUEST_LIMIT) {
-    alert("Tageslimit von 1000 Anfragen erreicht. Bitte morgen erneut versuchen.");
+    alert(t.dailyLimitReached);
     return;
   }
 
   if (!withinRateLimit()) {
-    alert("Rate-Limit erreicht: maximal 15 Anfragen pro Minute. Bitte kurz warten.");
+    alert(t.rateLimitReached);
     return;
   }
 
@@ -431,12 +522,13 @@ async function sendMessage() {
   };
   chat.messages.push(userMessage);
 
-  if (chat.title === "Neuer Chat" && text) {
+  if (chat.title === t.newChat && text) {
     chat.title = text.slice(0, 40);
   }
 
-  const pendingMessage: ChatMessage = { role: "model", text: "", pending: true };
+  const pendingMessage: ChatMessage = { role: "model", text: "", pending: true, pendingStartedAt: Date.now() };
   chat.messages.push(pendingMessage);
+  pendingStatusNote = "";
 
   pendingAttachments = [];
   promptInputEl.value = "";
@@ -448,7 +540,7 @@ async function sendMessage() {
   requestTimestamps.push(Date.now());
 
   try {
-    let systemPrompt = settings.systemPrompt;
+    let systemPrompt = settings.systemPrompt + buildLanguageSystemPromptAddition(settings.language);
     if (chat.workspacePath) {
       try {
         const files = await listWorkspaceFiles(chat.workspacePath);
@@ -459,14 +551,24 @@ async function sendMessage() {
     }
 
     const contents = historyToContents(chat.messages.slice(0, -1));
-    const result = await sendToGemini(
+    const fallbackModels = MODEL_OPTIONS.filter((o) => !o.disabled && o.value !== chat.model).map((o) => o.value);
+    const result = await sendToGeminiWithRetry(
       apiKey,
       chat.model,
       systemPrompt,
       settings.safetyThreshold,
       contents,
-      chat.workspacePath ? WORKSPACE_RESPONSE_SCHEMA : undefined
+      chat.workspacePath ? WORKSPACE_RESPONSE_SCHEMA : undefined,
+      fallbackModels,
+      (status) => {
+        pendingStatusNote = status.isFallback
+          ? t.modelOverloadedSwitching(status.model)
+          : status.attempt > 1
+            ? t.modelOverloadedRetrying(status.attempt, status.maxAttempts)
+            : "";
+      }
     );
+    pendingStatusNote = "";
 
     if (chat.workspacePath) {
       const workspacePath = chat.workspacePath;
@@ -514,7 +616,7 @@ async function sendMessage() {
   } catch (err) {
     pendingMessage.pending = false;
     pendingMessage.error = true;
-    pendingMessage.text = `Fehler: ${err instanceof Error ? err.message : err}`;
+    pendingMessage.text = t.errorPrefix(String(err instanceof Error ? err.message : err));
 
     if (err instanceof GeminiApiError && err.status === 429) {
       startCooldown(err.retryAfterSeconds ?? 40);
@@ -550,6 +652,7 @@ async function saveSettingsFromModal() {
     apiKey = newKey || null;
   }
   settings = {
+    ...settings,
     systemPrompt: systemPromptInputEl.value,
     safetyThreshold: safetySelectEl.value,
   };
@@ -557,11 +660,78 @@ async function saveSettingsFromModal() {
   closeSettings();
 }
 
+// ---- Language ----
+async function setAppLanguage(lang: Language) {
+  settings.language = lang;
+  setLanguage(lang);
+  langDeBtnEl.classList.toggle("active", lang === "de");
+  langEnBtnEl.classList.toggle("active", lang === "en");
+  applyStaticTranslations();
+  updateHeader();
+  renderWorkspaceBar();
+  renderChatList();
+  renderMessages();
+  await saveSettings(settings);
+}
+
+function applyStaticTranslations() {
+  document.getElementById("new-chat-label")!.textContent = t.newChat;
+  document.getElementById("settings-label")!.textContent = t.settings;
+  settingsBtnEl.title = t.settings;
+  attachBtnEl.title = t.attachFileTitle;
+  sendBtnEl.title = t.sendTitle;
+  promptInputEl.placeholder = t.promptPlaceholder;
+  document.getElementById("patchnotes-title")!.textContent = t.patchNotesTitle;
+  patchnotesCloseEl.title = t.patchNotesClose;
+
+  document.getElementById("settings-title")!.textContent = t.settingsTitle;
+  document.getElementById("api-key-label")!.textContent = t.apiKeyLabel;
+  document.getElementById("api-key-hint")!.textContent = t.apiKeyHint;
+  document.getElementById("system-prompt-label")!.textContent = t.systemPromptLabel;
+  document.getElementById("safety-label")!.textContent = t.safetyLabel;
+  settingsSaveEl.textContent = t.save;
+
+  const safetySelect = safetySelectEl;
+  if (safetySelect.options.length >= 4) {
+    safetySelect.options[0].textContent = t.safetyNone;
+    safetySelect.options[1].textContent = t.safetyHigh;
+    safetySelect.options[2].textContent = t.safetyMedium;
+    safetySelect.options[3].textContent = t.safetyLow;
+  }
+}
+
+// ---- Patch notes ----
+function renderPatchNotes() {
+  const lang = getLanguage();
+  patchnotesBodyEl.innerHTML = PATCH_NOTES.map(
+    (entry) => `
+      <div class="patchnotes-entry">
+        <h3>v${entry.version}</h3>
+        <ul>${(lang === "en" ? entry.en : entry.de).map((n) => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
+      </div>
+    `
+  ).join("");
+}
+
+function openPatchNotes() {
+  renderPatchNotes();
+  patchnotesModalEl.classList.remove("hidden");
+}
+
+function closePatchNotes() {
+  patchnotesModalEl.classList.add("hidden");
+}
+
 // ---- Init ----
 async function init() {
   populateModelSelect();
 
   settings = await loadSettings();
+  setLanguage(settings.language);
+  langDeBtnEl.classList.toggle("active", settings.language === "de");
+  langEnBtnEl.classList.toggle("active", settings.language === "en");
+  applyStaticTranslations();
+
   apiKey = await loadApiKey();
   chats = await loadChats();
   quota = await loadQuota();
@@ -609,8 +779,28 @@ async function init() {
     if (e.target === settingsModalEl) closeSettings();
   });
 
+  langDeBtnEl.addEventListener("click", () => setAppLanguage("de"));
+  langEnBtnEl.addEventListener("click", () => setAppLanguage("en"));
+
+  titlebarVersionEl.addEventListener("click", openPatchNotes);
+  patchnotesCloseEl.addEventListener("click", closePatchNotes);
+  patchnotesModalEl.addEventListener("click", (e) => {
+    if (e.target === patchnotesModalEl) closePatchNotes();
+  });
+
   checkForUpdates();
   initTitlebar();
+
+  try {
+    appVersion = await getAppVersion();
+    const lastSeenVersion = await loadLastSeenVersion();
+    if (lastSeenVersion !== appVersion) {
+      openPatchNotes();
+      await saveLastSeenVersion(appVersion);
+    }
+  } catch (err) {
+    console.debug("Versionsvergleich für Patch Notes fehlgeschlagen:", err);
+  }
 }
 
 init();

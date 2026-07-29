@@ -162,6 +162,60 @@ export async function sendToGemini(
   };
 }
 
+/** True for HTTP 503 responses ("model is currently overloaded / high demand") - these are
+ * transient and worth retrying, unlike most other errors. */
+export function isOverloadedError(err: unknown): boolean {
+  return err instanceof GeminiApiError && err.status === 503;
+}
+
+export interface RetryStatus {
+  attempt: number;
+  maxAttempts: number;
+  model: string;
+  isFallback: boolean;
+}
+
+const OVERLOAD_MAX_ATTEMPTS = 3;
+const OVERLOAD_RETRY_DELAYS_MS = [1000, 2000, 4000];
+
+/** Wraps sendToGemini with automatic retries (with backoff) on HTTP 503 "high demand" errors,
+ * and falls back to trying each model in fallbackModels once each if the primary model keeps
+ * failing. onStatusUpdate is called before every attempt so the UI can show progress. */
+export async function sendToGeminiWithRetry(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  safetyThreshold: string,
+  contents: GeminiContent[],
+  responseSchema: object | undefined,
+  fallbackModels: string[] = [],
+  onStatusUpdate?: (status: RetryStatus) => void
+): Promise<GeminiResult> {
+  const modelsToTry = [model, ...fallbackModels];
+  let lastError: unknown;
+
+  for (let modelIndex = 0; modelIndex < modelsToTry.length; modelIndex++) {
+    const currentModel = modelsToTry[modelIndex];
+    const isFallback = modelIndex > 0;
+    const maxAttempts = isFallback ? 1 : OVERLOAD_MAX_ATTEMPTS;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      onStatusUpdate?.({ attempt, maxAttempts, model: currentModel, isFallback });
+      try {
+        return await sendToGemini(apiKey, currentModel, systemPrompt, safetyThreshold, contents, responseSchema);
+      } catch (err) {
+        lastError = err;
+        if (!isOverloadedError(err)) throw err;
+        if (attempt < maxAttempts) {
+          await new Promise((resolve) => setTimeout(resolve, OVERLOAD_RETRY_DELAYS_MS[attempt - 1] ?? 4000));
+        }
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 /** Strips leading/trailing markdown code fences from a model response, per system prompt instruction. */
 export function stripCodeFences(text: string): string {
   const trimmed = text.trim();

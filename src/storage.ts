@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Store } from "@tauri-apps/plugin-store";
-import { AppSettings, Chat, DEFAULT_SYSTEM_PROMPT, QuotaState } from "./types";
+import { AppSettings, Chat, DEFAULT_SYSTEM_PROMPT, Language, QuotaState } from "./types";
 
 let storePromise: Promise<Store> | null = null;
 
@@ -15,13 +15,15 @@ export async function loadSettings(): Promise<AppSettings> {
   const store = await getStore();
   const systemPrompt = (await store.get<string>("systemPrompt")) ?? DEFAULT_SYSTEM_PROMPT;
   const safetyThreshold = (await store.get<string>("safetyThreshold")) ?? "BLOCK_MEDIUM_AND_ABOVE";
-  return { systemPrompt, safetyThreshold };
+  const language = (await store.get<Language>("language")) ?? "de";
+  return { systemPrompt, safetyThreshold, language };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
   const store = await getStore();
   await store.set("systemPrompt", settings.systemPrompt);
   await store.set("safetyThreshold", settings.safetyThreshold);
+  await store.set("language", settings.language);
   await store.save();
 }
 
@@ -53,4 +55,15 @@ export async function loadApiKey(): Promise<string | null> {
 
 export async function saveApiKey(key: string): Promise<void> {
   await invoke("save_api_key", { key });
+}
+
+export async function loadLastSeenVersion(): Promise<string | null> {
+  const store = await getStore();
+  return (await store.get<string>("lastSeenVersion")) ?? null;
+}
+
+export async function saveLastSeenVersion(version: string): Promise<void> {
+  const store = await getStore();
+  await store.set("lastSeenVersion", version);
+  await store.save();
 }
