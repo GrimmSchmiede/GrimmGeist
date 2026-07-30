@@ -1057,6 +1057,33 @@ body {
   object-fit: cover;
 }
 
+.disclaimer-body {
+  padding: 20px;
+}
+
+.disclaimer-body h3 {
+  margin: 0 0 12px;
+  color: var(--danger);
+}
+
+.disclaimer-body p {
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.disclaimer-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.disclaimer-checkbox-row input {
+  margin-top: 3px;
+}
+
 .attachment-badge.image-badge {
   padding: 2px;
 }

@@ -13,6 +13,8 @@ import {
   saveApiKey,
   loadLastSeenVersion,
   saveLastSeenVersion,
+  loadWorkspaceDisclaimerAccepted,
+  saveWorkspaceDisclaimerAccepted,
 } from "./storage";
 import {
   GeminiApiError,
@@ -81,6 +83,7 @@ let workspaceFilesExpanded = false;
 let pendingTimerInterval: ReturnType<typeof setInterval> | null = null;
 let pendingStatusNote = "";
 let appVersion = "";
+let workspaceDisclaimerAccepted = false;
 
 // ---- DOM ----
 const chatListEl = document.getElementById("chat-list")!;
@@ -119,6 +122,13 @@ const approvalEditEl = document.getElementById("approval-edit") as HTMLInputElem
 const approvalDeleteEl = document.getElementById("approval-delete") as HTMLInputElement;
 const getApiKeyBtnEl = document.getElementById("get-api-key-btn")!;
 const apiKeyDetectedNoteEl = document.getElementById("api-key-detected-note")!;
+const disclaimerModalEl = document.getElementById("disclaimer-modal")!;
+const disclaimerTitleEl = document.getElementById("disclaimer-title")!;
+const disclaimerTextEl = document.getElementById("disclaimer-text")!;
+const disclaimerCheckboxEl = document.getElementById("disclaimer-checkbox") as HTMLInputElement;
+const disclaimerCheckboxLabelEl = document.getElementById("disclaimer-checkbox-label")!;
+const disclaimerCancelEl = document.getElementById("disclaimer-cancel")!;
+const disclaimerAcceptEl = document.getElementById("disclaimer-accept") as HTMLButtonElement;
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -500,9 +510,51 @@ async function renderWorkspaceFiles() {
   }
 }
 
+/** Shows the one-time "autonomous file access" disclaimer before a workspace folder is linked or
+ * the security mode is loosened, gating the accept button on the checkbox being ticked. Resolves
+ * immediately with true if the disclaimer was already accepted in a previous session. */
+function ensureWorkspaceDisclaimerAccepted(): Promise<boolean> {
+  if (workspaceDisclaimerAccepted) return Promise.resolve(true);
+
+  disclaimerTitleEl.textContent = t.disclaimerTitle;
+  disclaimerTextEl.textContent = t.disclaimerText;
+  disclaimerCheckboxLabelEl.textContent = t.disclaimerCheckboxLabel;
+  disclaimerCancelEl.textContent = t.disclaimerCancel;
+  disclaimerAcceptEl.textContent = t.disclaimerAccept;
+  disclaimerCheckboxEl.checked = false;
+  disclaimerAcceptEl.disabled = true;
+  disclaimerModalEl.classList.remove("hidden");
+
+  return new Promise((resolve) => {
+    const onCheckboxChange = () => {
+      disclaimerAcceptEl.disabled = !disclaimerCheckboxEl.checked;
+    };
+    const cleanup = () => {
+      disclaimerModalEl.classList.add("hidden");
+      disclaimerCheckboxEl.removeEventListener("change", onCheckboxChange);
+      disclaimerAcceptEl.removeEventListener("click", onAccept);
+      disclaimerCancelEl.removeEventListener("click", onCancel);
+    };
+    const onAccept = async () => {
+      cleanup();
+      workspaceDisclaimerAccepted = true;
+      await saveWorkspaceDisclaimerAccepted();
+      resolve(true);
+    };
+    const onCancel = () => {
+      cleanup();
+      resolve(false);
+    };
+    disclaimerCheckboxEl.addEventListener("change", onCheckboxChange);
+    disclaimerAcceptEl.addEventListener("click", onAccept);
+    disclaimerCancelEl.addEventListener("click", onCancel);
+  });
+}
+
 async function pickWorkspace() {
   const chat = activeChat();
   if (!chat) return;
+  if (!(await ensureWorkspaceDisclaimerAccepted())) return;
   const folder = await pickWorkspaceFolder();
   if (!folder) return;
   chat.workspacePath = folder;
@@ -899,7 +951,13 @@ async function saveSettingsFromModal() {
     await saveApiKey(newKey);
     apiKey = newKey || null;
   }
-  const mode = securityModeSelectEl.value as SecurityMode;
+  let mode = securityModeSelectEl.value as SecurityMode;
+  if (mode !== "always" && mode !== settings.security.mode) {
+    if (!(await ensureWorkspaceDisclaimerAccepted())) {
+      mode = settings.security.mode;
+      securityModeSelectEl.value = mode;
+    }
+  }
   settings = {
     ...settings,
     systemPrompt: systemPromptInputEl.value,
@@ -1009,6 +1067,7 @@ async function init() {
   applyStaticTranslations();
 
   apiKey = await loadApiKey();
+  workspaceDisclaimerAccepted = await loadWorkspaceDisclaimerAccepted();
   chats = await loadChats();
   quota = await loadQuota();
   if (quota.date !== todayStr()) {

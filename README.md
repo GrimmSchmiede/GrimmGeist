@@ -5,6 +5,18 @@
 Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Tauri](https://tauri.app) 2
 (Rust-Backend + Vanilla TypeScript-Frontend).
 
+---
+
+### ⚠️ WICHTIGER RECHTLICHER HINWEIS / DISCLAIMER
+
+**Deutsch:**
+Diese Software wird "wie besehen" (AS IS) und ohne jegliche Gewährleistung oder Garantie bereitgestellt. Da NovaTree im "Workspace-Modus" autonom Dateien auf Ihrer Festplatte erstellen, bearbeiten oder löschen kann, erfolgt die Nutzung komplett auf eigene Gefahr. Die Entwickler übernehmen keinerlei Haftung für Datenverlust, Systemschäden, Fehlfunktionen oder daraus resultierende Folgeschäden. Mit der Nutzung der App erklären Sie sich mit diesem Haftungsausschluss einverstanden.
+
+**English:**
+This software is provided "as is" without warranty of any kind. Since NovaTree is capable of autonomously creating, editing, or deleting files on your local drive in "Workspace Mode", you use this software entirely at your own risk. The developers shall not be held liable for any data loss, system damage, malfunctions, or consequential damages. By using this app, you agree to this disclaimer.
+
+---
+
 **Hinweis (v0.6.0):** Die App hieß bis v0.5.1 „NovaTwin" und wurde aus Markenrechtsgründen in „NovaTree" umbenannt... 
 
 > **Hinweis (v0.6.0):** Die App hieß bis v0.5.1 „NovaTwin" und wurde aus Markenrechtsgründen in
@@ -181,3 +193,9 @@ Sicherheitsgründen kombiniert bestehen.
   Generieren des Schlüssels kurz dein VPN aus. Google blockiert Rechenzentrum-IPs von
   VPN-Anbietern sehr aggressiv, um Bot-Registrierungen zu verhindern. Nach dem Kopieren des
   Schlüssels kannst du dein VPN sofort wieder aktivieren.
+
+## Lizenz
+
+Dieses Projekt steht unter der [GNU General Public License v3.0](LICENSE). Wer den Quellcode
+kopiert oder verändert, muss sein eigenes Werk ebenfalls vollständig quelloffen und unter GPLv3
+weitergeben – ein geschlossener, kommerzieller Weiterverkauf ist damit ausgeschlossen.

@@ -70,6 +70,17 @@ export async function saveApiKey(key: string): Promise<void> {
   await invoke("save_api_key", { key });
 }
 
+export async function loadWorkspaceDisclaimerAccepted(): Promise<boolean> {
+  const store = await getStore();
+  return (await store.get<boolean>("workspaceDisclaimerAccepted")) ?? false;
+}
+
+export async function saveWorkspaceDisclaimerAccepted(): Promise<void> {
+  const store = await getStore();
+  await store.set("workspaceDisclaimerAccepted", true);
+  await store.save();
+}
+
 export async function loadLastSeenVersion(): Promise<string | null> {
   const store = await getStore();
   return (await store.get<string>("lastSeenVersion")) ?? null;

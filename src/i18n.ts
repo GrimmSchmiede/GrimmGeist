@@ -85,6 +85,11 @@ interface Dict {
   jsonRepairFailed: string;
   imageAttached: (name: string) => string;
   removeImageTitle: string;
+  disclaimerTitle: string;
+  disclaimerText: string;
+  disclaimerCheckboxLabel: string;
+  disclaimerCancel: string;
+  disclaimerAccept: string;
 }
 
 const de: Dict = {
@@ -173,6 +178,15 @@ const de: Dict = {
   jsonRepairFailed: "Die Antwort wurde abgeschnitten und konnte nicht repariert werden. Bitte versuche es erneut oder formuliere die Anfrage kleinteiliger.",
   imageAttached: (name) => `Bild angehängt: ${name}`,
   removeImageTitle: "Bild entfernen",
+  disclaimerTitle: "Achtung: Autonomer Dateizugriff",
+  disclaimerText:
+    "Sie stehen im Begriff, der KI Zugriff auf ein lokales Verzeichnis zu gewähren. Je nach " +
+    "Freigabe-Modus kann die KI selbstständig Dateien erstellen, verändern oder unwiderruflich löschen.",
+  disclaimerCheckboxLabel:
+    "Ich verstehe, dass die Nutzung auf eigene Gefahr erfolgt und die Entwickler von NovaTree " +
+    "nicht für Datenverlust oder Schäden an meinem System haftbar gemacht werden können.",
+  disclaimerCancel: "Abbrechen",
+  disclaimerAccept: "Workspace aktivieren",
 };
 
 const en: Dict = {
@@ -261,6 +275,15 @@ const en: Dict = {
   jsonRepairFailed: "The response was truncated and could not be repaired. Please try again or split the request into smaller steps.",
   imageAttached: (name) => `Image attached: ${name}`,
   removeImageTitle: "Remove image",
+  disclaimerTitle: "Warning: autonomous file access",
+  disclaimerText:
+    "You are about to grant the AI access to a local directory. Depending on the approval mode, " +
+    "the AI can create, modify, or permanently delete files on its own.",
+  disclaimerCheckboxLabel:
+    "I understand that use is entirely at my own risk and that the NovaTree developers cannot be " +
+    "held liable for data loss or damage to my system.",
+  disclaimerCancel: "Cancel",
+  disclaimerAccept: "Enable workspace",
 };
 
 const dicts: Record<Language, Dict> = { de, en };
