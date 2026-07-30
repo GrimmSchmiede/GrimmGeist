@@ -13,15 +13,17 @@ Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Taur
 > Datenpfad) und der Google-API-Schlüssel muss einmalig neu in den Einstellungen eingetragen
 > werden (neuer Schlüsselbund-Eintrag).
 
-
 > [!IMPORTANT]
 > **🛡️ Wichtiger Hinweis für Windows-Nutzer ("Computer wurde geschützt"):**
-> Da NovaTree ein unabhängiges Open-Source-Projekt ist und nicht kostenpflichtig digital signiert wurde, zeigt Windows SmartScreen
-> beim ersten Start die Warnung *"Der Computer wurde durch Windows geschützt"* an. Die App ist zu 100 % sicher!
-> Du kannst die Meldung einfach überspringen,
-> indem du im blauen Fenster auf **"Weitere Informationen"** und danach auf **"Trotzdem ausführen"** klickst.
->
+> <br>Da NovaTree ein unabhängiges Open-Source-Projekt ist und nicht kostenpflichtig digital signiert wurde, zeigt Windows SmartScreen beim ersten Start die Warnung *"Der Computer wurde durch Windows geschützt"* an.
 > 
+> Die App ist zu 100 % sicher! Du kannst die Meldung einfach überspringen:
+> 1. Klicke im blauen Fenster auf **"Weitere Informationen"**.
+> 2. Klicke unten rechts auf den Button **"Trotzdem ausführen"**.
+> 
+> Da der gesamte Quellcode hier offenliegt, kann sich jeder selbst davon überzeugen, dass keine Schadsoftware enthalten ist. Sobald genügend Nutzer die App starten, lernt Windows automatisch, dass sie sicher ist, und die Meldung verschwindet von selbst!
+
+
 ## Features
 
 - Eigene, ins Design integrierte Titelleiste (keine native OS-Titelleiste) mit Versionsanzeige
