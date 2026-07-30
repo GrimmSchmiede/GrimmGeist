@@ -159,6 +159,86 @@ fn workspace_delete_file(workspace: String, filename: String) -> Result<(), Stri
     Ok(())
 }
 
+#[derive(Deserialize)]
+struct SearchReplace {
+    search: String,
+    replace: String,
+}
+
+#[derive(Serialize)]
+struct EditOutcome {
+    search: String,
+    status: String, // "SUCCESS_PRECISE" | "FUZZY_MATCH_NEEDED" | "NOT_FOUND"
+}
+
+/// Applies a sequence of search/replace edits to an existing workspace file (precision editing,
+/// as an alternative to overwriting the whole file). Each edit is matched exactly against the
+/// current content first; if that fails, a whitespace-insensitive check tells the caller whether
+/// the search text exists but only under different whitespace/indentation (FUZZY_MATCH_NEEDED,
+/// not auto-applied since the match position would be ambiguous) or not at all (NOT_FOUND).
+/// Only edits that matched exactly are written to disk.
+#[tauri::command]
+fn workspace_apply_edits(
+    workspace: String,
+    filename: String,
+    edits: Vec<SearchReplace>,
+) -> Result<Vec<EditOutcome>, String> {
+    let path = safe_workspace_join(&workspace, &filename)?;
+    let mut content = fs::read_to_string(&path).map_err(|e| format!("Datei konnte nicht gelesen werden: {e}"))?;
+    let mut outcomes = Vec::with_capacity(edits.len());
+    let mut changed = false;
+
+    for edit in edits {
+        if content.contains(&edit.search) {
+            content = content.replacen(&edit.search, &edit.replace, 1);
+            changed = true;
+            outcomes.push(EditOutcome { search: edit.search, status: "SUCCESS_PRECISE".into() });
+        } else {
+            let clean_content: String = content.chars().filter(|c| !c.is_whitespace()).collect();
+            let clean_search: String = edit.search.chars().filter(|c| !c.is_whitespace()).collect();
+            if !clean_search.is_empty() && clean_content.contains(&clean_search) {
+                outcomes.push(EditOutcome { search: edit.search, status: "FUZZY_MATCH_NEEDED".into() });
+            } else {
+                outcomes.push(EditOutcome { search: edit.search, status: "NOT_FOUND".into() });
+            }
+        }
+    }
+
+    if changed {
+        fs::write(&path, content).map_err(|e| format!("Datei konnte nicht geschrieben werden: {e}"))?;
+    }
+    Ok(outcomes)
+}
+
+#[derive(Deserialize)]
+struct ProjectFile {
+    filename: String,
+    content: String,
+}
+
+/// Creates a whole new project folder structure ("Architect Mode") inside the workspace: a root
+/// subfolder plus an arbitrary set of files within it, creating any needed subdirectories. Reuses
+/// safe_workspace_join for every individual file path so the same traversal protection applies as
+/// for single-file actions. Returns the list of workspace-relative paths that were created.
+#[tauri::command]
+fn workspace_create_project(
+    workspace: String,
+    root_folder: String,
+    files: Vec<ProjectFile>,
+) -> Result<Vec<String>, String> {
+    let mut created = Vec::with_capacity(files.len());
+    for file in files {
+        let relative = format!("{root_folder}/{}", file.filename);
+        let path = safe_workspace_join(&workspace, &relative)?;
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|e| format!("Ordner konnte nicht erstellt werden: {e}"))?;
+        }
+        fs::write(&path, file.content).map_err(|e| format!("Datei konnte nicht geschrieben werden: {e}"))?;
+        created.push(relative);
+    }
+    Ok(created)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -177,7 +257,9 @@ pub fn run() {
             list_workspace_files,
             workspace_read_file,
             workspace_write_file,
-            workspace_delete_file
+            workspace_delete_file,
+            workspace_apply_edits,
+            workspace_create_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
