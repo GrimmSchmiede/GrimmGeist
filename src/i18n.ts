@@ -78,6 +78,13 @@ interface Dict {
   approvalDiscard: string;
   approvalAccept: string;
   actionRejectedByUser: string;
+  batchApprovalTitle: (rootFolder: string) => string;
+  fileCreatedProject: (rootFolder: string, count: number) => string;
+  editFuzzyMatch: string;
+  editNotFound: string;
+  jsonRepairFailed: string;
+  imageAttached: (name: string) => string;
+  removeImageTitle: string;
 }
 
 const de: Dict = {
@@ -159,6 +166,13 @@ const de: Dict = {
   approvalDiscard: "Verwerfen",
   approvalAccept: "Änderungen übernehmen",
   actionRejectedByUser: "Vom Nutzer abgelehnt",
+  batchApprovalTitle: (rootFolder) => `Neues Projekt erstellen: ${rootFolder}`,
+  fileCreatedProject: (rootFolder, count) => `Projekt „${rootFolder}" erstellt (${count} Dateien)`,
+  editFuzzyMatch: "Suchmuster nur mit abweichenden Leerzeichen/Einrückung gefunden - keine automatische Änderung vorgenommen. Bitte Anfrage neu formulieren oder Datei manuell prüfen.",
+  editNotFound: "Suchmuster wurde in der Datei nicht gefunden - keine Änderung vorgenommen.",
+  jsonRepairFailed: "Die Antwort wurde abgeschnitten und konnte nicht repariert werden. Bitte versuche es erneut oder formuliere die Anfrage kleinteiliger.",
+  imageAttached: (name) => `Bild angehängt: ${name}`,
+  removeImageTitle: "Bild entfernen",
 };
 
 const en: Dict = {
@@ -240,6 +254,13 @@ const en: Dict = {
   approvalDiscard: "Discard",
   approvalAccept: "Apply changes",
   actionRejectedByUser: "Rejected by user",
+  batchApprovalTitle: (rootFolder) => `Create new project: ${rootFolder}`,
+  fileCreatedProject: (rootFolder, count) => `Project "${rootFolder}" created (${count} files)`,
+  editFuzzyMatch: "Search text was only found with different whitespace/indentation - no change applied. Please rephrase the request or check the file manually.",
+  editNotFound: "Search text was not found in the file - no change applied.",
+  jsonRepairFailed: "The response was truncated and could not be repaired. Please try again or split the request into smaller steps.",
+  imageAttached: (name) => `Image attached: ${name}`,
+  removeImageTitle: "Remove image",
 };
 
 const dicts: Record<Language, Dict> = { de, en };

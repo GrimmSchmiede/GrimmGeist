@@ -1,6 +1,6 @@
 import * as monaco from "monaco-editor";
 import { getLanguageFromExtension } from "./editor";
-import { readWorkspaceFile, WorkspaceCommand } from "./workspace";
+import { readWorkspaceFile, WorkspaceCommand, applyEditsToContent, ProjectFile } from "./workspace";
 import { t } from "./i18n";
 
 const modalEl = document.getElementById("approval-modal")!;
@@ -13,6 +13,11 @@ const diffTitleEl = document.getElementById("approval-diff-title")!;
 const diffContainerEl = document.getElementById("approval-diff-container")!;
 const diffAcceptBtnEl = document.getElementById("approval-diff-accept")!;
 const diffDiscardBtnEl = document.getElementById("approval-diff-discard")!;
+const batchViewEl = document.getElementById("approval-batch-view")!;
+const batchTitleEl = document.getElementById("approval-batch-title")!;
+const batchListEl = document.getElementById("approval-batch-list")!;
+const batchAcceptBtnEl = document.getElementById("approval-batch-accept")!;
+const batchDiscardBtnEl = document.getElementById("approval-batch-discard")!;
 
 let diffEditorInstance: monaco.editor.IStandaloneDiffEditor | null = null;
 
@@ -55,7 +60,9 @@ async function requestDiffApproval(cmd: WorkspaceCommand, workspacePath: string)
     // File doesn't exist yet (create) or is unreadable - diff against empty content.
     original = "";
   }
-  const modified = cmd.content ?? "";
+  // Edits carry search/replace pairs instead of the whole new content - simulate them here just
+  // to build the diff preview; the actual write still applies them exactly the same way on disk.
+  const modified = cmd.edits ? applyEditsToContent(original, cmd.edits) : cmd.content ?? "";
   const language = getLanguageFromExtension(cmd.filename);
 
   diffViewEl.classList.remove("hidden");
@@ -94,5 +101,40 @@ async function requestDiffApproval(cmd: WorkspaceCommand, workspacePath: string)
     };
     diffAcceptBtnEl.addEventListener("click", onAccept);
     diffDiscardBtnEl.addEventListener("click", onDiscard);
+  });
+}
+
+/** Approval for Architect Mode ("createProject"): a whole new project folder with many new
+ * files. Showing an individual diff per file would be pointless (nothing existed before), so this
+ * shows one consolidated list of files to be created with a single accept/discard. */
+export function requestBatchCreateApproval(rootFolder: string, files: ProjectFile[]): Promise<boolean> {
+  batchViewEl.classList.remove("hidden");
+  deleteViewEl.classList.add("hidden");
+  diffViewEl.classList.add("hidden");
+  batchTitleEl.textContent = t.batchApprovalTitle(rootFolder);
+  batchListEl.innerHTML = "";
+  for (const file of files) {
+    const li = document.createElement("li");
+    li.textContent = `${rootFolder}/${file.filename}`;
+    batchListEl.appendChild(li);
+  }
+  modalEl.classList.remove("hidden");
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      modalEl.classList.add("hidden");
+      batchAcceptBtnEl.removeEventListener("click", onAccept);
+      batchDiscardBtnEl.removeEventListener("click", onDiscard);
+    };
+    const onAccept = () => {
+      cleanup();
+      resolve(true);
+    };
+    const onDiscard = () => {
+      cleanup();
+      resolve(false);
+    };
+    batchAcceptBtnEl.addEventListener("click", onAccept);
+    batchDiscardBtnEl.addEventListener("click", onDiscard);
   });
 }

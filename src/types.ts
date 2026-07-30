@@ -7,16 +7,24 @@ export interface AttachedFile {
 }
 
 export interface WorkspaceActionResult {
-  action: "create" | "edit" | "delete";
+  action: "create" | "edit" | "delete" | "create_project";
   filename: string;
   success: boolean;
   error?: string;
+}
+
+/** A pasted/dropped image attached to an outgoing message, already downscaled/compressed
+ * client-side before being sent to Gemini as an inlineData part. */
+export interface ChatImage {
+  dataUrl: string;
+  name: string;
 }
 
 export interface ChatMessage {
   role: Role;
   text: string;
   files?: AttachedFile[];
+  images?: ChatImage[];
   usage?: {
     promptTokens: number;
     candidatesTokens: number;
@@ -112,7 +120,24 @@ export function buildWorkspaceSystemPromptAddition(fileList: string[]): string {
     "lege die Datei direkt ins Wurzelverzeichnis.\n\n" +
     "WICHTIG für 'content': Schreibe IMMER normal formatierten, mehrzeiligen Code mit echten " +
     "Zeilenumbrüchen und sauberer Einrückung - genau wie in einer IDE. Quetsche NIEMALS den " +
-    "kompletten Dateiinhalt in eine einzige Zeile, nur weil er als JSON-String übertragen wird."
+    "kompletten Dateiinhalt in eine einzige Zeile, nur weil er als JSON-String übertragen wird.\n\n" +
+    "WICHTIG für 'action=edit': Überschreibe eine bestehende Datei NIEMALS komplett über 'content'. " +
+    "Nutze stattdessen IMMER das 'edits'-Array mit präzisen Suchen/Ersetzen-Paaren " +
+    "({\"search\": \"...\", \"replace\": \"...\"}). 'search' muss exakt (Zeichen für Zeichen, " +
+    "inklusive Einrückung) im dir bekannten aktuellen Dateiinhalt vorkommen - kopiere ihn " +
+    "wortwörtlich, erfinde ihn nicht. Halte 'search' so kurz wie möglich (z. B. nur die betroffene " +
+    "Funktion/den betroffenen Block), aber lang genug, um eindeutig zu sein.\n\n" +
+    "PRESERVATION RULE (sehr wichtig): Ändere bei 'edit'-Aktionen NUR den Teil der Datei, um den " +
+    "der Nutzer explizit gebeten hat. Lösche, vereinfache oder verändere NIEMALS unbeteiligten " +
+    "vorhandenen Code - insbesondere nicht bestehendes CSS, Animationen, Layout oder Business-" +
+    "Logik, die mit der Anfrage nichts zu tun haben. Wenn du unsicher bist, ob etwas zur Anfrage " +
+    "gehört, lass es unangetastet.\n\n" +
+    "ARCHITECT MODE ('createProject'): Wenn der Nutzer ein komplett NEUES Projekt/eine neue " +
+    "Ressource mit mehreren Dateien möchte (nicht nur eine einzelne neue Datei), nutze das " +
+    "'createProject'-Feld statt vieler einzelner 'create'-Aktionen: {\"rootFolder\": \"name\", " +
+    "\"files\": [{\"filename\": \"...\", \"content\": \"...\"}]}. Lass 'actions' in diesem Fall " +
+    "leer und liefere stattdessen 'createProject'. Für einzelne neue Dateien in einem bereits " +
+    "bestehenden Projekt bleibt weiterhin eine normale 'create'-Aktion in 'actions' richtig."
   );
 }
 

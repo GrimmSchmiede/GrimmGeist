@@ -24,10 +24,13 @@ import {
 import { checkForUpdates } from "./updater";
 import { initTitlebar, getAppVersion } from "./titlebar";
 import {
+  applyWorkspaceEdits,
+  createWorkspaceProject,
   deleteWorkspaceFile,
   listWorkspaceFiles,
   parseWorkspaceResponse,
   pickWorkspaceFolder,
+  readWorkspaceFile,
   writeWorkspaceFile,
 } from "./workspace";
 import { t, setLanguage, getLanguage } from "./i18n";
@@ -42,11 +45,12 @@ import {
   setWorkspacePath as setEditorWorkspacePath,
   updateTabContent,
 } from "./editor";
-import { requestApproval } from "./approval";
+import { requestApproval, requestBatchCreateApproval } from "./approval";
 import {
   AppSettings,
   AttachedFile,
   Chat,
+  ChatImage,
   ChatMessage,
   DAILY_REQUEST_LIMIT,
   DEFAULT_MODEL,
@@ -69,6 +73,7 @@ let settings: AppSettings;
 let apiKey: string | null = null;
 let quota: QuotaState = { date: "", count: 0 };
 let pendingAttachments: AttachedFile[] = [];
+let pendingImages: ChatImage[] = [];
 const requestTimestamps: number[] = [];
 let cooldownTimer: ReturnType<typeof setInterval> | null = null;
 let cooldownUntil = 0;
@@ -287,6 +292,11 @@ function renderMessages() {
         .map((f, i) => `<span class="file-tag" data-file-idx="${i}" title="${t.openInEditorTitle}">📎 ${escapeHtml(f.name)}</span>`)
         .join("")}</div>`;
     }
+    if (msg.images && msg.images.length) {
+      filesHtml += `<div class="message-images">${msg.images
+        .map((img) => `<img src="${img.dataUrl}" alt="${escapeHtml(img.name)}" class="message-image-thumb" />`)
+        .join("")}</div>`;
+    }
 
     let bubbleHtml: string;
     if (msg.pending) {
@@ -301,13 +311,16 @@ function renderMessages() {
 
     let workspaceActionHtml = "";
     if (msg.workspaceActions) {
-      const actionLabel = { create: t.fileCreated, edit: t.fileEdited, delete: t.fileDeleted };
+      const actionLabel = { create: t.fileCreated, edit: t.fileEdited, delete: t.fileDeleted, create_project: "" };
       workspaceActionHtml = msg.workspaceActions
-        .map((wa) =>
-          wa.success
+        .map((wa) => {
+          if (wa.success && wa.action === "create_project") {
+            return `<div class="workspace-action-note success">${escapeHtml(wa.filename)}</div>`;
+          }
+          return wa.success
             ? `<div class="workspace-action-note success">${escapeHtml(actionLabel[wa.action])}: ${escapeHtml(wa.filename)}</div>`
-            : `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`
-        )
+            : `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`;
+        })
         .join("");
     }
 
@@ -394,6 +407,59 @@ function renderAttachments() {
     });
     attachmentsEl.appendChild(badge);
   });
+  pendingImages.forEach((img, idx) => {
+    const badge = document.createElement("div");
+    badge.className = "attachment-badge image-badge";
+    badge.innerHTML = `<img src="${img.dataUrl}" alt="${escapeHtml(img.name)}" class="attachment-thumb" /><button title="${t.removeImageTitle}">✕</button>`;
+    badge.querySelector("button")!.addEventListener("click", (e) => {
+      e.stopPropagation();
+      pendingImages.splice(idx, 1);
+      renderAttachments();
+    });
+    attachmentsEl.appendChild(badge);
+  });
+}
+
+const MAX_IMAGE_WIDTH = 1024;
+const IMAGE_JPEG_QUALITY = 0.7;
+
+/** Downscales/compresses a pasted or dropped image client-side (max 1024px wide, JPEG q=0.7)
+ * before it's ever sent to Gemini, so large screenshots don't blow up the request payload. */
+function downscaleImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Bild konnte nicht geladen werden."));
+      img.onload = () => {
+        const scale = Math.min(1, MAX_IMAGE_WIDTH / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("Canvas-Kontext nicht verfügbar."));
+          return;
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", IMAGE_JPEG_QUALITY));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function addPendingImageFile(file: File) {
+  if (!file.type.startsWith("image/")) return;
+  try {
+    const dataUrl = await downscaleImage(file);
+    pendingImages.push({ dataUrl, name: file.name || "image.jpg" });
+    renderAttachments();
+  } catch (err) {
+    console.debug("Bild konnte nicht verarbeitet werden:", err);
+  }
 }
 
 function renderWorkspaceBar() {
@@ -558,7 +624,7 @@ function withinRateLimit(): boolean {
 
 async function sendMessage() {
   const text = promptInputEl.value.trim();
-  if (!text && pendingAttachments.length === 0) return;
+  if (!text && pendingAttachments.length === 0 && pendingImages.length === 0) return;
 
   if (isInCooldown()) {
     // Server-seitiges Kontingent-Limit aktiv: keine automatischen oder manuellen Wiederholungsversuche zulassen.
@@ -588,6 +654,7 @@ async function sendMessage() {
     role: "user",
     text,
     files: pendingAttachments.length ? [...pendingAttachments] : undefined,
+    images: pendingImages.length ? [...pendingImages] : undefined,
   };
   chat.messages.push(userMessage);
 
@@ -600,6 +667,7 @@ async function sendMessage() {
   pendingStatusNote = "";
 
   pendingAttachments = [];
+  pendingImages = [];
   promptInputEl.value = "";
   autoGrowTextarea();
   renderAttachments();
@@ -643,11 +711,12 @@ async function sendMessage() {
 
     if (chat.workspacePath) {
       const workspacePath = chat.workspacePath;
-      const { reply, actions } = parseWorkspaceResponse(result.text);
+      const { reply, actions, createProject } = parseWorkspaceResponse(result.text);
       pendingMessage.text = reply;
 
+      const results: WorkspaceActionResult[] = [];
+
       if (actions.length) {
-        const results: WorkspaceActionResult[] = [];
         for (const cmd of actions) {
           if (actionRequiresApproval(cmd.action, settings.security)) {
             const approved = await requestApproval(cmd, workspacePath);
@@ -666,6 +735,20 @@ async function sendMessage() {
             if (cmd.action === "delete") {
               await deleteWorkspaceFile(workspacePath, cmd.filename);
               removeTabIfOpen(cmd.filename);
+            } else if (cmd.action === "edit" && cmd.edits && cmd.edits.length) {
+              const outcomes = await applyWorkspaceEdits(workspacePath, cmd.filename, cmd.edits);
+              const problem = outcomes.find((o) => o.status !== "SUCCESS_PRECISE");
+              if (problem) {
+                results.push({
+                  action: cmd.action,
+                  filename: cmd.filename,
+                  success: false,
+                  error: problem.status === "FUZZY_MATCH_NEEDED" ? t.editFuzzyMatch : t.editNotFound,
+                });
+                continue;
+              }
+              const newContent = await readWorkspaceFile(workspacePath, cmd.filename);
+              updateTabContent(cmd.filename, newContent);
             } else {
               await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
               updateTabContent(cmd.filename, cmd.content ?? "");
@@ -682,6 +765,40 @@ async function sendMessage() {
             setTabAILock(cmd.filename, false);
           }
         }
+      }
+
+      if (createProject && createProject.files.length) {
+        let approved = true;
+        if (actionRequiresApproval("create", settings.security)) {
+          approved = await requestBatchCreateApproval(createProject.rootFolder, createProject.files);
+        }
+        if (!approved) {
+          results.push({
+            action: "create_project",
+            filename: createProject.rootFolder,
+            success: false,
+            error: t.actionRejectedByUser,
+          });
+        } else {
+          try {
+            await createWorkspaceProject(workspacePath, createProject.rootFolder, createProject.files);
+            results.push({
+              action: "create_project",
+              filename: t.fileCreatedProject(createProject.rootFolder, createProject.files.length),
+              success: true,
+            });
+          } catch (err) {
+            results.push({
+              action: "create_project",
+              filename: createProject.rootFolder,
+              success: false,
+              error: err instanceof Error ? err.message : String(err),
+            });
+          }
+        }
+      }
+
+      if (results.length) {
         pendingMessage.workspaceActions = results;
         if (workspaceFilesExpanded) await renderWorkspaceFiles();
       }
@@ -921,6 +1038,28 @@ async function init() {
       e.preventDefault();
       sendMessage();
     }
+  });
+  promptInputEl.addEventListener("paste", (e: ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.kind === "file" && item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          addPendingImageFile(file);
+        }
+      }
+    }
+  });
+  promptInputEl.addEventListener("dragover", (e) => e.preventDefault());
+  promptInputEl.addEventListener("drop", (e) => {
+    const files = e.dataTransfer?.files;
+    if (!files || !files.length) return;
+    const hasImage = Array.from(files).some((f) => f.type.startsWith("image/"));
+    if (!hasImage) return;
+    e.preventDefault();
+    Array.from(files).forEach((f) => addPendingImageFile(f));
   });
 
   modelSelectEl.addEventListener("change", () => {

@@ -6,6 +6,21 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.0",
+    de: [
+      "Neu: Präzise Datei-Bearbeitung per Suchen/Ersetzen statt vollständigem Datei-Überschreiben - schützt bestehenden Code (CSS, Animationen, Logik) vor versehentlichem Löschen/Vereinfachen",
+      "Neu: „Architect Mode\" - NovaTree kann komplett neue Projektstrukturen mit mehreren Dateien in einem eigenen Unterordner in einem Zug anlegen",
+      "Neu: Bilder per Einfügen (Strg+V) oder Drag & Drop in den Chat anhängen - werden automatisch verkleinert/komprimiert und an Gemini mitgeschickt",
+      "Robustere JSON-Verarbeitung: abgeschnittene/fehlerhafte Antworten (z. B. bei Erreichen des Ausgabe-Limits) werden jetzt automatisch repariert, statt als Rohtext im Chat zu landen",
+    ],
+    en: [
+      "New: precise file edits via search/replace instead of overwriting the whole file - protects existing code (CSS, animations, logic) from accidental deletion/simplification",
+      "New: \"Architect Mode\" - NovaTree can scaffold a whole new project structure with multiple files in its own subfolder in one go",
+      "New: attach images to the chat via paste (Ctrl+V) or drag & drop - automatically downscaled/compressed before being sent to Gemini",
+      "More robust JSON handling: truncated/malformed responses (e.g. from hitting the output limit) are now automatically repaired instead of leaking as raw text into the chat",
+    ],
+  },
+  {
     version: "0.7.0",
     de: [
       "Neu: Granulare Sicherheit für den KI-Dateizugriff im Workspace-Ordner (Einstellungen → „KI-Dateizugriff“)",

@@ -1,7 +1,8 @@
-import { AttachedFile, ChatMessage } from "./types";
+import { AttachedFile, ChatMessage, ChatImage } from "./types";
 
 interface GeminiContentPart {
-  text: string;
+  text?: string;
+  inlineData?: { mimeType: string; data: string };
 }
 
 interface GeminiContent {
@@ -52,12 +53,27 @@ function messageToPromptText(text: string, files?: AttachedFile[]): string {
   return `${text}\n\n${fileBlocks}`;
 }
 
+/** Splits a "data:<mime>;base64,<data>" URL into its parts for the Gemini inlineData part shape. */
+function dataUrlToInlineData(dataUrl: string): { mimeType: string; data: string } | null {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) return null;
+  return { mimeType: match[1], data: match[2] };
+}
+
+function imagesToParts(images?: ChatImage[]): GeminiContentPart[] {
+  if (!images || images.length === 0) return [];
+  return images
+    .map((img) => dataUrlToInlineData(img.dataUrl))
+    .filter((part): part is { mimeType: string; data: string } => !!part)
+    .map((inlineData) => ({ inlineData }));
+}
+
 export function historyToContents(messages: ChatMessage[]): GeminiContent[] {
   return messages
     .filter((m) => !m.pending && !m.error)
     .map((m) => ({
       role: m.role,
-      parts: [{ text: messageToPromptText(m.text, m.files) }],
+      parts: [{ text: messageToPromptText(m.text, m.files) }, ...imagesToParts(m.images)],
     }));
 }
 
@@ -90,15 +106,57 @@ export const WORKSPACE_RESPONSE_SCHEMA = {
           content: {
             type: "STRING",
             description:
-              "Vollständiger neuer Dateiinhalt (nur bei create/edit). MUSS normal formatierter, " +
-              "mehrzeiliger Quellcode mit echten Zeilenumbrüchen (\\n) und sauberer Einrückung sein, " +
-              "genau wie in einer echten Datei/IDE - so wie du es auch ohne JSON-Format schreiben " +
-              "würdest. NIEMALS den gesamten Dateiinhalt in eine einzige Zeile komprimieren oder " +
-              "minifizieren, nur weil er in einem JSON-String steht.",
+              "Vollständiger neuer Dateiinhalt - NUR bei action=create verwenden (neue Datei, es " +
+              "gibt noch nichts, das ersetzt werden könnte). Für action=edit STATTDESSEN das " +
+              "'edits'-Feld nutzen, niemals 'content'. MUSS normal formatierter, mehrzeiliger " +
+              "Quellcode mit echten Zeilenumbrüchen (\\n) und sauberer Einrückung sein, genau wie " +
+              "in einer echten Datei/IDE. NIEMALS den gesamten Dateiinhalt in eine einzige Zeile " +
+              "komprimieren oder minifizieren, nur weil er in einem JSON-String steht.",
+          },
+          edits: {
+            type: "ARRAY",
+            description:
+              "NUR bei action=edit: Liste präziser Suchen/Ersetzen-Paare statt des ganzen " +
+              "Dateiinhalts. 'search' muss EXAKT (Zeichen für Zeichen, inkl. Einrückung) im " +
+              "aktuellen Dateiinhalt vorkommen - kopiere ihn wortwörtlich aus dem dir bekannten " +
+              "Dateiinhalt. Halte 'search' so kurz wie möglich, aber lang genug, um eindeutig zu " +
+              "sein (z. B. die betroffene Funktion oder den betroffenen Block, nicht die ganze " +
+              "Datei).",
+            items: {
+              type: "OBJECT",
+              properties: {
+                search: { type: "STRING", description: "Exakt zu findender Text im aktuellen Dateiinhalt." },
+                replace: { type: "STRING", description: "Text, der 'search' ersetzen soll." },
+              },
+              required: ["search", "replace"],
+            },
           },
         },
         required: ["action", "filename"],
       },
+    },
+    createProject: {
+      type: "OBJECT",
+      description:
+        "Nur für 'Architect Mode' verwenden: wenn ein KOMPLETT NEUES Projekt/eine neue Ressource " +
+        "mit mehreren Dateien in einem eigenen Unterordner angelegt werden soll. Leer/null lassen " +
+        "für alles andere (einzelne Datei-Änderungen laufen über 'actions').",
+      properties: {
+        rootFolder: { type: "STRING", description: "Name des neuen Wurzelordners für das Projekt, relativ zum Workspace." },
+        files: {
+          type: "ARRAY",
+          description: "Alle Dateien des neuen Projekts, mit Pfaden relativ zu rootFolder.",
+          items: {
+            type: "OBJECT",
+            properties: {
+              filename: { type: "STRING", description: "Pfad relativ zu rootFolder, z. B. \"client/main.lua\"." },
+              content: { type: "STRING", description: "Vollständiger, normal formatierter Dateiinhalt." },
+            },
+            required: ["filename", "content"],
+          },
+        },
+      },
+      required: ["rootFolder", "files"],
     },
   },
   required: ["reply", "actions"],
@@ -160,7 +218,7 @@ export async function sendToGemini(
     throw new Error(blockReason ? `Von Google blockiert: ${blockReason}` : "Keine Antwort erhalten.");
   }
 
-  const text: string = candidate.content?.parts?.map((p: GeminiContentPart) => p.text).join("") ?? "";
+  const text: string = candidate.content?.parts?.map((p: GeminiContentPart) => p.text ?? "").join("") ?? "";
   const usage = data.usageMetadata ?? {};
 
   return {

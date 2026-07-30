@@ -72,6 +72,22 @@ Bei **Löschen** erscheint eine rote Warnung mit Dateipfad, bei **Erstellen/Bear
 Diff-Ansicht (Monacos nativer `createDiffEditor()`) zwischen aktuellem und vorgeschlagenem
 Inhalt, in einem eigenständigen Modal – unabhängig davon, ob der Live-Editor gerade sichtbar ist.
 
+### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
+
+- **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
+  Suchen/Ersetzen-Paaren geändert (`{"search": "...", "replace": "..."}`). Trifft ein `search`
+  nur nach Whitespace-Normalisierung oder gar nicht, wird nichts geschrieben und stattdessen ein
+  Hinweis angezeigt, statt riskant zu raten.
+- **Architect Mode:** Für komplett neue Projekte/Ressourcen mit mehreren Dateien liefert Gemini
+  ein `createProject`-Objekt (Zielordner + Dateien), die App legt Ordner und Dateien in einem
+  Zug an – inklusive einer konsolidierten Freigabe-Ansicht (Dateiliste statt Einzel-Diffs).
+- **Bild-Anhänge:** Bilder lassen sich per Strg+V oder Drag & Drop ins Chat-Eingabefeld anhängen;
+  sie werden clientseitig auf max. 1024px Breite herunterskaliert und als JPEG komprimiert, bevor
+  sie als Teil der Anfrage an Gemini gesendet werden.
+- **JSON-Reparatur:** Wird eine Antwort mitten im JSON abgeschnitten (Ausgabe-Limit erreicht),
+  versucht die App automatisch, offene Strings/Klammern zu schließen, bevor sie aufgibt – statt
+  das kaputte Roh-JSON als Chat-Text anzuzeigen.
+
 ## Entwicklung
 
 Voraussetzungen: [Node.js](https://nodejs.org), [Rust](https://www.rust-lang.org/tools/install) und die
