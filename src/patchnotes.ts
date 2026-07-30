@@ -6,6 +6,17 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.6.1",
+    de: [
+      "Neu: Smarter API-Key-Import - Button „API-Schlüssel holen“ in den Einstellungen öffnet Google AI Studio im Standard-Browser",
+      "Sobald du dort einen Schlüssel kopierst, erkennt NovaTree ihn automatisch aus der Zwischenablage und trägt ihn ein (nur während das Einstellungsfenster offen ist)",
+    ],
+    en: [
+      "New: smart API key import - a \"Get API key\" button in Settings opens Google AI Studio in the default browser",
+      "As soon as you copy a key there, NovaTree automatically detects it from the clipboard and fills it in (only while the settings window is open)",
+    ],
+  },
+  {
     version: "0.6.0",
     de: [
       "App aus Markenrechtsgründen von „NovaTwin\" in „NovaTree\" umbenannt (App-ID, Repository, Datenablage, Schlüsselbund-Eintrag)",

@@ -1,5 +1,7 @@
 import { open } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { invoke } from "@tauri-apps/api/core";
+import { startClipboardPolling, stopClipboardPolling } from "./clipboard";
 import {
   loadSettings,
   saveSettings,
@@ -102,6 +104,8 @@ const patchnotesBodyEl = document.getElementById("patchnotes-body")!;
 const apiKeyInputEl = document.getElementById("api-key-input") as HTMLInputElement;
 const systemPromptInputEl = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
 const safetySelectEl = document.getElementById("safety-select") as HTMLSelectElement;
+const getApiKeyBtnEl = document.getElementById("get-api-key-btn")!;
+const apiKeyDetectedNoteEl = document.getElementById("api-key-detected-note")!;
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10);
@@ -705,10 +709,28 @@ function openSettings() {
   systemPromptInputEl.value = settings.systemPrompt;
   safetySelectEl.value = settings.safetyThreshold;
   settingsModalEl.classList.remove("hidden");
+  apiKeyDetectedNoteEl.classList.add("hidden");
+
+  // Only polls the clipboard while the settings modal (and thus the key field) is actually open.
+  startClipboardPolling(async (detectedKey) => {
+    apiKeyInputEl.value = detectedKey;
+    apiKeyDetectedNoteEl.classList.remove("hidden");
+    apiKey = detectedKey;
+    await saveApiKey(detectedKey);
+  });
 }
 
 function closeSettings() {
   settingsModalEl.classList.add("hidden");
+  stopClipboardPolling();
+}
+
+async function openGoogleAIStudioKeyPage() {
+  try {
+    await openUrl("https://aistudio.google.com/apikey");
+  } catch (err) {
+    alert(t.openLinkError(String(err)));
+  }
 }
 
 async function saveSettingsFromModal() {
@@ -754,6 +776,8 @@ function applyStaticTranslations() {
   document.getElementById("settings-title")!.textContent = t.settingsTitle;
   document.getElementById("api-key-label")!.textContent = t.apiKeyLabel;
   document.getElementById("api-key-hint")!.textContent = t.apiKeyHint;
+  getApiKeyBtnEl.textContent = t.getApiKeyBtn;
+  apiKeyDetectedNoteEl.textContent = t.apiKeyDetectedNote;
   document.getElementById("system-prompt-label")!.textContent = t.systemPromptLabel;
   document.getElementById("safety-label")!.textContent = t.safetyLabel;
   settingsSaveEl.textContent = t.save;
@@ -846,6 +870,7 @@ async function init() {
   settingsModalEl.addEventListener("click", (e) => {
     if (e.target === settingsModalEl) closeSettings();
   });
+  getApiKeyBtnEl.addEventListener("click", openGoogleAIStudioKeyPage);
 
   langDeBtnEl.addEventListener("click", () => setAppLanguage("de"));
   langEnBtnEl.addEventListener("click", () => setAppLanguage("en"));

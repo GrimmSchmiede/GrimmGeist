@@ -908,6 +908,43 @@ body {
   resize: vertical;
 }
 
+.api-key-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.api-key-row .text-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.secondary-btn {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.secondary-btn:hover {
+  background: var(--accent-dim);
+}
+
+.field-note {
+  font-size: 11px;
+  color: var(--turquoise);
+  margin: 4px 0 0;
+}
+
+.field-note.hidden {
+  display: none;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;

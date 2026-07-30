@@ -115,13 +115,17 @@
         </div>
         <div class="modal-body">
           <label class="field-label" id="api-key-label" for="api-key-input">Google AI Studio API-Schlüssel</label>
-          <input
-            id="api-key-input"
-            class="text-input"
-            type="password"
-            placeholder="AIza…"
-            autocomplete="off"
-          />
+          <div class="api-key-row">
+            <input
+              id="api-key-input"
+              class="text-input"
+              type="password"
+              placeholder="AIza…"
+              autocomplete="off"
+            />
+            <button id="get-api-key-btn" class="secondary-btn" type="button">API-Schlüssel holen</button>
+          </div>
+          <p id="api-key-detected-note" class="field-note hidden">✓ API-Schlüssel aus Zwischenablage erkannt</p>
           <p class="field-hint" id="api-key-hint">
             Wird sicher im Betriebssystem-Schlüsselbund gespeichert (Windows Credential
             Manager / Linux Secret Service), niemals im Quellcode oder Klartext.

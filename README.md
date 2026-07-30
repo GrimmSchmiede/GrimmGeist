@@ -126,8 +126,17 @@ Sicherheitsgründen kombiniert bestehen.
 ## API-Schlüssel einrichten
 
 1. App starten, unten links auf **Einstellungen** klicken.
-2. Google AI Studio API-Schlüssel eintragen (kostenlos erhältlich unter
-   [aistudio.google.com/apikey](https://aistudio.google.com/apikey)).
+2. Auf **„API-Schlüssel holen"** klicken – öffnet Google AI Studio im Standard-Browser.
 3. Optional: System-Prompt und Sicherheitsfilter anpassen.
 4. Speichern – der Schlüssel wird verschlüsselt im OS-Schlüsselbund abgelegt, niemals im Klartext
    in einer Konfigurationsdatei oder im Quellcode.
+
+### 💡 Tipps zur Einrichtung
+
+- **Smarter Import:** Sobald du auf Google AI Studio einen Schlüssel generierst und kopierst,
+  erkennt NovaTree ihn automatisch aus der Zwischenablage und trägt ihn direkt im
+  Einstellungsfenster ein (nur während das Fenster offen ist – kein Hintergrund-Polling).
+- **VPN-Problem:** Zeigt die Google-Seite „Not available in your region“, schalte für das
+  Generieren des Schlüssels kurz dein VPN aus. Google blockiert Rechenzentrum-IPs von
+  VPN-Anbietern sehr aggressiv, um Bot-Registrierungen zu verhindern. Nach dem Kopieren des
+  Schlüssels kannst du dein VPN sofort wieder aktivieren.

@@ -47,6 +47,9 @@ interface Dict {
   settingsTitle: string;
   apiKeyLabel: string;
   apiKeyHint: string;
+  getApiKeyBtn: string;
+  apiKeyDetectedNote: string;
+  openLinkError: (err: string) => string;
   systemPromptLabel: string;
   safetyLabel: string;
   safetyNone: string;
@@ -110,6 +113,9 @@ const de: Dict = {
   apiKeyLabel: "Google AI Studio API-Schlüssel",
   apiKeyHint:
     "Wird sicher im Betriebssystem-Schlüsselbund gespeichert (Windows Credential Manager / Linux Secret Service), niemals im Quellcode oder Klartext.",
+  getApiKeyBtn: "API-Schlüssel holen",
+  apiKeyDetectedNote: "✓ API-Schlüssel aus Zwischenablage erkannt",
+  openLinkError: (err) => `Link konnte nicht geöffnet werden: ${err}`,
   systemPromptLabel: "System-Prompt",
   safetyLabel: "Sicherheitsfilter",
   safetyNone: "Kein Filter (BLOCK_NONE)",
@@ -173,6 +179,9 @@ const en: Dict = {
   apiKeyLabel: "Google AI Studio API key",
   apiKeyHint:
     "Stored securely in the OS credential store (Windows Credential Manager / Linux Secret Service), never in source code or plain text.",
+  getApiKeyBtn: "Get API key",
+  apiKeyDetectedNote: "✓ API key detected from clipboard",
+  openLinkError: (err) => `Could not open link: ${err}`,
   systemPromptLabel: "System prompt",
   safetyLabel: "Safety filter",
   safetyNone: "No filter (BLOCK_NONE)",
