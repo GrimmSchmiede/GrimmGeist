@@ -5,7 +5,7 @@
 Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Tauri](https://tauri.app) 2
 (Rust-Backend + Vanilla TypeScript-Frontend).
 
-![NovaTree Screenshot](docs/screenshot.png)
+
 
 > **Hinweis (v0.6.0):** Die App hieß bis v0.5.1 „NovaTwin" und wurde aus Markenrechtsgründen in
 > „NovaTree" umbenannt (App-Identifier, Repo, Datenablage). Wer eine ältere Version installiert
