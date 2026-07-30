@@ -6,7 +6,7 @@ let storePromise: Promise<Store> | null = null;
 
 function getStore(): Promise<Store> {
   if (!storePromise) {
-    storePromise = Store.load("novatwin.json");
+    storePromise = Store.load("novatree.json");
   }
   return storePromise;
 }

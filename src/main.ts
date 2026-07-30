@@ -35,6 +35,7 @@ import {
   openAbsoluteFileInEditor,
   openWorkspaceFileInEditor,
   removeTabIfOpen,
+  setAllWorkspaceTabsLocked,
   setTabAILock,
   setWorkspacePath as setEditorWorkspacePath,
   updateTabContent,
@@ -267,7 +268,7 @@ function renderMessages() {
     const el = document.createElement("div");
     el.className = `message ${msg.role}` + (msg.pending ? " pending" : "") + (msg.error ? " error" : "");
 
-    const roleLabel = msg.role === "user" ? t.you : "NovaTwin";
+    const roleLabel = msg.role === "user" ? t.you : "NovaTree";
     let filesHtml = "";
     if (msg.files && msg.files.length) {
       filesHtml = `<div class="file-actions">${msg.files
@@ -370,8 +371,12 @@ function renderAttachments() {
   pendingAttachments.forEach((file, idx) => {
     const badge = document.createElement("div");
     badge.className = "attachment-badge";
-    badge.innerHTML = `<span>📎 ${escapeHtml(file.name)}</span><button title="${t.removeAttachmentTitle}">✕</button>`;
-    badge.querySelector("button")!.addEventListener("click", () => {
+    badge.innerHTML = `<span class="attachment-name" title="${t.openInEditorTitle}">📎 ${escapeHtml(file.name)}</span><button title="${t.removeAttachmentTitle}">✕</button>`;
+    badge.querySelector(".attachment-name")!.addEventListener("click", () => {
+      openAbsoluteFileInEditor(file.path, file.name, file.content);
+    });
+    badge.querySelector("button")!.addEventListener("click", (e) => {
+      e.stopPropagation();
       pendingAttachments.splice(idx, 1);
       renderAttachments();
     });
@@ -591,6 +596,8 @@ async function sendMessage() {
 
   requestTimestamps.push(Date.now());
 
+  if (chat.workspacePath) setAllWorkspaceTabsLocked(true);
+
   try {
     let systemPrompt = settings.systemPrompt + buildLanguageSystemPromptAddition(settings.language);
     if (chat.workspacePath) {
@@ -678,6 +685,8 @@ async function sendMessage() {
     if (err instanceof GeminiApiError && err.status === 429) {
       startCooldown(err.retryAfterSeconds ?? 40);
     }
+  } finally {
+    if (chat.workspacePath) setAllWorkspaceTabsLocked(false);
   }
 
   persist();

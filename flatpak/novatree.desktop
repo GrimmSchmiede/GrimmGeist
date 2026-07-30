@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-Name=NovaTwin
+Name=NovaTree
 Comment=Desktop-Chat-Client fuer die Google Gemini API
-Exec=novatwin
-Icon=com.novatwin.app
+Exec=novatree
+Icon=com.novatree.app
 Terminal=false
 Categories=Utility;Development;

@@ -117,7 +117,7 @@ function renderTabBar() {
   for (const tab of activeTabs) {
     const el = document.createElement("div");
     el.className = "editor-tab" + (tab.path === currentActiveTabPath ? " active" : "");
-    const lockIcon = tab.isLockedByAI ? '<span class="tab-lock" title="Wird von NovaTwin bearbeitet">🔒</span>' : "";
+    const lockIcon = tab.isLockedByAI ? '<span class="tab-lock" title="Wird von NovaTree bearbeitet">🔒</span>' : "";
     const dirtyDot = tab.dirty && !tab.isLockedByAI ? '<span class="tab-dirty">●</span>' : "";
     el.innerHTML = `${lockIcon}<span class="tab-name">${escapeHtml(tab.name)}</span>${dirtyDot}<button class="tab-close" title="Schließen">✕</button>`;
     el.addEventListener("click", () => switchToTab(tab.path));
@@ -245,7 +245,7 @@ async function saveActiveTab() {
   }
 }
 
-/** Called by the workspace-action executor before/after NovaTwin writes a file, so an open tab
+/** Called by the workspace-action executor before/after NovaTree writes a file, so an open tab
  * reflects the AI-lock state and its new content in real time - without needing a Rust/Tauri
  * event round-trip, since the Gemini call and the write both already happen in this same
  * frontend context. */
@@ -255,6 +255,23 @@ export function setTabAILock(relativePath: string, locked: boolean) {
   tab.isLockedByAI = locked;
   if (currentActiveTabPath === relativePath && monacoEditorInstance) {
     monacoEditorInstance.updateOptions({ readOnly: locked });
+  }
+  renderTabBar();
+  updateSaveButton();
+}
+
+/** Locks (or unlocks) every currently open workspace tab. Used for the whole duration of a
+ * request to a workspace-linked chat: which file(s) NovaTree will touch is only known once its
+ * response arrives, and the actual disk write afterwards completes in a few milliseconds - too
+ * fast to ever be visible on its own. The perceivable "the app is working on your files" window
+ * is the full round-trip, so every open tab is treated as at-risk for that whole time. */
+export function setAllWorkspaceTabsLocked(locked: boolean) {
+  for (const tab of activeTabs) {
+    if (!tab.absolute) tab.isLockedByAI = locked;
+  }
+  const activeTab = activeTabs.find((tb) => tb.path === currentActiveTabPath);
+  if (activeTab && monacoEditorInstance) {
+    monacoEditorInstance.updateOptions({ readOnly: activeTab.isLockedByAI });
   }
   renderTabBar();
   updateSaveButton();

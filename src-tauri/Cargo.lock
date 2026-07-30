@@ -2143,8 +2143,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
-name = "novatwin"
-version = "0.5.1"
+name = "novatree"
+version = "0.6.0"
 dependencies = [
  "keyring",
  "serde",

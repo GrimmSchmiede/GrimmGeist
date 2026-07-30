@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
-const KEYRING_SERVICE: &str = "com.novatwin.app";
+const KEYRING_SERVICE: &str = "com.novatree.app";
 const KEYRING_USER: &str = "gemini_api_key";
 
 // Directories that are skipped when scanning a workspace so build output / dependency

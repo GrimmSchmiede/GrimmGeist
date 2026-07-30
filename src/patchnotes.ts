@@ -6,6 +6,21 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.6.0",
+    de: [
+      "App aus Markenrechtsgründen von „NovaTwin\" in „NovaTree\" umbenannt (App-ID, Repository, Datenablage, Schlüsselbund-Eintrag)",
+      "Hinweis: Chats/Einstellungen aus älteren Versionen werden dadurch nicht automatisch übernommen, der API-Schlüssel muss einmalig neu eingetragen werden",
+      "Fehler behoben: über die Büroklammer angehängte Dateien ließen sich nicht im Live-Editor öffnen - jetzt sowohl direkt in der Anhang-Vorschau als auch nach dem Senden anklickbar",
+      "Sperre für Dateien im Live-Editor gilt jetzt über die gesamte Dauer einer Anfrage (nicht nur den kurzen Schreibvorgang), damit das Schloss-Symbol tatsächlich sichtbar wird",
+    ],
+    en: [
+      "App renamed from \"NovaTwin\" to \"NovaTree\" for trademark reasons (app ID, repository, data storage, keychain entry)",
+      "Note: chats/settings from older versions are not carried over automatically because of this, the API key needs to be re-entered once",
+      "Fixed: files attached via the paperclip couldn't be opened in the live editor - now clickable both in the attachment preview and after sending",
+      "The live editor's file lock now spans the whole duration of a request (not just the brief disk write) so the lock icon is actually visible",
+    ],
+  },
+  {
     version: "0.5.1",
     de: [
       "Fehler behoben: Chats umbenennen funktionierte nicht zuverlässig - jetzt per Rechtsklick auf einen Chat mit Menü für Umbenennen/Löschen",

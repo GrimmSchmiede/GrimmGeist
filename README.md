@@ -1,9 +1,15 @@
-# NovaTwin
+# NovaTree
 
 Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Tauri](https://tauri.app) 2
 (Rust-Backend + Vanilla TypeScript-Frontend).
 
-![NovaTwin Screenshot](docs/screenshot.png)
+![NovaTree Screenshot](docs/screenshot.png)
+
+> **Hinweis (v0.6.0):** Die App hieß bis v0.5.1 „NovaTwin" und wurde aus Markenrechtsgründen in
+> „NovaTree" umbenannt (App-Identifier, Repo, Datenablage). Wer eine ältere Version installiert
+> hatte: Chats/Einstellungen werden **nicht automatisch übernommen** (neue App-ID = neuer
+> Datenpfad) und der Google-API-Schlüssel muss einmalig neu in den Einstellungen eingetragen
+> werden (neuer Schlüsselbund-Eintrag).
 
 ## Features
 
@@ -63,11 +69,11 @@ Bei jedem Push auf `main` baut `.github/workflows/release.yml` über eine Matrix
 - Windows: `.exe` (NSIS) / `.msi`
 - Linux: `.AppImage` / `.deb` / `.rpm`
 
-Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `NovaTwin.flatpak` gegen die
+Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `NovaTree.flatpak` gegen die
 `org.gnome.Platform`-Runtime (bringt eine feste, getestete WebKitGTK-Version mit statt der des
 Host-Systems – behebt Rendering-Probleme wie `EGL_BAD_PARAMETER`, die auf manchen Distros mit
 sehr aktuellem Mesa/WebKitGTK auftreten, z. B. bei AppImages, die WebKitGTK nicht mitbündeln).
-Installation: `.flatpak`-Datei herunterladen, dann `flatpak install NovaTwin.flatpak` bzw. per
+Installation: `.flatpak`-Datei herunterladen, dann `flatpak install NovaTree.flatpak` bzw. per
 Doppelklick, falls die Dateimanager-Integration vorhanden ist.
 
 Die fertigen Installer werden automatisch als **veröffentlichter Release** (nicht als Draft)
@@ -80,7 +86,7 @@ damit der Workflow Releases erstellen darf.
 
 ### Auto-Updater
 
-Die App prüft bei jedem Start `https://github.com/State-of-Economy/NovaTwin/releases/latest/download/latest.json`.
+Die App prüft bei jedem Start `https://github.com/State-of-Economy/NovaTree/releases/latest/download/latest.json`.
 Ist die dort verzeichnete Version neuer als die installierte, erscheint ein Update-Banner.
 Damit ein neuer Push tatsächlich ein Update auslöst, **muss die Versionsnummer** in
 `src-tauri/tauri.conf.json` (Feld `version`) und `package.json` vor dem Push erhöht werden –
@@ -103,7 +109,7 @@ Updates werden mit einem lokal erzeugten Minisign-Schlüsselpaar signiert:
 Problem in den meisten Fällen behebt. Tritt es trotzdem noch auf, testweise manuell setzen:
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTwin_*.AppImage
+WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTree_*.AppImage
 ```
 
 **Flatpak: weißes Fenster mit "could not connect to localhost":** WebKitGTKs eigene interne

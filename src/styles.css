@@ -746,6 +746,14 @@ body {
   color: var(--text);
 }
 
+.attachment-badge .attachment-name {
+  cursor: pointer;
+}
+
+.attachment-badge .attachment-name:hover {
+  text-decoration: underline;
+}
+
 .attachment-badge button {
   background: none;
   border: none;

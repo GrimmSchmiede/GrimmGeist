@@ -56,12 +56,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: novatwin-v__VERSION__
-          releaseName: "NovaTwin v__VERSION__"
+          tagName: novatree-v__VERSION__
+          releaseName: "NovaTree v__VERSION__"
           releaseBody: |
             Automatisch von GitHub Actions gebauter Release.
             Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.AppImage`/`.deb`).
-            Bereits installierte NovaTwin-Versionen aktualisieren sich automatisch auf diese Version.
+            Bereits installierte NovaTree-Versionen aktualisieren sich automatisch auf diese Version.
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
@@ -118,8 +118,8 @@ jobs:
 
       - name: Build Flatpak bundle
         run: |
-          flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatwin.app.yml
-          flatpak build-bundle flatpak-repo NovaTwin.flatpak com.novatwin.app
+          flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatree.app.yml
+          flatpak build-bundle flatpak-repo NovaTree.flatpak com.novatree.app
 
       - name: Read app version
         id: app_version
@@ -129,4 +129,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "novatwin-v${{ steps.app_version.outputs.version }}" NovaTwin.flatpak --clobber --repo "${{ github.repository }}"
+          gh release upload "novatree-v${{ steps.app_version.outputs.version }}" NovaTree.flatpak --clobber --repo "${{ github.repository }}"

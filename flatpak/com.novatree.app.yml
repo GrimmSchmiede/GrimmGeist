@@ -1,8 +1,8 @@
-app-id: com.novatwin.app
+app-id: com.novatree.app
 runtime: org.gnome.Platform
 runtime-version: '50'
 sdk: org.gnome.Sdk
-command: novatwin
+command: novatree
 separate-locales: false
 
 finish-args:
@@ -26,18 +26,18 @@ finish-args:
   - --env=WEBKIT_FORCE_SANDBOX=0
 
 modules:
-  - name: novatwin
+  - name: novatree
     buildsystem: simple
     build-commands:
-      - install -Dm755 novatwin /app/bin/novatwin
-      - install -Dm644 novatwin.desktop /app/share/applications/com.novatwin.app.desktop
-      - install -Dm644 icon-128.png /app/share/icons/hicolor/128x128/apps/com.novatwin.app.png
+      - install -Dm755 novatree /app/bin/novatree
+      - install -Dm644 novatree.desktop /app/share/applications/com.novatree.app.desktop
+      - install -Dm644 icon-128.png /app/share/icons/hicolor/128x128/apps/com.novatree.app.png
     sources:
       - type: file
-        path: ../src-tauri/target/release/novatwin
-        dest-filename: novatwin
+        path: ../src-tauri/target/release/novatree
+        dest-filename: novatree
       - type: file
-        path: novatwin.desktop
+        path: novatree.desktop
       - type: file
         path: ../src-tauri/icons/128x128.png
         dest-filename: icon-128.png
