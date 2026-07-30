@@ -966,6 +966,91 @@ body {
   filter: brightness(1.1);
 }
 
+.danger-btn {
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.danger-btn:hover {
+  filter: brightness(1.1);
+}
+
+.security-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.checkbox-row input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+}
+
+.checkbox-row:has(input:disabled) {
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
+/* Approval modal (delete confirm / diff review) */
+.approval-modal {
+  width: 720px;
+  max-width: 94vw;
+}
+
+.approval-delete-view,
+.approval-diff-view {
+  padding: 20px;
+}
+
+.approval-delete-message {
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+
+.approval-diff-header {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+  font-family: "Cascadia Code", Consolas, monospace;
+}
+
+.approval-diff-container {
+  height: 400px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.approval-actions {
+  margin-top: 16px;
+  gap: 8px;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }

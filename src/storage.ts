@@ -1,6 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Store } from "@tauri-apps/plugin-store";
-import { AppSettings, Chat, DEFAULT_SYSTEM_PROMPT, Language, QuotaState } from "./types";
+import {
+  AppSettings,
+  Chat,
+  DEFAULT_SECURITY_SETTINGS,
+  DEFAULT_SYSTEM_PROMPT,
+  Language,
+  QuotaState,
+  SecuritySettings,
+} from "./types";
 
 let storePromise: Promise<Store> | null = null;
 
@@ -16,7 +24,11 @@ export async function loadSettings(): Promise<AppSettings> {
   const systemPrompt = (await store.get<string>("systemPrompt")) ?? DEFAULT_SYSTEM_PROMPT;
   const safetyThreshold = (await store.get<string>("safetyThreshold")) ?? "BLOCK_MEDIUM_AND_ABOVE";
   const language = (await store.get<Language>("language")) ?? "de";
-  return { systemPrompt, safetyThreshold, language };
+  const storedSecurity = await store.get<SecuritySettings>("security");
+  const security: SecuritySettings = storedSecurity
+    ? { ...DEFAULT_SECURITY_SETTINGS, ...storedSecurity, requireApprovalFor: { ...DEFAULT_SECURITY_SETTINGS.requireApprovalFor, ...storedSecurity.requireApprovalFor } }
+    : DEFAULT_SECURITY_SETTINGS;
+  return { systemPrompt, safetyThreshold, language, security };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
@@ -24,6 +36,7 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   await store.set("systemPrompt", settings.systemPrompt);
   await store.set("safetyThreshold", settings.safetyThreshold);
   await store.set("language", settings.language);
+  await store.set("security", settings.security);
   await store.save();
 }
 

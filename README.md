@@ -47,6 +47,20 @@ führt die App die Aktion direkt über eigene Rust-Commands aus (kein `tauri-plu
 `..`-Traversal oder absoluten Pfaden werden serverseitig abgelehnt, sodass Aktionen nicht aus
 dem gewählten Ordner ausbrechen können.
 
+### KI-Dateizugriff (Freigabe-Modi)
+
+Unter Einstellungen → **„KI-Dateizugriff"** lässt sich steuern, ob NovaTree Datei-Aktionen im
+Workspace-Ordner sofort ausführt oder erst deine Bestätigung braucht:
+
+- **Immer nachfragen** – jede Aktion (create/edit/delete) muss bestätigt werden.
+- **Teil-Autonom** – einzeln pro Aktionstyp konfigurierbar (Standard: Erstellen automatisch,
+  Bearbeiten/Löschen mit Nachfrage).
+- **Voll-Autonom** – NovaTree schreibt ohne Rückfrage direkt durch.
+
+Bei **Löschen** erscheint eine rote Warnung mit Dateipfad, bei **Erstellen/Bearbeiten** ein
+Diff-Ansicht (Monacos nativer `createDiffEditor()`) zwischen aktuellem und vorgeschlagenem
+Inhalt, in einem eigenständigen Modal – unabhängig davon, ob der Live-Editor gerade sichtbar ist.
+
 ## Entwicklung
 
 Voraussetzungen: [Node.js](https://nodejs.org), [Rust](https://www.rust-lang.org/tools/install) und die

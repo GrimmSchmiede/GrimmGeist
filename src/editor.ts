@@ -27,7 +27,7 @@ const editorCollapseIconEl = document.getElementById("editor-collapse-icon")!;
 const editorEmptyEl = document.getElementById("editor-empty")!;
 const editorSaveBtnEl = document.getElementById("editor-save-btn") as HTMLButtonElement;
 
-function getLanguageFromExtension(path: string): string {
+export function getLanguageFromExtension(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase();
   switch (ext) {
     case "rs":

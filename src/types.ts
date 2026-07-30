@@ -39,10 +39,38 @@ export interface Chat {
 
 export type Language = "de" | "en";
 
+/** "always" = jede Datei-Aktion braucht Freigabe. "partial" = pro Aktionstyp konfigurierbar
+ * (requireApprovalFor). "none" = voll-autonom, nie nachfragen. */
+export type SecurityMode = "always" | "partial" | "none";
+
+export interface SecuritySettings {
+  mode: SecurityMode;
+  requireApprovalFor: {
+    create: boolean;
+    edit: boolean;
+    delete: boolean;
+  };
+}
+
+export const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
+  mode: "partial",
+  requireApprovalFor: { create: false, edit: true, delete: true },
+};
+
 export interface AppSettings {
   systemPrompt: string;
   safetyThreshold: string;
   language: Language;
+  security: SecuritySettings;
+}
+
+export function actionRequiresApproval(
+  action: "create" | "edit" | "delete",
+  security: SecuritySettings
+): boolean {
+  if (security.mode === "always") return true;
+  if (security.mode === "none") return false;
+  return security.requireApprovalFor[action];
 }
 
 export interface QuotaState {

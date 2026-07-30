@@ -63,6 +63,21 @@ interface Dict {
   modelOverloadedRetrying: (attempt: number, max: number) => string;
   modelOverloadedSwitching: (model: string) => string;
   errorPrefix: (msg: string) => string;
+  securitySectionLabel: string;
+  securityModeHint: string;
+  securityModeAlways: string;
+  securityModePartial: string;
+  securityModeNone: string;
+  approvalCreateLabel: string;
+  approvalEditLabel: string;
+  approvalDeleteLabel: string;
+  deleteApprovalMessage: (filename: string) => string;
+  diffApprovalTitle: (filename: string) => string;
+  approvalCancel: string;
+  approvalConfirmDelete: string;
+  approvalDiscard: string;
+  approvalAccept: string;
+  actionRejectedByUser: string;
 }
 
 const de: Dict = {
@@ -129,6 +144,21 @@ const de: Dict = {
   modelOverloadedRetrying: (attempt, max) => `Modell überlastet, Versuch ${attempt}/${max}…`,
   modelOverloadedSwitching: (model) => `Modell überlastet, wechsle zu ${model}…`,
   errorPrefix: (msg) => `Fehler: ${msg}`,
+  securitySectionLabel: "KI-Dateizugriff",
+  securityModeHint: "Legt fest, ob NovaTree vor Datei-Änderungen im Workspace-Ordner erst deine Freigabe braucht.",
+  securityModeAlways: "Immer nachfragen",
+  securityModePartial: "Teil-Autonom",
+  securityModeNone: "Voll-Autonom",
+  approvalCreateLabel: "Freigabe beim Erstellen neuer Dateien",
+  approvalEditLabel: "Freigabe beim Bearbeiten bestehender Dateien",
+  approvalDeleteLabel: "Freigabe beim Löschen von Dateien",
+  deleteApprovalMessage: (filename) => `Möchtest du zulassen, dass die KI die Datei „${filename}" unwiderruflich löscht?`,
+  diffApprovalTitle: (filename) => `Vorgeschlagene Änderung: ${filename}`,
+  approvalCancel: "Abbrechen",
+  approvalConfirmDelete: "Ja, löschen",
+  approvalDiscard: "Verwerfen",
+  approvalAccept: "Änderungen übernehmen",
+  actionRejectedByUser: "Vom Nutzer abgelehnt",
 };
 
 const en: Dict = {
@@ -195,6 +225,21 @@ const en: Dict = {
   modelOverloadedRetrying: (attempt, max) => `Model overloaded, attempt ${attempt}/${max}…`,
   modelOverloadedSwitching: (model) => `Model overloaded, switching to ${model}…`,
   errorPrefix: (msg) => `Error: ${msg}`,
+  securitySectionLabel: "AI file access",
+  securityModeHint: "Controls whether NovaTree needs your approval before changing files in the workspace folder.",
+  securityModeAlways: "Always ask",
+  securityModePartial: "Partially autonomous",
+  securityModeNone: "Fully autonomous",
+  approvalCreateLabel: "Require approval when creating new files",
+  approvalEditLabel: "Require approval when editing existing files",
+  approvalDeleteLabel: "Require approval when deleting files",
+  deleteApprovalMessage: (filename) => `Allow the AI to permanently delete the file "${filename}"?`,
+  diffApprovalTitle: (filename) => `Proposed change: ${filename}`,
+  approvalCancel: "Cancel",
+  approvalConfirmDelete: "Yes, delete",
+  approvalDiscard: "Discard",
+  approvalAccept: "Apply changes",
+  actionRejectedByUser: "Rejected by user",
 };
 
 const dicts: Record<Language, Dict> = { de, en };

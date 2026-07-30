@@ -142,8 +142,55 @@
             <option value="BLOCK_LOW_AND_ABOVE">Streng (niedrig und höher)</option>
           </select>
 
+          <label class="field-label" id="security-section-label" for="security-mode-select">KI-Dateizugriff</label>
+          <select id="security-mode-select" class="text-input">
+            <option value="always">Immer nachfragen</option>
+            <option value="partial" selected>Teil-Autonom</option>
+            <option value="none">Voll-Autonom</option>
+          </select>
+          <p class="field-hint" id="security-mode-hint">
+            Legt fest, ob NovaTree vor Datei-Änderungen im Workspace-Ordner erst deine Freigabe braucht.
+          </p>
+
+          <div class="security-checkboxes">
+            <label class="checkbox-row">
+              <input type="checkbox" id="approval-create" />
+              <span id="approval-create-label">Freigabe beim Erstellen neuer Dateien</span>
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="approval-edit" />
+              <span id="approval-edit-label">Freigabe beim Bearbeiten bestehender Dateien</span>
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="approval-delete" />
+              <span id="approval-delete-label">Freigabe beim Löschen von Dateien</span>
+            </label>
+          </div>
+
           <div class="modal-actions">
             <button id="settings-save" class="primary-btn">Speichern</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="approval-modal" class="modal-overlay hidden">
+      <div class="modal approval-modal">
+        <div id="approval-delete-view" class="approval-delete-view hidden">
+          <p id="approval-delete-message" class="approval-delete-message"></p>
+          <div class="modal-actions approval-actions">
+            <button id="approval-delete-cancel" class="secondary-btn" type="button">Abbrechen</button>
+            <button id="approval-delete-confirm" class="danger-btn" type="button">Ja, löschen</button>
+          </div>
+        </div>
+        <div id="approval-diff-view" class="approval-diff-view hidden">
+          <div class="approval-diff-header">
+            <span id="approval-diff-title"></span>
+          </div>
+          <div id="approval-diff-container" class="approval-diff-container"></div>
+          <div class="modal-actions approval-actions">
+            <button id="approval-diff-discard" class="secondary-btn" type="button">Verwerfen</button>
+            <button id="approval-diff-accept" class="primary-btn" type="button">Änderungen übernehmen</button>
           </div>
         </div>
       </div>

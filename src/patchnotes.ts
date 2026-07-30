@@ -6,6 +6,21 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.7.0",
+    de: [
+      "Neu: Granulare Sicherheit für den KI-Dateizugriff im Workspace-Ordner (Einstellungen → „KI-Dateizugriff“)",
+      "Drei Modi: Immer nachfragen, Teil-Autonom (einzeln pro Aktionstyp konfigurierbar), Voll-Autonom",
+      "Beim Löschen fragt NovaTree jetzt mit einer deutlichen Warnung nach, bevor eine Datei unwiderruflich entfernt wird (wenn aktiviert)",
+      "Beim Erstellen/Bearbeiten zeigt NovaTree einen Diff (Monacos nativer Diff-Editor) zwischen aktuellem und vorgeschlagenem Inhalt, bevor die Datei geschrieben wird (wenn aktiviert)",
+    ],
+    en: [
+      "New: granular security for AI file access in the workspace folder (Settings → \"AI file access\")",
+      "Three modes: always ask, partially autonomous (configurable per action type), fully autonomous",
+      "On delete, NovaTree now asks for confirmation with a clear warning before a file is permanently removed (if enabled)",
+      "On create/edit, NovaTree shows a diff (Monaco's native diff editor) between the current and proposed content before writing the file (if enabled)",
+    ],
+  },
+  {
     version: "0.6.1",
     de: [
       "Neu: Smarter API-Key-Import - Button „API-Schlüssel holen“ in den Einstellungen öffnet Google AI Studio im Standard-Browser",

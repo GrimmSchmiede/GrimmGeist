@@ -42,6 +42,7 @@ import {
   setWorkspacePath as setEditorWorkspacePath,
   updateTabContent,
 } from "./editor";
+import { requestApproval } from "./approval";
 import {
   AppSettings,
   AttachedFile,
@@ -49,11 +50,14 @@ import {
   ChatMessage,
   DAILY_REQUEST_LIMIT,
   DEFAULT_MODEL,
+  DEFAULT_SECURITY_SETTINGS,
   Language,
   MODEL_OPTIONS,
   PER_MINUTE_REQUEST_LIMIT,
   QuotaState,
+  SecurityMode,
   WorkspaceActionResult,
+  actionRequiresApproval,
   buildLanguageSystemPromptAddition,
   buildWorkspaceSystemPromptAddition,
 } from "./types";
@@ -104,6 +108,10 @@ const patchnotesBodyEl = document.getElementById("patchnotes-body")!;
 const apiKeyInputEl = document.getElementById("api-key-input") as HTMLInputElement;
 const systemPromptInputEl = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
 const safetySelectEl = document.getElementById("safety-select") as HTMLSelectElement;
+const securityModeSelectEl = document.getElementById("security-mode-select") as HTMLSelectElement;
+const approvalCreateEl = document.getElementById("approval-create") as HTMLInputElement;
+const approvalEditEl = document.getElementById("approval-edit") as HTMLInputElement;
+const approvalDeleteEl = document.getElementById("approval-delete") as HTMLInputElement;
 const getApiKeyBtnEl = document.getElementById("get-api-key-btn")!;
 const apiKeyDetectedNoteEl = document.getElementById("api-key-detected-note")!;
 
@@ -641,6 +649,18 @@ async function sendMessage() {
       if (actions.length) {
         const results: WorkspaceActionResult[] = [];
         for (const cmd of actions) {
+          if (actionRequiresApproval(cmd.action, settings.security)) {
+            const approved = await requestApproval(cmd, workspacePath);
+            if (!approved) {
+              results.push({
+                action: cmd.action,
+                filename: cmd.filename,
+                success: false,
+                error: t.actionRejectedByUser,
+              });
+              continue;
+            }
+          }
           setTabAILock(cmd.filename, true);
           try {
             if (cmd.action === "delete") {
@@ -704,10 +724,33 @@ function autoGrowTextarea() {
 }
 
 // ---- Settings modal ----
+function updateSecurityCheckboxesDisabled() {
+  const mode = securityModeSelectEl.value as SecurityMode;
+  const editable = mode === "partial";
+  approvalCreateEl.disabled = !editable;
+  approvalEditEl.disabled = !editable;
+  approvalDeleteEl.disabled = !editable;
+  if (mode === "always") {
+    approvalCreateEl.checked = true;
+    approvalEditEl.checked = true;
+    approvalDeleteEl.checked = true;
+  } else if (mode === "none") {
+    approvalCreateEl.checked = false;
+    approvalEditEl.checked = false;
+    approvalDeleteEl.checked = false;
+  }
+}
+
 function openSettings() {
   apiKeyInputEl.value = apiKey ?? "";
   systemPromptInputEl.value = settings.systemPrompt;
   safetySelectEl.value = settings.safetyThreshold;
+  const security = settings.security ?? DEFAULT_SECURITY_SETTINGS;
+  securityModeSelectEl.value = security.mode;
+  approvalCreateEl.checked = security.requireApprovalFor.create;
+  approvalEditEl.checked = security.requireApprovalFor.edit;
+  approvalDeleteEl.checked = security.requireApprovalFor.delete;
+  updateSecurityCheckboxesDisabled();
   settingsModalEl.classList.remove("hidden");
   apiKeyDetectedNoteEl.classList.add("hidden");
 
@@ -739,10 +782,19 @@ async function saveSettingsFromModal() {
     await saveApiKey(newKey);
     apiKey = newKey || null;
   }
+  const mode = securityModeSelectEl.value as SecurityMode;
   settings = {
     ...settings,
     systemPrompt: systemPromptInputEl.value,
     safetyThreshold: safetySelectEl.value,
+    security: {
+      mode,
+      requireApprovalFor: {
+        create: approvalCreateEl.checked,
+        edit: approvalEditEl.checked,
+        delete: approvalDeleteEl.checked,
+      },
+    },
   };
   await saveSettings(settings);
   closeSettings();
@@ -789,6 +841,21 @@ function applyStaticTranslations() {
     safetySelect.options[2].textContent = t.safetyMedium;
     safetySelect.options[3].textContent = t.safetyLow;
   }
+
+  document.getElementById("security-section-label")!.textContent = t.securitySectionLabel;
+  document.getElementById("security-mode-hint")!.textContent = t.securityModeHint;
+  if (securityModeSelectEl.options.length >= 3) {
+    securityModeSelectEl.options[0].textContent = t.securityModeAlways;
+    securityModeSelectEl.options[1].textContent = t.securityModePartial;
+    securityModeSelectEl.options[2].textContent = t.securityModeNone;
+  }
+  document.getElementById("approval-create-label")!.textContent = t.approvalCreateLabel;
+  document.getElementById("approval-edit-label")!.textContent = t.approvalEditLabel;
+  document.getElementById("approval-delete-label")!.textContent = t.approvalDeleteLabel;
+  document.getElementById("approval-delete-cancel")!.textContent = t.approvalCancel;
+  document.getElementById("approval-delete-confirm")!.textContent = t.approvalConfirmDelete;
+  document.getElementById("approval-diff-discard")!.textContent = t.approvalDiscard;
+  document.getElementById("approval-diff-accept")!.textContent = t.approvalAccept;
 }
 
 // ---- Patch notes ----
@@ -871,6 +938,7 @@ async function init() {
     if (e.target === settingsModalEl) closeSettings();
   });
   getApiKeyBtnEl.addEventListener("click", openGoogleAIStudioKeyPage);
+  securityModeSelectEl.addEventListener("change", updateSecurityCheckboxesDisabled);
 
   langDeBtnEl.addEventListener("click", () => setAppLanguage("de"));
   langEnBtnEl.addEventListener("click", () => setAppLanguage("en"));
