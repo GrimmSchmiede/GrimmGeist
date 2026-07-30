@@ -1,3 +1,5 @@
+![NovaTree](docs/banner.png)
+
 # NovaTree
 
 Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Tauri](https://tauri.app) 2
