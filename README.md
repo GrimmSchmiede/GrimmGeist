@@ -172,14 +172,17 @@ Problem in den meisten Fällen behebt. Tritt es trotzdem noch auf, testweise man
 WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTree_*.AppImage
 ```
 
-**Flatpak: weißes Fenster mit "could not connect to localhost":** WebKitGTKs eigene interne
-(bubblewrap-)Sandbox, verschachtelt in Flatpaks Sandbox, blockiert die localhost-Verbindung, über
-die Tauri intern die App-Assets ausliefert. Ab v0.3.6 setzt das Flatpak-Manifest dafür
-`WEBKIT_FORCE_SANDBOX=0`. Ab v0.3.7 zusätzlich `runtime-version: '50'` statt `'47'` – ein
-unabhängig getesteter Community-Build (PR #1) lief bereits ohne den Env-Var-Fix stabil, nur mit
-der neueren Runtime-Version, was nahelegt, dass der zugrunde liegende Bug in neueren
-`org.gnome.Platform`-Versionen bereits upstream behoben ist. Beide Fixes bleiben aus
-Sicherheitsgründen kombiniert bestehen.
+**Weißes Fenster mit "could not connect to localhost" (Flatpak, AppImage oder nativ):**
+WebKitGTKs eigene interne (bubblewrap-)Sandbox blockiert die localhost-Verbindung, über die Tauri
+intern die App-Assets ausliefert – bzw. schlägt auf manchen Systemen (z. B. Arch/CachyOS, wo
+unprivilegierte User-Namespaces standardmäßig per Kernel-Hardening deaktiviert sind) komplett fehl
+und die App startet mit einer "Sandbox kann nicht deaktiviert werden"-Meldung gar nicht erst. Ab
+v0.3.6 setzte das Flatpak-Manifest dafür `WEBKIT_FORCE_SANDBOX=0` – diese Variable existiert bei
+WebKitGTK allerdings gar nicht und hatte nie eine Wirkung; der eigentliche Fix war vermutlich die
+Runtime-Anhebung auf `org.gnome.Platform//50` in v0.3.7. Ab v0.8.2 wird stattdessen die korrekte,
+offiziell dokumentierte Variable `WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1` gesetzt – sowohl im
+Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`), sodass der Fix auch
+für AppImage und native Linux-Installationen greift.
 
 ## API-Schlüssel einrichten
 

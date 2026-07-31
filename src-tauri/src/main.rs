@@ -10,9 +10,13 @@ fn main() {
         std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         // WebKitGTK's own internal (bubblewrap) sandbox can block the local HTTP server Tauri
-        // uses on Linux to serve assets, causing "could not connect to localhost" - the same
-        // root cause we already worked around for the Flatpak build via its manifest.
-        std::env::set_var("WEBKIT_FORCE_SANDBOX", "0");
+        // uses on Linux to serve assets, causing "could not connect to localhost" - or, on
+        // systems where unprivileged user namespaces are disabled at the kernel level (a common
+        // Arch/CachyOS hardening default that breaks bubblewrap outright), WebKitGTK refuses to
+        // start at all with a "sandbox could not be disabled" error unless this exact,
+        // intentionally scary-named variable is set (WEBKIT_FORCE_SANDBOX is not a real
+        // WebKitGTK variable and does nothing - this is the actual documented one).
+        std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
     }
 
     novatree_lib::run()

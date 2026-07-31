@@ -6,6 +6,17 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.2",
+    de: [
+      "Linux-Fix korrigiert: v0.8.1 setzte versehentlich WEBKIT_FORCE_SANDBOX (existiert bei WebKitGTK nicht, hatte nie eine Wirkung) statt der korrekten Variable WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS - betrifft AppImage, native Installation und das Flatpak-Manifest",
+      "Behebt insbesondere Systeme (z. B. Arch/CachyOS), auf denen WebKitGTKs Sandbox mangels unprivilegierter User-Namespaces komplett fehlschlägt und die App mit einer \"Sandbox kann nicht deaktiviert werden\"-Meldung gar nicht erst startet",
+    ],
+    en: [
+      "Linux fix corrected: v0.8.1 accidentally set WEBKIT_FORCE_SANDBOX (not a real WebKitGTK variable, never had any effect) instead of the correct WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS - affects AppImage, native install and the Flatpak manifest",
+      "Fixes in particular systems (e.g. Arch/CachyOS) where WebKitGTK's sandbox fails outright due to disabled unprivileged user namespaces, preventing the app from starting at all with a \"sandbox could not be disabled\" error",
+    ],
+  },
+  {
     version: "0.8.1",
     de: [
       "Linux: möglicher Fix für weißes Fenster mit „could not connect to localhost“ auch außerhalb von Flatpak (AppImage, native Installation) - WebKitGTKs interne Sandbox wird jetzt auch dort deaktiviert (WEBKIT_FORCE_SANDBOX=0)",
