@@ -138,19 +138,24 @@ Bei jedem Push auf `main` baut `.github/workflows/release.yml` über eine Matrix
 (`windows-latest`, `ubuntu-22.04`) mittels `tauri-apps/tauri-action` automatisch:
 
 - Windows: `.exe` (NSIS) / `.msi`
-- Linux: `.AppImage` / `.deb` / `.rpm`
+- Linux: `.deb` / `.rpm`
 - Zusätzlich wird die rohe Linux-ELF-Binärdatei (`NovaTree_<version>_linux_amd64`, unverpackt, ohne
   Installer) direkt mit hochgeladen – nützlich zum Debuggen (z. B. `./NovaTree_*_linux_amd64` im
-  Terminal starten, um echte Fehlerausgaben zu sehen) oder für Distros ohne AppImage-Unterstützung.
+  Terminal starten, um echte Fehlerausgaben zu sehen) oder für Distros ohne `.deb`/`.rpm`.
   Benötigt die gleichen System-Bibliotheken wie das `.deb`/`.rpm` (u. a. `webkit2gtk-4.1`) und
   bekommt **keine** automatischen Updates (nur die gebündelten Formate mit Signatur tun das).
 
 Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `NovaTree.flatpak` gegen die
 `org.gnome.Platform`-Runtime (bringt eine feste, getestete WebKitGTK-Version mit statt der des
-Host-Systems – behebt Rendering-Probleme wie `EGL_BAD_PARAMETER`, die auf manchen Distros mit
-sehr aktuellem Mesa/WebKitGTK auftreten, z. B. bei AppImages, die WebKitGTK nicht mitbündeln).
+Host-Systems mit, was auf vielen Distros zuverlässiger läuft als eine unverpackte Binary).
 Installation: `.flatpak`-Datei herunterladen, dann `flatpak install NovaTree.flatpak` bzw. per
 Doppelklick, falls die Dateimanager-Integration vorhanden ist.
+
+> **Hinweis:** Es gibt bewusst **kein AppImage** mehr (entfernt in v0.8.5). Tauris AppImage-Bundler
+> bündelt eine eigene WebKitGTK/GTK/Wayland-Bibliothekskette, deren Startskript zudem
+> bedingungslos `GDK_BACKEND=x11` erzwingt – auf manchen Wayland-Systemen (z. B. CachyOS) führte
+> das trotz mehrerer Fixversuche zu einem dauerhaft weißen Fenster. Flatpak und die rohe
+> ELF-Binärdatei decken denselben Anwendungsfall (portabel, kein Root nötig) zuverlässiger ab.
 
 Die fertigen Installer werden automatisch als **veröffentlichter Release** (nicht als Draft)
 unter "Releases" im Repository abgelegt – nur ein veröffentlichter Release ist über den
@@ -185,10 +190,10 @@ Updates werden mit einem lokal erzeugten Minisign-Schlüsselpaar signiert:
 Problem in den meisten Fällen behebt. Tritt es trotzdem noch auf, testweise manuell setzen:
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTree_*.AppImage
+WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTree_*_linux_amd64
 ```
 
-**Weißes Fenster mit "could not connect to localhost" (Flatpak, AppImage oder nativ):**
+**Weißes Fenster mit "could not connect to localhost" (Flatpak oder nativ):**
 WebKitGTKs eigene interne (bubblewrap-)Sandbox blockiert die localhost-Verbindung, über die Tauri
 intern die App-Assets ausliefert – bzw. schlägt auf manchen Systemen (z. B. Arch/CachyOS, wo
 unprivilegierte User-Namespaces standardmäßig per Kernel-Hardening deaktiviert sind) komplett fehl
@@ -197,18 +202,7 @@ v0.3.6 setzte das Flatpak-Manifest dafür `WEBKIT_FORCE_SANDBOX=0` – diese Var
 WebKitGTK allerdings gar nicht und hatte nie eine Wirkung; der eigentliche Fix war vermutlich die
 Runtime-Anhebung auf `org.gnome.Platform//50` in v0.3.7. Ab v0.8.2 wird stattdessen die korrekte,
 offiziell dokumentierte Variable `WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1` gesetzt – sowohl im
-Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`), sodass der Fix auch
-für AppImage und native Linux-Installationen greift.
-
-**AppImage speziell: weißes Fenster unter Wayland (z. B. CachyOS):** Das AppImage bündelt aus
-Kompatibilitätsgründen eine eigene, vollständige WebKitGTK/GTK/GLib-Bibliothekskette (Tauris
-`linuxdeploy-plugin-gtk`, damit die App nicht von der System-WebKitGTK-Version abhängt). Dessen
-Start-Hook setzt dabei aber bedingungslos `GDK_BACKEND=x11`, wodurch WebKitGTK selbst auf reinen
-Wayland-Systemen über XWayland gerendert wird – ein bekannter Auslöser für ein leeres weißes
-Fenster auf manchen Wayland/Mesa-Kombinationen ([tauri-apps/tauri#15781](https://github.com/tauri-apps/tauri/issues/15781)).
-Ab v0.8.3 erzwingt die App `GDK_BACKEND=wayland` zurück, sobald eine aktive Wayland-Sitzung
-erkannt wird (`WAYLAND_DISPLAY` gesetzt) – reine X11-Systeme sowie die native/Flatpak-Variante
-sind von diesem Hook nicht betroffen und bleiben unverändert.
+Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`).
 
 ## API-Schlüssel einrichten
 

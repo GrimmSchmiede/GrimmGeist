@@ -6,6 +6,17 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.5",
+    de: [
+      "Linux: AppImage komplett entfernt - trotz mehrerer Fixversuche blieb das Fenster auf manchen Wayland-Systemen (z. B. CachyOS) weiß, weil Tauris AppImage-Bundler eine eigene, teils inkompatible WebKitGTK/GTK/Wayland-Bibliothekskette mitbündelt",
+      "Flatpak und die rohe Linux-ELF-Binärdatei decken denselben Anwendungsfall (portabel, kein Root nötig) ab und sind davon nicht betroffen",
+    ],
+    en: [
+      "Linux: removed the AppImage build entirely - despite several fix attempts, the window stayed blank on some Wayland systems (e.g. CachyOS) because Tauri's AppImage bundler ships its own, partly incompatible WebKitGTK/GTK/Wayland library stack",
+      "Flatpak and the raw Linux ELF binary cover the same use case (portable, no root needed) and aren't affected by this",
+    ],
+  },
+  {
     version: "0.8.4",
     de: [
       "Neu: Automatisches Backup - jede Datei, die im Workspace-Ordner überschrieben, bearbeitet oder gelöscht wird (durch die KI oder dich selbst im Live-Editor), wird zuerst unsichtbar nach .novatree-backups/ gesichert (kein Git nötig, letzte 20 Versionen pro Datei, älteres wird automatisch entfernt)",

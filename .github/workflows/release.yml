@@ -60,7 +60,7 @@ jobs:
           releaseName: "NovaTree v__VERSION__"
           releaseBody: |
             Automatisch von GitHub Actions gebauter Release.
-            Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.AppImage`/`.deb`).
+            Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.deb`/`.rpm`/`.flatpak`).
             Bereits installierte NovaTree-Versionen aktualisieren sich automatisch auf diese Version.
           releaseDraft: false
           prerelease: false

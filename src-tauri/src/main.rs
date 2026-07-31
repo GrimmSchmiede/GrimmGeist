@@ -17,17 +17,6 @@ fn main() {
         // intentionally scary-named variable is set (WEBKIT_FORCE_SANDBOX is not a real
         // WebKitGTK variable and does nothing - this is the actual documented one).
         std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
-
-        // Tauri's AppImage bundler (linuxdeploy-plugin-gtk) unconditionally forces
-        // GDK_BACKEND=x11 in its startup hook, regardless of what's actually set - this routes
-        // WebKitGTK's rendering through XWayland even on native Wayland sessions, which is a
-        // known cause of a blank/white window on some Wayland/Mesa combinations (confirmed
-        // upstream: https://github.com/tauri-apps/tauri/issues/15781). Only override it back to
-        // Wayland when we can tell we're actually in a Wayland session, so this doesn't affect
-        // genuine X11 systems or the native/Flatpak builds (which aren't hit by that hook).
-        if std::env::var("WAYLAND_DISPLAY").is_ok() {
-            std::env::set_var("GDK_BACKEND", "wayland");
-        }
     }
 
     novatree_lib::run()
