@@ -15,7 +15,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install generator dependencies
-        run: pip install aiohttp toml
+        run: pip install aiohttp toml tomlkit
 
       - name: Download flatpak-cargo-generator.py
         run: curl -sSL -o flatpak-cargo-generator.py https://raw.githubusercontent.com/flatpak/flatpak-builder-tools/master/cargo/flatpak-cargo-generator.py
