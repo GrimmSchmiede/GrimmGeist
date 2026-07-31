@@ -9,20 +9,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-tauri:
+  # Linux runs first and is the one that actually creates the GitHub release (tauri-action creates
+  # it on first upload). publish-tauri-windows and flatpak-bundle both just upload additional
+  # assets to that already-created release afterwards, which is what avoids the release-creation
+  # race condition we used to hit when both platforms tried to create it at the same time - but
+  # since only the Windows job needs to wait for that specific ordering, flatpak-bundle no longer
+  # has to (it depends on Linux only), so it now runs in parallel with the Windows build instead of
+  # after it.
+  publish-tauri-linux:
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        include:
-          - platform: "ubuntu-22.04"
-            args: ""
-          - platform: "windows-latest"
-            args: ""
-
-    runs-on: ${{ matrix.platform }}
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -35,7 +32,6 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install Linux system dependencies
-        if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -64,10 +60,8 @@ jobs:
             Bereits installierte NovaTree-Versionen aktualisieren sich automatisch auf diese Version.
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.args }}
 
       - name: Upload raw Linux ELF binary
-        if: matrix.platform == 'ubuntu-22.04'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -75,8 +69,42 @@ jobs:
           cp src-tauri/target/release/novatree "NovaTree_${version}_linux_amd64"
           gh release upload "novatree-v${version}" "NovaTree_${version}_linux_amd64" --clobber --repo "${{ github.repository }}"
 
+  publish-tauri-windows:
+    needs: publish-tauri-linux
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: novatree-v__VERSION__
+          releaseName: "NovaTree v__VERSION__"
+          releaseBody: |
+            Automatisch von GitHub Actions gebauter Release.
+            Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.deb`/`.rpm`/`.flatpak`).
+            Bereits installierte NovaTree-Versionen aktualisieren sich automatisch auf diese Version.
+          releaseDraft: false
+          prerelease: false
+
   flatpak-bundle:
-    needs: publish-tauri
+    needs: publish-tauri-linux
     runs-on: ubuntu-24.04
     permissions:
       contents: write
