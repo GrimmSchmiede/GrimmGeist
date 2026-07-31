@@ -2279,7 +2279,7 @@ dependencies = [
 
 [[package]]
 name = "novatree"
-version = "0.8.2"
+version = "0.8.4"
 dependencies = [
  "keyring",
  "serde",

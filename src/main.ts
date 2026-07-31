@@ -33,6 +33,7 @@ import {
   parseWorkspaceResponse,
   pickWorkspaceFolder,
   readWorkspaceFile,
+  restoreWorkspaceBackup,
   writeWorkspaceFile,
 } from "./workspace";
 import { t, setLanguage, getLanguage } from "./i18n";
@@ -323,13 +324,20 @@ function renderMessages() {
     if (msg.workspaceActions) {
       const actionLabel = { create: t.fileCreated, edit: t.fileEdited, delete: t.fileDeleted, create_project: "" };
       workspaceActionHtml = msg.workspaceActions
-        .map((wa) => {
+        .map((wa, waIdx) => {
           if (wa.success && wa.action === "create_project") {
             return `<div class="workspace-action-note success">${escapeHtml(wa.filename)}</div>`;
           }
-          return wa.success
-            ? `<div class="workspace-action-note success">${escapeHtml(actionLabel[wa.action])}: ${escapeHtml(wa.filename)}</div>`
-            : `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`;
+          if (!wa.success) {
+            return `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`;
+          }
+          const undoable = wa.action !== "create_project" && (wa.backup || wa.action === "create");
+          const undoHtml = wa.undone
+            ? `<span class="workspace-action-undone">${escapeHtml(t.undoneLabel)}</span>`
+            : undoable
+              ? `<button class="workspace-action-undo" data-msg-idx="${idx}" data-wa-idx="${waIdx}" title="${escapeHtml(t.undoAction)}">↺ ${escapeHtml(t.undoAction)}</button>`
+              : "";
+          return `<div class="workspace-action-note success">${escapeHtml(actionLabel[wa.action])}: ${escapeHtml(wa.filename)}${undoHtml}</div>`;
         })
         .join("");
     }
@@ -347,6 +355,10 @@ function renderMessages() {
         if (file) tagEl.addEventListener("click", () => openAbsoluteFileInEditor(file.path, file.name, file.content));
       });
     }
+
+    el.querySelectorAll<HTMLButtonElement>(".workspace-action-undo").forEach((btn) => {
+      btn.addEventListener("click", () => undoWorkspaceAction(Number(btn.dataset.msgIdx), Number(btn.dataset.waIdx)));
+    });
 
     // Offer "Datei aktualisieren" for model responses that follow a user message with attachments
     if (msg.role === "model" && !msg.pending && !msg.error) {
@@ -784,11 +796,12 @@ async function sendMessage() {
           }
           setTabAILock(cmd.filename, true);
           try {
+            let backup: string | undefined;
             if (cmd.action === "delete") {
-              await deleteWorkspaceFile(workspacePath, cmd.filename);
+              backup = (await deleteWorkspaceFile(workspacePath, cmd.filename)) ?? undefined;
               removeTabIfOpen(cmd.filename);
             } else if (cmd.action === "edit" && cmd.edits && cmd.edits.length) {
-              const outcomes = await applyWorkspaceEdits(workspacePath, cmd.filename, cmd.edits);
+              const { outcomes, backup: editBackup } = await applyWorkspaceEdits(workspacePath, cmd.filename, cmd.edits);
               const problem = outcomes.find((o) => o.status !== "SUCCESS_PRECISE");
               if (problem) {
                 results.push({
@@ -799,13 +812,15 @@ async function sendMessage() {
                 });
                 continue;
               }
+              backup = editBackup ?? undefined;
               const newContent = await readWorkspaceFile(workspacePath, cmd.filename);
               updateTabContent(cmd.filename, newContent);
             } else {
-              await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
+              const writeResult = await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
+              backup = writeResult.backup ?? undefined;
               updateTabContent(cmd.filename, cmd.content ?? "");
             }
-            results.push({ action: cmd.action, filename: cmd.filename, success: true });
+            results.push({ action: cmd.action, filename: cmd.filename, success: true, backup });
           } catch (err) {
             results.push({
               action: cmd.action,
@@ -885,6 +900,40 @@ async function sendMessage() {
   persist();
   renderMessages();
   updateHeader();
+}
+
+/** Undoes a single workspace action (create/edit/delete) using the backup snapshot taken right
+ * before it ran. "Create" actions without a backup (genuinely new file, nothing existed before)
+ * are undone by deleting the file instead of restoring anything. */
+async function undoWorkspaceAction(msgIdx: number, waIdx: number) {
+  const chat = activeChat();
+  if (!chat?.workspacePath) return;
+  const msg = chat.messages[msgIdx];
+  const wa = msg?.workspaceActions?.[waIdx];
+  if (!wa || wa.undone) return;
+  const workspacePath = chat.workspacePath;
+
+  try {
+    setTabAILock(wa.filename, true);
+    if (wa.backup) {
+      await restoreWorkspaceBackup(workspacePath, wa.filename, wa.backup);
+      const content = await readWorkspaceFile(workspacePath, wa.filename);
+      updateTabContent(wa.filename, content);
+    } else if (wa.action === "create") {
+      await deleteWorkspaceFile(workspacePath, wa.filename);
+      removeTabIfOpen(wa.filename);
+    } else {
+      return;
+    }
+    wa.undone = true;
+    persist();
+    renderMessages();
+    if (workspaceFilesExpanded) await renderWorkspaceFiles();
+  } catch (err) {
+    alert(t.undoError(err instanceof Error ? err.message : String(err)));
+  } finally {
+    setTabAILock(wa.filename, false);
+  }
 }
 
 function autoGrowTextarea() {

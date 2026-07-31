@@ -84,6 +84,22 @@ Bei **Löschen** erscheint eine rote Warnung mit Dateipfad, bei **Erstellen/Bear
 Diff-Ansicht (Monacos nativer `createDiffEditor()`) zwischen aktuellem und vorgeschlagenem
 Inhalt, in einem eigenständigen Modal – unabhängig davon, ob der Live-Editor gerade sichtbar ist.
 
+### Automatisches Backup (ab v0.8.4)
+
+Jede Datei im Workspace-Ordner, die überschrieben, bearbeitet oder gelöscht wird – egal ob durch
+die KI oder durch dich selbst im Live-Editor (Speichern-Button/Strg+S) – wird vorher automatisch
+in einen versteckten Ordner `.novatree-backups/<relativer Pfad>/<Zeitstempel>` gesichert, ganz
+ohne Git. Dieser Ordner taucht weder in der Dateiliste der App noch im an Gemini gesendeten
+Workspace-Kontext auf (Ordner mit führendem `.` werden dort grundsätzlich übersprungen). Pro Datei
+werden die letzten 20 Versionen aufbewahrt, ältere werden automatisch entfernt, sobald eine neue
+hinzukommt – kein manuelles Aufräumen nötig.
+
+Bei jeder erfolgreichen Datei-Aktion der KI im Chat gibt es zusätzlich einen **„↺ Rückgängig"**-
+Button, der genau diese eine Änderung zurücksetzt (stellt die Version davor wieder her, bei neu
+erstellten Dateien wird die Datei einfach wieder gelöscht). **Das ersetzt kein eigenes Backup/
+Git-Repo** (die Sicherungen liegen weiterhin auf derselben Festplatte), ist aber ein zusätzliches
+Sicherheitsnetz gegen versehentlichen Datenverlust im autonomen Modus.
+
 ### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
 
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per

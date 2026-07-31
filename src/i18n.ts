@@ -90,6 +90,9 @@ interface Dict {
   disclaimerCheckboxLabel: string;
   disclaimerCancel: string;
   disclaimerAccept: string;
+  undoAction: string;
+  undoneLabel: string;
+  undoError: (err: string) => string;
 }
 
 const de: Dict = {
@@ -187,6 +190,9 @@ const de: Dict = {
     "nicht für Datenverlust oder Schäden an meinem System haftbar gemacht werden können.",
   disclaimerCancel: "Abbrechen",
   disclaimerAccept: "Workspace aktivieren",
+  undoAction: "Rückgängig",
+  undoneLabel: "Rückgängig gemacht",
+  undoError: (err) => `Rückgängig machen fehlgeschlagen: ${err}`,
 };
 
 const en: Dict = {
@@ -284,6 +290,9 @@ const en: Dict = {
     "held liable for data loss or damage to my system.",
   disclaimerCancel: "Cancel",
   disclaimerAccept: "Enable workspace",
+  undoAction: "Undo",
+  undoneLabel: "Undone",
+  undoError: (err) => `Undo failed: ${err}`,
 };
 
 const dicts: Record<Language, Dict> = { de, en };

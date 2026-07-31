@@ -11,20 +11,35 @@ export async function listWorkspaceFiles(workspace: string): Promise<string[]> {
   return await invoke<string[]>("list_workspace_files", { workspace });
 }
 
+interface WriteResult {
+  path: string;
+  backup: string | null;
+}
+
+/** Writes a file in the workspace and returns the workspace-relative backup path the prior
+ * version was saved to (for the "Undo" button), if one existed. */
 export async function writeWorkspaceFile(
   workspace: string,
   filename: string,
   content: string
-): Promise<string> {
-  return await invoke<string>("workspace_write_file", { workspace, filename, content });
+): Promise<{ path: string; backup: string | null }> {
+  return await invoke<WriteResult>("workspace_write_file", { workspace, filename, content });
 }
 
 export async function readWorkspaceFile(workspace: string, filename: string): Promise<string> {
   return await invoke<string>("workspace_read_file", { workspace, filename });
 }
 
-export async function deleteWorkspaceFile(workspace: string, filename: string): Promise<void> {
-  await invoke("workspace_delete_file", { workspace, filename });
+/** Deletes a file in the workspace and returns the workspace-relative backup path its content
+ * was saved to (for the "Undo" button), if the file existed. */
+export async function deleteWorkspaceFile(workspace: string, filename: string): Promise<string | null> {
+  return await invoke<string | null>("workspace_delete_file", { workspace, filename });
+}
+
+/** Restores a file from a specific backup snapshot returned by writeWorkspaceFile,
+ * deleteWorkspaceFile or applyWorkspaceEdits - the "Undo" action for a workspace change. */
+export async function restoreWorkspaceBackup(workspace: string, filename: string, backup: string): Promise<void> {
+  await invoke("workspace_restore_backup", { workspace, filename, backup });
 }
 
 export interface SearchReplaceEdit {
@@ -37,15 +52,22 @@ export interface EditOutcome {
   status: "SUCCESS_PRECISE" | "FUZZY_MATCH_NEEDED" | "NOT_FOUND";
 }
 
+interface ApplyEditsResult {
+  outcomes: EditOutcome[];
+  backup: string | null;
+}
+
 /** Applies precise search/replace edits to an existing workspace file. Exact matches are written
  * to disk; ambiguous whitespace-only matches or missing search strings are reported back per edit
- * instead of guessing, since a wrong auto-apply could silently corrupt the file. */
+ * instead of guessing, since a wrong auto-apply could silently corrupt the file. Also returns the
+ * workspace-relative backup path of the pre-edit content (for the "Undo" button), if any edit
+ * actually changed the file. */
 export async function applyWorkspaceEdits(
   workspace: string,
   filename: string,
   edits: SearchReplaceEdit[]
-): Promise<EditOutcome[]> {
-  return await invoke<EditOutcome[]>("workspace_apply_edits", { workspace, filename, edits });
+): Promise<ApplyEditsResult> {
+  return await invoke<ApplyEditsResult>("workspace_apply_edits", { workspace, filename, edits });
 }
 
 /** Pure in-memory simulation of applyWorkspaceEdits, used only to build the "modified" preview

@@ -11,6 +11,12 @@ export interface WorkspaceActionResult {
   filename: string;
   success: boolean;
   error?: string;
+  /** Workspace-relative backup path of the pre-change content, if any - lets the "Undo" button
+   * restore exactly this change. Absent for "create" (undo = delete instead) and for
+   * "create_project" (bulk action, not individually undoable). */
+  backup?: string;
+  /** Set once the user has clicked "Undo" for this action, so the button/label can reflect it. */
+  undone?: boolean;
 }
 
 /** A pasted/dropped image attached to an outgoing message, already downscaled/compressed

@@ -6,6 +6,17 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.4",
+    de: [
+      "Neu: Automatisches Backup - jede Datei, die im Workspace-Ordner überschrieben, bearbeitet oder gelöscht wird (durch die KI oder dich selbst im Live-Editor), wird zuerst unsichtbar nach .novatree-backups/ gesichert (kein Git nötig, letzte 20 Versionen pro Datei, älteres wird automatisch entfernt)",
+      "Neu: „↺ Rückgängig\"-Button direkt bei jeder erfolgreichen Datei-Aktion der KI im Chat - setzt genau diese eine Änderung zurück",
+    ],
+    en: [
+      "New: automatic backup - every file overwritten, edited, or deleted in the workspace folder (by the AI or by you in the live editor) is first saved to a hidden .novatree-backups/ folder (no Git required, last 20 versions per file, older ones pruned automatically)",
+      "New: an \"↺ Undo\" button right on every successful AI file action in the chat - reverts exactly that one change",
+    ],
+  },
+  {
     version: "0.8.3",
     de: [
       "Linux: möglicher Fix für weißes AppImage-Fenster unter Wayland (z. B. CachyOS) - der AppImage-Bundler erzwingt intern GDK_BACKEND=x11, wodurch WebKitGTK über XWayland statt nativem Wayland rendert; wird jetzt wieder auf Wayland zurückgesetzt, sobald eine Wayland-Sitzung erkannt wird",
