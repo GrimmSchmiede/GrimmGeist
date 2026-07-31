@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.3",
+    de: [
+      "Linux: möglicher Fix für weißes AppImage-Fenster unter Wayland (z. B. CachyOS) - der AppImage-Bundler erzwingt intern GDK_BACKEND=x11, wodurch WebKitGTK über XWayland statt nativem Wayland rendert; wird jetzt wieder auf Wayland zurückgesetzt, sobald eine Wayland-Sitzung erkannt wird",
+    ],
+    en: [
+      "Linux: possible fix for a blank AppImage window under Wayland (e.g. CachyOS) - the AppImage bundler internally forces GDK_BACKEND=x11, causing WebKitGTK to render via XWayland instead of native Wayland; now forced back to Wayland whenever a Wayland session is detected",
+    ],
+  },
+  {
     version: "0.8.2",
     de: [
       "Linux-Fix korrigiert: v0.8.1 setzte versehentlich WEBKIT_FORCE_SANDBOX (existiert bei WebKitGTK nicht, hatte nie eine Wirkung) statt der korrekten Variable WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS - betrifft AppImage, native Installation und das Flatpak-Manifest",

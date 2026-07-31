@@ -184,6 +184,16 @@ offiziell dokumentierte Variable `WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1` ge
 Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`), sodass der Fix auch
 für AppImage und native Linux-Installationen greift.
 
+**AppImage speziell: weißes Fenster unter Wayland (z. B. CachyOS):** Das AppImage bündelt aus
+Kompatibilitätsgründen eine eigene, vollständige WebKitGTK/GTK/GLib-Bibliothekskette (Tauris
+`linuxdeploy-plugin-gtk`, damit die App nicht von der System-WebKitGTK-Version abhängt). Dessen
+Start-Hook setzt dabei aber bedingungslos `GDK_BACKEND=x11`, wodurch WebKitGTK selbst auf reinen
+Wayland-Systemen über XWayland gerendert wird – ein bekannter Auslöser für ein leeres weißes
+Fenster auf manchen Wayland/Mesa-Kombinationen ([tauri-apps/tauri#15781](https://github.com/tauri-apps/tauri/issues/15781)).
+Ab v0.8.3 erzwingt die App `GDK_BACKEND=wayland` zurück, sobald eine aktive Wayland-Sitzung
+erkannt wird (`WAYLAND_DISPLAY` gesetzt) – reine X11-Systeme sowie die native/Flatpak-Variante
+sind von diesem Hook nicht betroffen und bleiben unverändert.
+
 ## API-Schlüssel einrichten
 
 1. App starten, unten links auf **Einstellungen** klicken.
