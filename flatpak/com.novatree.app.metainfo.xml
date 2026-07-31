@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>com.novatree.app</id>
+  <name>NovaTree</name>
+  <summary>Desktop Chat Client for Google Gemini</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+  <description>
+    <p>
+      NovaTree is a lightweight desktop chat client for the Google Gemini API,
+      built with Tauri.
+    </p>
+  </description>
+  <launchable type="desktop-id">com.novatree.app.desktop</launchable>
+  <url type="homepage">https://github.com/State-of-Economy/NovaTree</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.8.1" date="2026-07-31"/>
+  </releases>
+</component>

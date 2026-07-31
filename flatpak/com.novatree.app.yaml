@@ -1,0 +1,66 @@
+id: com.novatree.app
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: novatree
+rename-icon: com.novatree.app
+
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.node24
+  - org.freedesktop.Sdk.Extension.rust-stable
+
+finish-args:
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --share=ipc
+  - --device=dri
+  - --share=network
+
+  # tauri-plugin-dialog uses the FileChooser portal (no extra permission needed),
+  # but Tauri's asset protocol still needs read access to the workspace folders
+  # the user picks, so grant broad home access.
+  - --filesystem=home
+
+  # keyring crate (sync-secret-service) talks to the Secret Service over D-Bus.
+  - --talk-name=org.freedesktop.secrets
+  - --filesystem=xdg-run/keyring
+
+build-options:
+  append-path: /usr/lib/sdk/node24/bin:/usr/lib/sdk/rust-stable/bin
+
+modules:
+  - name: novatree
+    buildsystem: simple
+    build-options:
+      env:
+        CARGO_HOME: /run/build/novatree/cargo
+        XDG_CACHE_HOME: /run/build/novatree/flatpak-node/cache
+        npm_config_cache: /run/build/novatree/flatpak-node/npm-cache
+        npm_config_offline: 'true'
+    build-commands:
+      - npm ci --offline
+      - cargo --offline fetch --manifest-path src-tauri/Cargo.toml
+      - npm run tauri build -- --no-bundle -v
+      - install -Dm755 -t /app/bin/ src-tauri/target/release/novatree
+      - install -Dm644 -t /app/share/applications/ flatpak/com.novatree.app.desktop
+      - install -Dm644 -t /app/share/metainfo/ flatpak/com.novatree.app.metainfo.xml
+      - install -Dm644 flatpak/com.novatree.app.png /app/share/icons/hicolor/512x512/apps/com.novatree.app.png
+    sources:
+      - type: dir
+        path: ..
+        skip:
+          - .git
+          - node_modules
+          - src-tauri/target
+          - flatpak
+      - cargo-sources.json
+      - node-sources.json
+      - type: file
+        path: com.novatree.app.desktop
+        dest: flatpak
+      - type: file
+        path: com.novatree.app.metainfo.xml
+        dest: flatpak
+      - type: file
+        path: com.novatree.app.png
+        dest: flatpak
