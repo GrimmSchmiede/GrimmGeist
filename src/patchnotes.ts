@@ -6,6 +6,17 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.1",
+    de: [
+      "Linux: möglicher Fix für weißes Fenster mit „could not connect to localhost“ auch außerhalb von Flatpak (AppImage, native Installation) - WebKitGTKs interne Sandbox wird jetzt auch dort deaktiviert (WEBKIT_FORCE_SANDBOX=0)",
+      "Frontend nutzt jetzt relative statt absolute Asset-Pfade (defensive Absicherung)",
+    ],
+    en: [
+      "Linux: possible fix for a blank window with \"could not connect to localhost\" outside of Flatpak too (AppImage, native install) - WebKitGTK's internal sandbox is now disabled there as well (WEBKIT_FORCE_SANDBOX=0)",
+      "Frontend now uses relative instead of absolute asset paths (defensive hardening)",
+    ],
+  },
+  {
     version: "0.8.0",
     de: [
       "Neu: Präzise Datei-Bearbeitung per Suchen/Ersetzen statt vollständigem Datei-Überschreiben - schützt bestehenden Code (CSS, Animationen, Logik) vor versehentlichem Löschen/Vereinfachen",

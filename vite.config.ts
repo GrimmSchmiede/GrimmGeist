@@ -5,6 +5,10 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
+  // Relative asset paths (defensive - Tauri normally serves the frontend via its own
+  // protocol/virtual root in both dev and the built AppImage, so absolute "/" paths already
+  // resolve correctly, but this rules the failure mode out entirely at no cost).
+  base: "./",
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
