@@ -118,7 +118,7 @@ jobs:
 
       - name: Build Flatpak bundle
         run: |
-          flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatree.app.yml
+          flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatree.app.yaml
           flatpak build-bundle flatpak-repo NovaTree.flatpak com.novatree.app
 
       - name: Read app version
