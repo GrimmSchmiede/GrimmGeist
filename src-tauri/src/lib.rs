@@ -1,3 +1,4 @@
+use ignore::WalkBuilder;
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -7,19 +8,12 @@ use std::time::{SystemTime, UNIX_EPOCH};
 const KEYRING_SERVICE: &str = "com.novatree.app";
 const KEYRING_USER: &str = "gemini_api_key";
 
-// Directories that are skipped when scanning a workspace so build output / dependency
-// folders don't flood the file listing sent to Gemini as context.
-const WORKSPACE_SKIP_DIRS: &[&str] = &[
-    "node_modules",
-    ".git",
-    "target",
-    "dist",
-    ".venv",
-    "venv",
-    "__pycache__",
-    ".vscode",
-    ".idea",
-];
+// Directories always skipped when scanning a workspace, even if the project has no .gitignore
+// (or doesn't gitignore them) - on top of that, list_workspace_files also honors the project's
+// own .gitignore/.git/info/exclude/global gitignore via the `ignore` crate, so build artifacts,
+// dependency folders and anything the user has explicitly excluded (e.g. .env files with
+// secrets) don't flood the file listing sent to Gemini as context.
+const WORKSPACE_SKIP_DIRS: &[&str] = &["node_modules", "target", "dist", "venv", "__pycache__"];
 const WORKSPACE_MAX_FILES: usize = 800;
 
 #[derive(Serialize, Deserialize)]
@@ -164,35 +158,50 @@ fn workspace_restore_backup(workspace: String, filename: String, backup: String)
     Ok(())
 }
 
-fn scan_workspace_dir(root: &Path, dir: &Path, out: &mut Vec<String>) {
-    let Ok(entries) = fs::read_dir(dir) else { return };
-    for entry in entries.flatten() {
-        if out.len() >= WORKSPACE_MAX_FILES {
-            return;
-        }
-        let path = entry.path();
-        let name = entry.file_name().to_string_lossy().to_string();
-        if path.is_dir() {
-            if WORKSPACE_SKIP_DIRS.contains(&name.as_str()) || name.starts_with('.') {
-                continue;
-            }
-            scan_workspace_dir(root, &path, out);
-        } else if let Ok(relative) = path.strip_prefix(root) {
-            out.push(relative.to_string_lossy().replace('\\', "/"));
-        }
-    }
-}
-
-/// Recursively lists files inside a workspace folder (relative paths, forward slashes),
-/// skipping common build/dependency directories and capping the result size.
+/// Recursively lists files inside a workspace folder (relative paths, forward slashes). Honors
+/// the project's own `.gitignore` / `.git/info/exclude` / global gitignore (via the `ignore`
+/// crate, the same one ripgrep uses) so build artifacts, dependency folders and anything the user
+/// has explicitly excluded (e.g. `.env` files with secrets) never reach Gemini as context - on
+/// top of that, hidden (dot-prefixed) entries and a small fixed list of common
+/// build/dependency directories are always skipped, even without a .gitignore. Caps the result
+/// size so huge repositories don't blow up the context sent to Gemini.
 #[tauri::command]
 fn list_workspace_files(workspace: String) -> Result<Vec<String>, String> {
     let root = Path::new(&workspace);
     if !root.is_dir() {
         return Err("Arbeitsordner existiert nicht oder ist kein Verzeichnis.".into());
     }
+
     let mut out = Vec::new();
-    scan_workspace_dir(root, root, &mut out);
+    let walker = WalkBuilder::new(root)
+        .hidden(true)
+        .git_ignore(true)
+        .git_global(true)
+        .git_exclude(true)
+        .filter_entry(|entry| {
+            entry
+                .file_name()
+                .to_str()
+                .map(|name| !WORKSPACE_SKIP_DIRS.contains(&name))
+                .unwrap_or(true)
+        })
+        .build();
+
+    for result in walker {
+        if out.len() >= WORKSPACE_MAX_FILES {
+            break;
+        }
+        let Ok(entry) = result else { continue };
+        if entry.path() == root {
+            continue;
+        }
+        if entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+            continue;
+        }
+        if let Ok(relative) = entry.path().strip_prefix(root) {
+            out.push(relative.to_string_lossy().replace('\\', "/"));
+        }
+    }
     out.sort();
     Ok(out)
 }

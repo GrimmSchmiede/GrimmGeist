@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.6",
+    de: [
+      "Neu: Der Workspace-Ordner beachtet jetzt die .gitignore des Projekts (inkl. .git/info/exclude und globaler Gitignore-Regeln) - z. B. .env-Dateien mit echten Zugangsdaten landen dadurch nicht mehr versehentlich im an Gemini gesendeten Kontext",
+    ],
+    en: [
+      "New: the workspace folder now respects the project's .gitignore (including .git/info/exclude and global gitignore rules) - e.g. .env files with real credentials no longer accidentally end up in the context sent to Gemini",
+    ],
+  },
+  {
     version: "0.8.5",
     de: [
       "Linux: AppImage komplett entfernt - trotz mehrerer Fixversuche blieb das Fenster auf manchen Wayland-Systemen (z. B. CachyOS) weiß, weil Tauris AppImage-Bundler eine eigene, teils inkompatible WebKitGTK/GTK/Wayland-Bibliothekskette mitbündelt",

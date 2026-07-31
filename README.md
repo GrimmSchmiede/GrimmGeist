@@ -57,9 +57,13 @@ This software is provided "as is" without warranty of any kind. Since NovaTree i
 ### Workspace-Ordner
 
 Über das 📁-Icon im Chat-Header lässt sich pro Chat ein lokaler Ordner verknüpfen. Vor jeder
-Anfrage liest die App die aktuelle Dateiliste des Ordners (rekursiv, `node_modules`/`.git`/
-`target`/… werden übersprungen) und hängt sie an den System-Prompt an. Antwortet Gemini mit
-einem JSON-Objekt der Form
+Anfrage liest die App die aktuelle Dateiliste des Ordners rekursiv und hängt sie an den
+System-Prompt an. Dabei wird die `.gitignore` des Projekts (inkl. `.git/info/exclude` und
+globaler Gitignore-Regeln) beachtet – über die `ignore`-Crate, dieselbe Bibliothek, die auch
+`ripgrep` nutzt. Versteckte Dateien/Ordner sowie `node_modules`/`target`/`dist`/`venv`/
+`__pycache__` werden zusätzlich immer übersprungen, auch ohne `.gitignore`. So landen z. B.
+`.env`-Dateien mit echten Zugangsdaten nicht versehentlich im an Gemini gesendeten Kontext.
+Antwortet Gemini mit einem JSON-Objekt der Form
 
 ```json
 { "action": "create|edit|delete", "filename": "relativer/pfad.lua", "content": "…" }
