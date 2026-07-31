@@ -94,7 +94,8 @@ jobs:
             libdbus-1-dev \
             pkg-config \
             flatpak \
-            flatpak-builder
+            flatpak-builder \
+            appstream-compose
 
       - name: Install frontend dependencies
         run: npm install
