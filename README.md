@@ -123,6 +123,11 @@ Bei jedem Push auf `main` baut `.github/workflows/release.yml` über eine Matrix
 
 - Windows: `.exe` (NSIS) / `.msi`
 - Linux: `.AppImage` / `.deb` / `.rpm`
+- Zusätzlich wird die rohe Linux-ELF-Binärdatei (`NovaTree_<version>_linux_amd64`, unverpackt, ohne
+  Installer) direkt mit hochgeladen – nützlich zum Debuggen (z. B. `./NovaTree_*_linux_amd64` im
+  Terminal starten, um echte Fehlerausgaben zu sehen) oder für Distros ohne AppImage-Unterstützung.
+  Benötigt die gleichen System-Bibliotheken wie das `.deb`/`.rpm` (u. a. `webkit2gtk-4.1`) und
+  bekommt **keine** automatischen Updates (nur die gebündelten Formate mit Signatur tun das).
 
 Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `NovaTree.flatpak` gegen die
 `org.gnome.Platform`-Runtime (bringt eine feste, getestete WebKitGTK-Version mit statt der des
