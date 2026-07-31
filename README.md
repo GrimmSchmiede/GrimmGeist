@@ -134,8 +134,8 @@ npm run tauri build
 
 ## Automatischer Release via GitHub Actions
 
-Bei jedem Push auf `main` baut `.github/workflows/release.yml` über eine Matrix-Strategie
-(`windows-latest`, `ubuntu-22.04`) mittels `tauri-apps/tauri-action` automatisch:
+Bei jedem Push auf `main` bauen zwei Jobs in `.github/workflows/release.yml`
+(`publish-tauri-linux`, danach `publish-tauri-windows`) mittels `tauri-apps/tauri-action` automatisch:
 
 - Windows: `.exe` (NSIS) / `.msi`
 - Linux: `.deb` / `.rpm`
