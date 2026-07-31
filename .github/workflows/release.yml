@@ -19,7 +19,7 @@ jobs:
   publish-tauri-linux:
     permissions:
       contents: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -105,7 +105,7 @@ jobs:
 
   flatpak-bundle:
     needs: publish-tauri-linux
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
