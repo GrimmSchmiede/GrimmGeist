@@ -83,67 +83,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install Linux + Flatpak build dependencies
+      - name: Install Flatpak build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libsecret-1-dev \
-            libdbus-1-dev \
-            pkg-config \
-            software-properties-common
+          sudo apt-get install -y software-properties-common
 
-          # Ubuntu 22.04's apt flatpak-builder (1.2.2) predates 1.4, so it
-          # still shells out to the removed "appstream-compose" binary
-          # inside the sandbox instead of running "appstreamcli compose"
-          # on the host. Pull a current flatpak-builder from the upstream
-          # PPA to avoid that dead code path entirely.
+          # Ubuntu 22.04's apt flatpak-builder (1.2.2) predates 1.4, so it still shells out to
+          # the removed "appstream-compose" binary inside the sandbox instead of running
+          # "appstreamcli compose" on the host - causing "bwrap: execvp appstream-compose: No
+          # such file or directory". Installing appstream-compose on the HOST doesn't help since
+          # the sandbox can't see host binaries at all. Pull a current flatpak-builder from the
+          # upstream PPA instead, plus "appstream" for appstreamcli itself.
           sudo add-apt-repository -y ppa:flatpak/stable
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder appstream
-
-      - name: Install frontend dependencies
-        run: npm install
-
-      - name: Build frontend
-        run: npm run build
-
-      - name: Build release binary
-        run: cargo build --release --manifest-path src-tauri/Cargo.toml
-
-      - name: Read app version
-        id: app_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Package Linux ELF binary
-        run: |
-          cp src-tauri/target/release/novatree novatree-linux-x86_64
-          chmod +x novatree-linux-x86_64
-
-      - name: Upload Linux ELF binary to release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "novatree-v${{ steps.app_version.outputs.version }}" novatree-linux-x86_64 --clobber --repo "${{ github.repository }}"
 
       - name: Cache Flatpak runtimes
         uses: actions/cache@v4
         with:
           path: ~/.local/share/flatpak
-          key: flatpak-gnome50-${{ runner.os }}
+          key: flatpak-gnome50-node24-rust-${{ runner.os }}
 
-      - name: Install GNOME Flatpak runtime + SDK
+      - name: Cache Flatpak builder state (sources + per-module build cache)
+        uses: actions/cache@v4
+        with:
+          path: .flatpak-builder
+          key: flatpak-builder-${{ hashFiles('flatpak/com.novatree.app.yaml', 'flatpak/cargo-sources.json', 'flatpak/node-sources.json', 'src-tauri/Cargo.lock', 'package-lock.json') }}
+          restore-keys: |
+            flatpak-builder-
+
+      - name: Install GNOME Flatpak runtime + SDK + extensions
         run: |
           flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo
           flatpak install --user -y flathub \
@@ -156,6 +125,10 @@ jobs:
         run: |
           flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatree.app.yaml
           flatpak build-bundle flatpak-repo NovaTree.flatpak com.novatree.app
+
+      - name: Read app version
+        id: app_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Upload Flatpak bundle to release
         env:

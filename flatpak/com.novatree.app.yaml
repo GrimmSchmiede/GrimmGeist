@@ -25,6 +25,11 @@ finish-args:
   - --talk-name=org.freedesktop.secrets
   - --filesystem=xdg-run/keyring
 
+  # WebKitGTK's own internal (bubblewrap) sandbox nested inside Flatpak's sandbox can fail
+  # outright (or block the localhost server Tauri uses on Linux to serve assets) - this is the
+  # correct, officially documented escape hatch (WEBKIT_FORCE_SANDBOX is not a real variable).
+  - --env=WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
+
 build-options:
   append-path: /usr/lib/sdk/node24/bin:/usr/lib/sdk/rust-stable/bin
 
