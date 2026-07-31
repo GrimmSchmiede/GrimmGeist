@@ -105,6 +105,21 @@ jobs:
       - name: Build release binary
         run: cargo build --release --manifest-path src-tauri/Cargo.toml
 
+      - name: Read app version
+        id: app_version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Package Linux ELF binary
+        run: |
+          cp src-tauri/target/release/novatree novatree-linux-x86_64
+          chmod +x novatree-linux-x86_64
+
+      - name: Upload Linux ELF binary to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "novatree-v${{ steps.app_version.outputs.version }}" novatree-linux-x86_64 --clobber --repo "${{ github.repository }}"
+
       - name: Cache Flatpak runtimes
         uses: actions/cache@v4
         with:
@@ -120,10 +135,6 @@ jobs:
         run: |
           flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatree.app.yaml
           flatpak build-bundle flatpak-repo NovaTree.flatpak com.novatree.app
-
-      - name: Read app version
-        id: app_version
-        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
       - name: Upload Flatpak bundle to release
         env:
