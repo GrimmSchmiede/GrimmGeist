@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=NovaTree
-Comment=Desktop-Chat-Client fuer die Google Gemini API
-Exec=novatree
-Icon=com.novatree.app
-Terminal=false
-Categories=Utility;Development;
