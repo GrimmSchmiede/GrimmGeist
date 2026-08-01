@@ -145,6 +145,13 @@ Diff-Ansicht mit deiner ungespeicherten Version gegen die neue KI-Version – du
 deine Änderung erhalten bleibt (wird zurück auf die Festplatte geschrieben) oder die KI-Version
 übernommen wird (deine lokalen Änderungen verwerfen).
 
+#### Commit & Push (ab v0.8.14)
+
+Ist der verknüpfte Workspace-Ordner ein Git-Repository, erscheint neben dem Ordner-Pfad ein
+⬆-Button. Er zeigt Branch und geänderte Dateien, lässt eine Commit-Nachricht eingeben und führt
+`git add -A`, `git commit` und `git push` aus – mit deinem bereits lokal installierten und
+eingerichteten Git (kein separates Login in NovaTree, keine gespeicherten Zugangsdaten).
+
 #### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
 
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
@@ -456,6 +463,13 @@ If the AI writes a file that's currently open as the active tab in the live edit
 changes, it's no longer silently overwritten. Instead, a diff view appears comparing your unsaved
 version against the new AI version - you decide whether your change is kept (written back to disk)
 or the AI's version is applied (discarding your local changes).
+
+#### Commit & Push (from v0.8.14)
+
+If the linked workspace folder is a Git repository, an ⬆ button appears next to the folder path.
+It shows the branch and changed files, lets you enter a commit message, and runs `git add -A`,
+`git commit`, and `git push` - using your already-installed and configured local Git (no separate
+sign-in inside NovaTree, no stored credentials).
 
 #### Precise editing, Architect Mode, image attachments (from v0.8.0)
 

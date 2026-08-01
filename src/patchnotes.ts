@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.14",
+    de: [
+      "Neu: Commit & Push direkt aus NovaTree - ein ⬆-Button neben dem Arbeitsordner-Pfad (nur sichtbar, wenn der Ordner ein Git-Repo ist) zeigt geänderte Dateien, lässt eine Commit-Nachricht eingeben und pusht mit einem Klick. Nutzt dein bereits lokal installiertes und eingerichtetes Git, kein separates Login in NovaTree nötig.",
+    ],
+    en: [
+      "New: Commit & Push directly from NovaTree - an ⬆ button next to the workspace path (only shown when the folder is a Git repo) lists changed files, lets you enter a commit message, and pushes with one click. Uses your already-installed and configured local Git, no separate sign-in inside NovaTree required.",
+    ],
+  },
+  {
     version: "0.8.13",
     de: [
       "Fix: Windows-Installer/Auto-Updater installierten seit 0.8.12 fälschlich das novatree-cli-Binary statt der eigentlichen GUI (App öffnete kurz ein Fenster und stürzte sofort ab). Ursache war, dass GUI und CLI im selben Cargo-Package lagen und der Tauri-Bundler bei mehreren Binaries das falsche auswählte. novatree-cli lebt jetzt als eigenes Package in einem Cargo-Workspace (crates/novatree-cli), damit der GUI-Build gar nicht mehr mehrdeutig sein kann.",

@@ -101,6 +101,17 @@ interface Dict {
   applySuggestion: string;
   fallbackModelUsed: (model: string) => string;
   conflictTitle: (filename: string) => string;
+  gitPushBtnTitle: string;
+  gitPushTitle: string;
+  gitPushBranch: (branch: string) => string;
+  gitPushChangedFiles: (count: number) => string;
+  gitPushNoChanges: string;
+  gitPushMessagePlaceholder: string;
+  gitPushCancel: string;
+  gitPushConfirm: string;
+  gitPushPending: string;
+  gitPushSuccess: string;
+  gitPushError: (err: string) => string;
 }
 
 const de: Dict = {
@@ -209,6 +220,17 @@ const de: Dict = {
   applySuggestion: "Änderung anwenden",
   fallbackModelUsed: (model) => `Free-Tier: Ausweichmodus aktiv - diese Antwort kam von ${model}, da dein gewähltes Modell überlastet oder das Kontingent aufgebraucht war.`,
   conflictTitle: (filename) => `Konflikt: ${filename} wurde von der KI geändert, während du hier ungespeicherte Änderungen offen hattest`,
+  gitPushBtnTitle: "Commit & Push",
+  gitPushTitle: "Commit & Push",
+  gitPushBranch: (branch) => `Branch: ${branch}`,
+  gitPushChangedFiles: (count) => `${count} geänderte Datei${count === 1 ? "" : "en"}`,
+  gitPushNoChanges: "Keine Änderungen zum Committen.",
+  gitPushMessagePlaceholder: "Commit-Nachricht…",
+  gitPushCancel: "Abbrechen",
+  gitPushConfirm: "Committen & Pushen",
+  gitPushPending: "Wird gepusht…",
+  gitPushSuccess: "Änderungen committet und gepusht.",
+  gitPushError: (err) => `Fehler: ${err}`,
 };
 
 const en: Dict = {
@@ -317,6 +339,17 @@ const en: Dict = {
   applySuggestion: "Apply change",
   fallbackModelUsed: (model) => `Free tier: fallback active - this response came from ${model} because your selected model was overloaded or its quota was exhausted.`,
   conflictTitle: (filename) => `Conflict: ${filename} was changed by the AI while you had unsaved edits open here`,
+  gitPushBtnTitle: "Commit & Push",
+  gitPushTitle: "Commit & Push",
+  gitPushBranch: (branch) => `Branch: ${branch}`,
+  gitPushChangedFiles: (count) => `${count} changed file${count === 1 ? "" : "s"}`,
+  gitPushNoChanges: "No changes to commit.",
+  gitPushMessagePlaceholder: "Commit message…",
+  gitPushCancel: "Cancel",
+  gitPushConfirm: "Commit & Push",
+  gitPushPending: "Pushing…",
+  gitPushSuccess: "Changes committed and pushed.",
+  gitPushError: (err) => `Error: ${err}`,
 };
 
 const dicts: Record<Language, Dict> = { de, en };

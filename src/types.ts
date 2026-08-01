@@ -197,3 +197,9 @@ export const DEFAULT_MODEL = "gemini-flash-latest";
 
 export const DAILY_REQUEST_LIMIT = 1000;
 export const PER_MINUTE_REQUEST_LIMIT = 15;
+
+export interface GitStatus {
+  isGitRepo: boolean;
+  branch: string;
+  changedFiles: string[];
+}

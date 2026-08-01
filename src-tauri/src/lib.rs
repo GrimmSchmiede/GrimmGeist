@@ -3,6 +3,7 @@ use keyring::Entry;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
+use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const KEYRING_SERVICE: &str = "com.novatree.app";
@@ -402,6 +403,82 @@ fn workspace_create_project(
     Ok(created)
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GitStatus {
+    is_git_repo: bool,
+    branch: String,
+    changed_files: Vec<String>,
+}
+
+fn run_git(dir: &Path, args: &[&str]) -> Result<String, String> {
+    let output = Command::new("git")
+        .args(args)
+        .current_dir(dir)
+        .output()
+        .map_err(|e| format!("git konnte nicht ausgeführt werden (ist Git installiert?): {e}"))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+        return Err(if stderr.is_empty() {
+            "git-Befehl fehlgeschlagen.".to_string()
+        } else {
+            stderr
+        });
+    }
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+}
+
+/// Reports whether the workspace is a Git repo and, if so, its current branch and the list of
+/// changed paths (`git status --porcelain` lines) - used to enable/disable the push button and
+/// show a preview of what would be committed before the user confirms.
+#[tauri::command]
+fn git_status(workspace: String) -> Result<GitStatus, String> {
+    let dir = PathBuf::from(&workspace);
+    if !dir.join(".git").exists() {
+        return Ok(GitStatus {
+            is_git_repo: false,
+            branch: String::new(),
+            changed_files: Vec::new(),
+        });
+    }
+    let branch = run_git(&dir, &["rev-parse", "--abbrev-ref", "HEAD"])?
+        .trim()
+        .to_string();
+    let status = run_git(&dir, &["status", "--porcelain"])?;
+    let changed_files = status
+        .lines()
+        .map(|line| line.trim().to_string())
+        .filter(|line| !line.is_empty())
+        .collect();
+    Ok(GitStatus {
+        is_git_repo: true,
+        branch,
+        changed_files,
+    })
+}
+
+/// Stages all changes, commits with the given message and pushes to the current branch's
+/// upstream. Deliberately no auto-generated commit messages or force-push - this is meant as a
+/// convenience for "I'm done, ship it", not a replacement for actually reviewing what's staged.
+#[tauri::command]
+fn git_commit_and_push(workspace: String, message: String) -> Result<String, String> {
+    let dir = PathBuf::from(&workspace);
+    if !dir.join(".git").exists() {
+        return Err("Kein Git-Repository in diesem Ordner.".to_string());
+    }
+    if message.trim().is_empty() {
+        return Err("Commit-Nachricht darf nicht leer sein.".to_string());
+    }
+    run_git(&dir, &["add", "-A"])?;
+    let status = run_git(&dir, &["status", "--porcelain"])?;
+    if status.trim().is_empty() {
+        return Err("Keine Änderungen zum Committen.".to_string());
+    }
+    run_git(&dir, &["commit", "-m", &message])?;
+    run_git(&dir, &["push"])?;
+    Ok("Änderungen committet und gepusht.".to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -423,7 +500,9 @@ pub fn run() {
             workspace_delete_file,
             workspace_apply_edits,
             workspace_create_project,
-            workspace_restore_backup
+            workspace_restore_backup,
+            git_status,
+            git_commit_and_push
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

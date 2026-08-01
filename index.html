@@ -84,6 +84,7 @@
           <button id="workspace-pick-btn" class="icon-btn" title="Arbeitsordner wählen">📁</button>
           <span id="workspace-path" class="workspace-path">Kein Arbeitsordner verknüpft</span>
           <button id="workspace-toggle-btn" class="icon-btn hidden" title="Dateien anzeigen">▾</button>
+          <button id="git-push-btn" class="icon-btn hidden" title="Commit & Push">⬆</button>
           <button id="workspace-detach-btn" class="icon-btn hidden" title="Ordner entfernen">✕</button>
         </div>
         <div id="workspace-files" class="workspace-files hidden"></div>
@@ -240,6 +241,30 @@
           <button id="patchnotes-close" class="icon-btn">✕</button>
         </div>
         <div id="patchnotes-body" class="modal-body patchnotes-body"></div>
+      </div>
+    </div>
+
+    <div id="git-push-modal" class="modal-overlay hidden">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="git-push-title">Commit &amp; Push</h2>
+          <button id="git-push-close" class="icon-btn">✕</button>
+        </div>
+        <div class="modal-body">
+          <p id="git-push-branch" class="git-push-branch"></p>
+          <ul id="git-push-changed-files" class="git-push-changed-files"></ul>
+          <textarea
+            id="git-push-message"
+            class="git-push-message-input"
+            rows="3"
+            placeholder="Commit-Nachricht..."
+          ></textarea>
+          <p id="git-push-error" class="git-push-error hidden"></p>
+          <div class="modal-actions approval-actions">
+            <button id="git-push-cancel" class="secondary-btn" type="button">Abbrechen</button>
+            <button id="git-push-confirm" class="primary-btn" type="button">Committen & Pushen</button>
+          </div>
+        </div>
       </div>
     </div>
   </body>

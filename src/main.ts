@@ -66,6 +66,7 @@ import {
   QuotaState,
   SecurityMode,
   WorkspaceActionResult,
+  GitStatus,
   actionRequiresApproval,
   buildLanguageSystemPromptAddition,
   buildWorkspaceSystemPromptAddition,
@@ -105,6 +106,16 @@ const workspacePathEl = document.getElementById("workspace-path")!;
 const workspaceToggleBtnEl = document.getElementById("workspace-toggle-btn")!;
 const workspaceDetachBtnEl = document.getElementById("workspace-detach-btn")!;
 const workspaceFilesEl = document.getElementById("workspace-files")!;
+const gitPushBtnEl = document.getElementById("git-push-btn")!;
+const gitPushModalEl = document.getElementById("git-push-modal")!;
+const gitPushTitleEl = document.getElementById("git-push-title")!;
+const gitPushBranchEl = document.getElementById("git-push-branch")!;
+const gitPushChangedFilesEl = document.getElementById("git-push-changed-files")!;
+const gitPushMessageEl = document.getElementById("git-push-message") as HTMLTextAreaElement;
+const gitPushErrorEl = document.getElementById("git-push-error")!;
+const gitPushCancelEl = document.getElementById("git-push-cancel") as HTMLButtonElement;
+const gitPushConfirmEl = document.getElementById("git-push-confirm") as HTMLButtonElement;
+const gitPushCloseEl = document.getElementById("git-push-close")!;
 
 const settingsModalEl = document.getElementById("settings-modal")!;
 const settingsBtnEl = document.getElementById("settings-btn")!;
@@ -541,12 +552,94 @@ function renderWorkspaceBar() {
   workspaceToggleBtnEl.textContent = workspaceFilesExpanded ? "▴" : "▾";
   workspaceDetachBtnEl.title = t.detachWorkspaceTitle;
   workspacePickBtnEl.title = t.pickWorkspaceTitle;
+  gitPushBtnEl.title = t.gitPushBtnTitle;
 
   setEditorWorkspacePath(path ?? null);
 
   if (!path) {
     workspaceFilesEl.classList.add("hidden");
     workspaceFilesExpanded = false;
+    gitPushBtnEl.classList.add("hidden");
+  } else {
+    updateGitPushButtonVisibility(path);
+  }
+}
+
+async function updateGitPushButtonVisibility(workspace: string) {
+  try {
+    const status = await invoke<GitStatus>("git_status", { workspace });
+    // Guard against the workspace having changed again while this call was in flight.
+    if (activeChat()?.workspacePath !== workspace) return;
+    gitPushBtnEl.classList.toggle("hidden", !status.isGitRepo);
+  } catch {
+    gitPushBtnEl.classList.add("hidden");
+  }
+}
+
+async function openGitPushModal() {
+  const workspace = activeChat()?.workspacePath;
+  if (!workspace) return;
+  gitPushTitleEl.textContent = t.gitPushTitle;
+  gitPushCancelEl.textContent = t.gitPushCancel;
+  gitPushConfirmEl.textContent = t.gitPushConfirm;
+  gitPushMessageEl.placeholder = t.gitPushMessagePlaceholder;
+  gitPushMessageEl.value = "";
+  gitPushErrorEl.classList.add("hidden");
+  gitPushConfirmEl.disabled = true;
+  gitPushBranchEl.textContent = "";
+  gitPushChangedFilesEl.innerHTML = "";
+  gitPushModalEl.classList.remove("hidden");
+
+  try {
+    const status = await invoke<GitStatus>("git_status", { workspace });
+    if (!status.isGitRepo || status.changedFiles.length === 0) {
+      gitPushErrorEl.textContent = t.gitPushNoChanges;
+      gitPushErrorEl.classList.remove("hidden");
+      return;
+    }
+    gitPushBranchEl.textContent = t.gitPushBranch(status.branch);
+    gitPushChangedFilesEl.innerHTML = "";
+    for (const line of status.changedFiles) {
+      const li = document.createElement("li");
+      li.textContent = line;
+      gitPushChangedFilesEl.appendChild(li);
+    }
+    const countLabel = document.createElement("p");
+    countLabel.className = "git-push-changed-count";
+    countLabel.textContent = t.gitPushChangedFiles(status.changedFiles.length);
+    gitPushChangedFilesEl.before(countLabel);
+    gitPushConfirmEl.disabled = false;
+    gitPushMessageEl.focus();
+  } catch (err) {
+    gitPushErrorEl.textContent = t.gitPushError(String(err));
+    gitPushErrorEl.classList.remove("hidden");
+  }
+}
+
+function closeGitPushModal() {
+  gitPushModalEl.classList.add("hidden");
+}
+
+async function confirmGitPush() {
+  const workspace = activeChat()?.workspacePath;
+  if (!workspace) return;
+  const message = gitPushMessageEl.value.trim();
+  if (!message) {
+    gitPushErrorEl.textContent = t.gitPushNoChanges;
+    gitPushErrorEl.classList.remove("hidden");
+    return;
+  }
+  gitPushErrorEl.classList.add("hidden");
+  gitPushConfirmEl.disabled = true;
+  gitPushConfirmEl.textContent = t.gitPushPending;
+  try {
+    await invoke("git_commit_and_push", { workspace, message });
+    closeGitPushModal();
+  } catch (err) {
+    gitPushErrorEl.textContent = t.gitPushError(String(err));
+    gitPushErrorEl.classList.remove("hidden");
+    gitPushConfirmEl.disabled = false;
+    gitPushConfirmEl.textContent = t.gitPushConfirm;
   }
 }
 
@@ -1256,6 +1349,10 @@ async function init() {
   workspacePickBtnEl.addEventListener("click", pickWorkspace);
   workspaceDetachBtnEl.addEventListener("click", detachWorkspace);
   workspaceToggleBtnEl.addEventListener("click", toggleWorkspaceFiles);
+  gitPushBtnEl.addEventListener("click", openGitPushModal);
+  gitPushCancelEl.addEventListener("click", closeGitPushModal);
+  gitPushCloseEl.addEventListener("click", closeGitPushModal);
+  gitPushConfirmEl.addEventListener("click", confirmGitPush);
   attachBtnEl.addEventListener("click", attachFiles);
   sendBtnEl.addEventListener("click", sendMessage);
   promptInputEl.addEventListener("input", autoGrowTextarea);

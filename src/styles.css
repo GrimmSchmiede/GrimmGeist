@@ -1309,3 +1309,43 @@ body {
   background: var(--danger);
   color: #fff;
 }
+
+.git-push-branch {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.git-push-changed-count {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.git-push-changed-files {
+  margin: 0;
+  padding: 0 0 0 18px;
+  max-height: 140px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.git-push-message-input {
+  width: 100%;
+  resize: vertical;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.git-push-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--danger);
+}
