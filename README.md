@@ -13,6 +13,10 @@
 Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Tauri](https://tauri.app) 2
 (Rust-Backend + Vanilla TypeScript-Frontend).
 
+**Inhalt:** [Features](#de-features) · [Entwicklung](#de-entwicklung) ·
+[Release via GitHub Actions](#de-release) · [Bekannte Linux-Probleme](#de-linux-probleme) ·
+[API-Schlüssel einrichten](#de-api-key) · [Lizenz](#de-lizenz)
+
 ---
 
 ### ⚠️ WICHTIGER RECHTLICHER HINWEIS / DISCLAIMER
@@ -36,6 +40,8 @@ Diese Software wird "wie besehen" (AS IS) und ohne jegliche Gewährleistung oder
 > 2. Klicke unten rechts auf den Button **"Trotzdem ausführen"**.
 >
 > Da der gesamte Quellcode hier offenliegt, kann sich jeder selbst davon überzeugen, dass keine Schadsoftware enthalten ist. Sobald genügend Nutzer die App starten, lernt Windows automatisch, dass sie sicher ist, und die Meldung verschwindet von selbst!
+
+<a name="de-features"></a>
 
 ### Features
 
@@ -155,6 +161,8 @@ deine Änderung erhalten bleibt (wird zurück auf die Festplatte geschrieben) od
   versucht die App automatisch, offene Strings/Klammern zu schließen, bevor sie aufgibt – statt
   das kaputte Roh-JSON als Chat-Text anzuzeigen.
 
+<a name="de-entwicklung"></a>
+
 ### Entwicklung
 
 Voraussetzungen: [Node.js](https://nodejs.org), [Rust](https://www.rust-lang.org/tools/install) und die
@@ -170,6 +178,8 @@ npm run tauri dev
 ```bash
 npm run tauri build
 ```
+
+<a name="de-release"></a>
 
 ### Automatischer Release via GitHub Actions
 
@@ -211,7 +221,8 @@ Vor der ersten Nutzung: Repository (und ggf. die Organisation) unter
 `Settings → Actions → General → Workflow permissions` auf "Read and write permissions" stellen,
 damit der Workflow Releases erstellen darf.
 
-#### Auto-Updater
+<details>
+<summary><strong>Auto-Updater</strong> (Details ausklappen)</summary>
 
 Die App prüft bei jedem Start `https://github.com/State-of-Economy/NovaTree/releases/latest/download/latest.json`.
 Ist die dort verzeichnete Version neuer als die installierte, erscheint ein Update-Banner.
@@ -228,7 +239,12 @@ Updates werden mit einem lokal erzeugten Minisign-Schlüsselpaar signiert:
   verloren, können keine weiteren signierten Updates mehr veröffentlicht werden und bestehende
   Installationen lassen sich nicht mehr automatisch aktualisieren.
 
-### Bekannte Linux-Probleme
+</details>
+
+<a name="de-linux-probleme"></a>
+
+<details>
+<summary><strong>Bekannte Linux-Probleme</strong> (Details ausklappen)</summary>
 
 **Fenster bleibt komplett weiß/schwarz:** Ein häufiger WebKitGTK-Bug auf manchen Linux-Systemen
 (VMs, bestimmte Mesa/GPU-Treiber, einige Wayland-Setups). Ab v0.3.1 setzt die App automatisch
@@ -250,6 +266,10 @@ Runtime-Anhebung auf `org.gnome.Platform//50` in v0.3.7. Ab v0.8.2 wird stattdes
 offiziell dokumentierte Variable `WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1` gesetzt – sowohl im
 Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`).
 
+</details>
+
+<a name="de-api-key"></a>
+
 ### API-Schlüssel einrichten
 
 1. App starten, unten links auf **Einstellungen** klicken.
@@ -268,6 +288,8 @@ Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`).
   VPN-Anbietern sehr aggressiv, um Bot-Registrierungen zu verhindern. Nach dem Kopieren des
   Schlüssels kannst du dein VPN sofort wieder aktivieren.
 
+<a name="de-lizenz"></a>
+
 ### Lizenz
 
 Dieses Projekt steht unter der [GNU General Public License v3.0](LICENSE). Wer den Quellcode
@@ -284,6 +306,10 @@ weitergeben – ein geschlossener, kommerzieller Weiterverkauf ist damit ausgesc
 
 Desktop chat client (Windows/Linux) for the Google Gemini API, built with [Tauri](https://tauri.app) 2
 (Rust backend + vanilla TypeScript frontend).
+
+**Contents:** [Features](#en-features) · [Development](#en-development) ·
+[Release via GitHub Actions](#en-release) · [Known Linux issues](#en-linux-issues) ·
+[Setting up an API key](#en-api-key) · [License](#en-license)
 
 ---
 
@@ -307,6 +333,8 @@ This software is provided "as is" without warranty of any kind. Since NovaTree i
 > 2. Click **"Run anyway"** in the bottom right.
 >
 > Since the entire source code is public here, anyone can verify for themselves that it contains no malware. Once enough users have started the app, Windows automatically learns it's safe and the warning disappears on its own!
+
+<a name="en-features"></a>
 
 ### Features
 
@@ -421,6 +449,8 @@ or the AI's version is applied (discarding your local changes).
   automatically tries to close open strings/brackets before giving up, instead of showing the
   broken raw JSON as chat text.
 
+<a name="en-development"></a>
+
 ### Development
 
 Prerequisites: [Node.js](https://nodejs.org), [Rust](https://www.rust-lang.org/tools/install), and the
@@ -436,6 +466,8 @@ npm run tauri dev
 ```bash
 npm run tauri build
 ```
+
+<a name="en-release"></a>
 
 ### Automatic release via GitHub Actions
 
@@ -478,7 +510,8 @@ Before first use: set the repository (and organization, if applicable) under
 `Settings → Actions → General → Workflow permissions` to "Read and write permissions" so the
 workflow is allowed to create releases.
 
-#### Auto-updater
+<details>
+<summary><strong>Auto-updater</strong> (expand for details)</summary>
 
 The app checks `https://github.com/State-of-Economy/NovaTree/releases/latest/download/latest.json`
 on every start. If the version listed there is newer than the installed one, an update banner
@@ -496,7 +529,12 @@ Updates are signed with a locally generated Minisign key pair:
   further signed updates can be published and existing installations can no longer update
   automatically.
 
-### Known Linux issues
+</details>
+
+<a name="en-linux-issues"></a>
+
+<details>
+<summary><strong>Known Linux issues</strong> (expand for details)</summary>
 
 **Window stays completely blank/black:** A common WebKitGTK bug on some Linux systems (VMs,
 certain Mesa/GPU driver combos, some Wayland setups). Since v0.3.1 the app automatically sets
@@ -518,6 +556,10 @@ v0.3.7. Since v0.8.2, the correct, officially documented variable
 `WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1` is set instead - both in the Flatpak manifest and
 directly in the app itself (`src-tauri/src/main.rs`).
 
+</details>
+
+<a name="en-api-key"></a>
+
 ### Setting up an API key
 
 1. Start the app, click **Settings** in the bottom left.
@@ -534,6 +576,8 @@ directly in the app itself (`src-tauri/src/main.rs`).
 - **VPN issue:** If the Google page shows "Not available in your region", briefly turn off your
   VPN to generate the key. Google aggressively blocks datacenter IPs from VPN providers to prevent
   bot registrations. You can turn your VPN back on right after copying the key.
+
+<a name="en-license"></a>
 
 ### License
 
