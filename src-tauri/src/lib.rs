@@ -161,10 +161,13 @@ fn workspace_restore_backup(workspace: String, filename: String, backup: String)
 /// Recursively lists files inside a workspace folder (relative paths, forward slashes). Honors
 /// the project's own `.gitignore` / `.git/info/exclude` / global gitignore (via the `ignore`
 /// crate, the same one ripgrep uses) so build artifacts, dependency folders and anything the user
-/// has explicitly excluded (e.g. `.env` files with secrets) never reach Gemini as context - on
-/// top of that, hidden (dot-prefixed) entries and a small fixed list of common
-/// build/dependency directories are always skipped, even without a .gitignore. Caps the result
-/// size so huge repositories don't blow up the context sent to Gemini.
+/// has explicitly excluded (e.g. `.env` files with secrets) never reach Gemini as context. On top
+/// of that, a `.novatreeignore` file (same gitignore syntax, checked at every directory level)
+/// lets the user exclude files that ARE tracked in git but are still irrelevant/huge for AI
+/// context (large fixtures, generated bundles, lockfiles, ...) without touching the real
+/// `.gitignore`. Hidden (dot-prefixed) entries and a small fixed list of common build/dependency
+/// directories are always skipped, even without any ignore file. Caps the result size so huge
+/// repositories don't blow up the context sent to Gemini.
 #[tauri::command]
 fn list_workspace_files(workspace: String) -> Result<Vec<String>, String> {
     let root = Path::new(&workspace);
@@ -178,6 +181,7 @@ fn list_workspace_files(workspace: String) -> Result<Vec<String>, String> {
         .git_ignore(true)
         .git_global(true)
         .git_exclude(true)
+        .add_custom_ignore_filename(".novatreeignore")
         .filter_entry(|entry| {
             entry
                 .file_name()

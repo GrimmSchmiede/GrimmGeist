@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.7",
+    de: [
+      "Neu: .novatreeignore - schließt Dateien vom KI-Kontext aus, die zwar in Git getrackt sind, aber für Gemini irrelevant/zu groß sind (z. B. Testdaten, generierte Bundles), ohne die eigentliche .gitignore anzufassen. Gleiche Syntax wie .gitignore, auf jeder Verzeichnisebene beachtet.",
+    ],
+    en: [
+      "New: .novatreeignore - excludes files from the AI's context that are tracked in git but still irrelevant/too large for Gemini (e.g. test fixtures, generated bundles), without touching the actual .gitignore. Same syntax as .gitignore, honored at every directory level.",
+    ],
+  },
+  {
     version: "0.8.6",
     de: [
       "Neu: Der Workspace-Ordner beachtet jetzt die .gitignore des Projekts (inkl. .git/info/exclude und globaler Gitignore-Regeln) - z. B. .env-Dateien mit echten Zugangsdaten landen dadurch nicht mehr versehentlich im an Gemini gesendeten Kontext",

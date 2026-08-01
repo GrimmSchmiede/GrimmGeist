@@ -63,6 +63,12 @@ globaler Gitignore-Regeln) beachtet – über die `ignore`-Crate, dieselbe Bibli
 `ripgrep` nutzt. Versteckte Dateien/Ordner sowie `node_modules`/`target`/`dist`/`venv`/
 `__pycache__` werden zusätzlich immer übersprungen, auch ohne `.gitignore`. So landen z. B.
 `.env`-Dateien mit echten Zugangsdaten nicht versehentlich im an Gemini gesendeten Kontext.
+
+Zusätzlich wird - auf jeder Verzeichnisebene, wie `.gitignore` selbst - eine `.novatreeignore`
+(gleiche Syntax) beachtet. Damit lassen sich Dateien ausschließen, die zwar in Git getrackt sind,
+aber für die KI trotzdem irrelevant oder unnötig groß sind (z. B. große Testdaten, generierte
+Bundles, Lockfiles), ohne die eigentliche `.gitignore` dafür anzufassen.
+
 Antwortet Gemini mit einem JSON-Objekt der Form
 
 ```json
