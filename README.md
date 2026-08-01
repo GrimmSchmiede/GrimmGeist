@@ -309,7 +309,7 @@ sichere Terminal-Variante wäre ein deutlich größeres, eigenständiges Vorhabe
 Aktuell noch **nicht** Teil der Releases – selbst bauen mit:
 
 ```bash
-cargo build --release --manifest-path src-tauri/Cargo.toml --bin novatree-cli
+cargo build --release --manifest-path src-tauri/Cargo.toml -p novatree-cli
 ```
 
 <a name="de-lizenz"></a>
@@ -622,7 +622,7 @@ separate undertaking.
 Not yet part of the releases - build it yourself with:
 
 ```bash
-cargo build --release --manifest-path src-tauri/Cargo.toml --bin novatree-cli
+cargo build --release --manifest-path src-tauri/Cargo.toml -p novatree-cli
 ```
 
 <a name="en-license"></a>

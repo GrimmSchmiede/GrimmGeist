@@ -1,8 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "NovaTree",
-  "version": "0.8.12",
+  "version": "0.8.13",
   "identifier": "com.novatree.app",
+  "mainBinaryName": "novatree",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",

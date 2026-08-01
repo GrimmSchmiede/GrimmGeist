@@ -6,12 +6,21 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
-    version: "0.8.12",
+    version: "0.8.13",
     de: [
-      "Neu: novatree-cli - schlankes Terminal-Tool für schnelle Fragen an Gemini ohne die GUI zu öffnen, nutzt denselben API-Schlüssel aus dem Schlüsselbund, streamt die Antwort live. Bewusst reiner Ask-Modus ohne Workspace-Zugriff. Noch nicht Teil der Releases, selbst bauen mit cargo build --bin novatree-cli",
+      "Fix: Windows-Installer/Auto-Updater installierten seit 0.8.12 fälschlich das novatree-cli-Binary statt der eigentlichen GUI (App öffnete kurz ein Fenster und stürzte sofort ab). Ursache war, dass GUI und CLI im selben Cargo-Package lagen und der Tauri-Bundler bei mehreren Binaries das falsche auswählte. novatree-cli lebt jetzt als eigenes Package in einem Cargo-Workspace (crates/novatree-cli), damit der GUI-Build gar nicht mehr mehrdeutig sein kann.",
     ],
     en: [
-      "New: novatree-cli - lightweight terminal tool for quick questions to Gemini without opening the GUI, uses the same keychain API key, streams the reply live. Deliberately ask-mode only, no workspace access. Not yet part of the releases, build it yourself with cargo build --bin novatree-cli",
+      "Fix: since 0.8.12, the Windows installer/auto-updater incorrectly installed the novatree-cli binary instead of the actual GUI (app flashed a window open and crashed immediately). Caused by the GUI and CLI sharing one Cargo package, which made the Tauri bundler pick the wrong binary when multiple existed. novatree-cli now lives in its own package inside a Cargo workspace (crates/novatree-cli), so the GUI build can no longer be ambiguous.",
+    ],
+  },
+  {
+    version: "0.8.12",
+    de: [
+      "Neu: novatree-cli - schlankes Terminal-Tool für schnelle Fragen an Gemini ohne die GUI zu öffnen, nutzt denselben API-Schlüssel aus dem Schlüsselbund, streamt die Antwort live. Bewusst reiner Ask-Modus ohne Workspace-Zugriff. Noch nicht Teil der Releases, selbst bauen mit cargo build -p novatree-cli",
+    ],
+    en: [
+      "New: novatree-cli - lightweight terminal tool for quick questions to Gemini without opening the GUI, uses the same keychain API key, streams the reply live. Deliberately ask-mode only, no workspace access. Not yet part of the releases, build it yourself with cargo build -p novatree-cli",
     ],
   },
   {
