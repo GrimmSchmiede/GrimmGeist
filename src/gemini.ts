@@ -14,6 +14,9 @@ export interface GeminiResult {
   text: string;
   promptTokens: number;
   candidatesTokens: number;
+  /** The model that actually generated this response - only differs from the requested model
+   * when sendToGeminiWithRetry fell back to another one (overload or quota exceeded). */
+  model: string;
 }
 
 const DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS = 40;
@@ -225,6 +228,7 @@ export async function sendToGemini(
     text,
     promptTokens: usage.promptTokenCount ?? 0,
     candidatesTokens: usage.candidatesTokenCount ?? 0,
+    model,
   };
 }
 

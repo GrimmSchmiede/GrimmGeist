@@ -99,6 +99,7 @@ interface Dict {
   frozenDividerLabel: string;
   fuzzySuggestionTitle: (line: number) => string;
   applySuggestion: string;
+  fallbackModelUsed: (model: string) => string;
 }
 
 const de: Dict = {
@@ -205,6 +206,7 @@ const de: Dict = {
   frozenDividerLabel: "Verlauf oberhalb eingefroren - wird nicht an die KI gesendet",
   fuzzySuggestionTitle: (line) => `Meintest du diese Stelle (Zeile ${line})?`,
   applySuggestion: "Änderung anwenden",
+  fallbackModelUsed: (model) => `Free-Tier: Ausweichmodus aktiv - diese Antwort kam von ${model}, da dein gewähltes Modell überlastet oder das Kontingent aufgebraucht war.`,
 };
 
 const en: Dict = {
@@ -311,6 +313,7 @@ const en: Dict = {
   frozenDividerLabel: "History above is frozen - not sent to the AI",
   fuzzySuggestionTitle: (line) => `Did you mean this spot (line ${line})?`,
   applySuggestion: "Apply change",
+  fallbackModelUsed: (model) => `Free tier: fallback active - this response came from ${model} because your selected model was overloaded or its quota was exhausted.`,
 };
 
 const dicts: Record<Language, Dict> = { de, en };

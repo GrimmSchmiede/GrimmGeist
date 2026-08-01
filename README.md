@@ -45,7 +45,9 @@ This software is provided "as is" without warranty of any kind. Since NovaTree i
 - Token- und Tageskontingent-Anzeige (Free-Tier-Limit: 1000 Anfragen/Tag, 15/Minute). Bei
   HTTP-429-Antworten (Quota exceeded) weicht die App zuerst automatisch auf ein anderes Modell aus
   (Free-Tier-Kontingente sind pro Modell getrennt) - erst wenn dabei ebenfalls alle Modelle ihr
-  Kontingent aufgebraucht haben, greift ein Cooldown-Timer
+  Kontingent aufgebraucht haben, greift ein Cooldown-Timer. Kam eine Antwort auf diese Weise von
+  einem anderen als dem gewählten Modell, markiert ein kleines „⚡"-Badge an der Nachricht das
+  sichtbar (ab v0.8.10)
 - Datei-Anhang (Büroklammer) zum Einlesen lokaler Dateien (z. B. `.lua`, `.py`) als Kontext
 - "Datei aktualisieren"-Button, um von Gemini editierten Code direkt auf die Festplatte zurückzuschreiben
 - **Workspace-Ordner pro Chat**: lokalen Projektordner verknüpfen, Gemini sieht die vorhandene

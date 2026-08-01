@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.10",
+    de: [
+      "Neu: Sichtbares ⚡-Badge an einer Antwort, wenn sie wegen Überlastung/Kontingent nicht vom gewählten Modell, sondern einem Ausweichmodell kam - vorher war das nur an einer kurzen, schnell verschwindenden Statuszeile während des Wartens erkennbar",
+    ],
+    en: [
+      "New: a visible \"⚡\" badge on a response when it came from a fallback model instead of the one you selected (due to overload/quota) - previously only visible as a brief status note while waiting, easy to miss",
+    ],
+  },
+  {
     version: "0.8.9",
     de: [
       "Neu: Fuzzy-Match-Vorschlag - schlägt Gemini der search-Block eines präzisen Edits nicht exakt an, sucht NovaTree die ähnlichste Stelle in der Datei und bietet sie direkt im Chat mit einem Klick zur Übernahme an, statt einfach aufzugeben",

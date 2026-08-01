@@ -313,6 +313,9 @@ function renderMessages() {
       !msg.pending && (chat.frozenAtIndex == null || idx < chat.frozenAtIndex)
         ? `<button class="freeze-btn" data-idx="${idx}" title="${escapeHtml(t.freezeFromHereTitle)}">🔒</button>`
         : "";
+    const fallbackBadgeHtml = msg.servedByModel
+      ? `<span class="model-fallback-badge" title="${escapeHtml(t.fallbackModelUsed(msg.servedByModel))}">⚡ ${escapeHtml(msg.servedByModel)}</span>`
+      : "";
     let filesHtml = "";
     if (msg.files && msg.files.length) {
       filesHtml = `<div class="file-actions">${msg.files
@@ -371,7 +374,7 @@ function renderMessages() {
     }
 
     el.innerHTML = `
-      <span class="role-label">${escapeHtml(roleLabel)}</span>${freezeHtml}
+      <span class="role-label">${escapeHtml(roleLabel)}</span>${fallbackBadgeHtml}${freezeHtml}
       ${bubbleHtml}
       ${workspaceActionHtml}
       ${filesHtml}
@@ -924,6 +927,9 @@ async function sendMessage() {
       pendingMessage.text = result.text;
     }
 
+    if (result.model !== chat.model) {
+      pendingMessage.servedByModel = result.model;
+    }
     pendingMessage.pending = false;
     pendingMessage.usage = {
       promptTokens: result.promptTokens,

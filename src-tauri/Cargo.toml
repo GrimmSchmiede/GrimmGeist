@@ -1,6 +1,6 @@
 [package]
 name = "novatree"
-version = "0.8.9"
+version = "0.8.10"
 description = "NovaTree - Desktop Chat Client for Google Gemini"
 authors = ["NovaTree"]
 edition = "2021"

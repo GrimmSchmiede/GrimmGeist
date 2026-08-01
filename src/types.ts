@@ -49,6 +49,9 @@ export interface ChatMessage {
   pendingStartedAt?: number;
   error?: boolean;
   workspaceActions?: WorkspaceActionResult[];
+  /** Set when this response actually came from a fallback model (overload/quota switch) instead
+   * of the chat's normally selected one, so the UI can show which model really answered. */
+  servedByModel?: string;
 }
 
 export interface Chat {
