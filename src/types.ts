@@ -155,17 +155,25 @@ export function buildWorkspaceSystemPromptAddition(fileList: string[]): string {
     "WICHTIG für 'content': Schreibe IMMER normal formatierten, mehrzeiligen Code mit echten " +
     "Zeilenumbrüchen und sauberer Einrückung - genau wie in einer IDE. Quetsche NIEMALS den " +
     "kompletten Dateiinhalt in eine einzige Zeile, nur weil er als JSON-String übertragen wird.\n\n" +
-    "WICHTIG für 'action=edit': Überschreibe eine bestehende Datei NIEMALS komplett über 'content'. " +
-    "Nutze stattdessen IMMER das 'edits'-Array mit präzisen Suchen/Ersetzen-Paaren " +
-    "({\"search\": \"...\", \"replace\": \"...\"}). 'search' muss exakt (Zeichen für Zeichen, " +
-    "inklusive Einrückung) im dir bekannten aktuellen Dateiinhalt vorkommen - kopiere ihn " +
-    "wortwörtlich, erfinde ihn nicht. Halte 'search' so kurz wie möglich (z. B. nur die betroffene " +
-    "Funktion/den betroffenen Block), aber lang genug, um eindeutig zu sein.\n\n" +
-    "PRESERVATION RULE (sehr wichtig): Ändere bei 'edit'-Aktionen NUR den Teil der Datei, um den " +
-    "der Nutzer explizit gebeten hat. Lösche, vereinfache oder verändere NIEMALS unbeteiligten " +
+    "WICHTIG für 'action=edit' - wähle je nach Dateigröße zwischen zwei Methoden:\n" +
+    "1) KLEINE bis MITTELGROSSE Dateien (grob geschätzt bis ca. 400-500 Zeilen): Liefere den " +
+    "KOMPLETTEN neuen Dateiinhalt über das 'content'-Feld (wie bei 'create'). Das ist bei diesen " +
+    "Größen zuverlässiger als Suchen/Ersetzen, weil du die Datei dabei als Ganzes im Blick hast " +
+    "und keine Kaskaden-Fehler entstehen (z. B. wenn eine CSS-Regel mehrere ähnliche Selektoren " +
+    "betrifft und ein Teil-Patch nur einen davon trifft). Dies ist bei kleinen Dateien der " +
+    "Standardfall, nicht die Ausnahme.\n" +
+    "2) GROSSE Dateien (deutlich über 500 Zeilen): Nutze stattdessen das 'edits'-Array mit " +
+    "präzisen Suchen/Ersetzen-Paaren ({\"search\": \"...\", \"replace\": \"...\"}), um nicht " +
+    "unnötig Tokens für unveränderte Teile zu verbrauchen. 'search' muss exakt (Zeichen für " +
+    "Zeichen, inklusive Einrückung) im dir bekannten aktuellen Dateiinhalt vorkommen - kopiere " +
+    "ihn wortwörtlich, erfinde ihn nicht. Halte 'search' so kurz wie möglich (z. B. nur die " +
+    "betroffene Funktion/den betroffenen Block), aber lang genug, um eindeutig zu sein.\n\n" +
+    "PRESERVATION RULE (sehr wichtig, gilt für BEIDE Methoden): Ändere NUR den Teil der Datei, um " +
+    "den der Nutzer explizit gebeten hat. Lösche, vereinfache oder verändere NIEMALS unbeteiligten " +
     "vorhandenen Code - insbesondere nicht bestehendes CSS, Animationen, Layout oder Business-" +
-    "Logik, die mit der Anfrage nichts zu tun haben. Wenn du unsicher bist, ob etwas zur Anfrage " +
-    "gehört, lass es unangetastet.\n\n" +
+    "Logik, die mit der Anfrage nichts zu tun haben. Bei einem kompletten 'content'-Rewrite heißt " +
+    "das: übernimm den unveränderten Rest der Datei 1:1, ändere ausschließlich die angefragte " +
+    "Stelle. Wenn du unsicher bist, ob etwas zur Anfrage gehört, lass es unangetastet.\n\n" +
     "ARCHITECT MODE ('createProject'): Wenn der Nutzer ein komplett NEUES Projekt/eine neue " +
     "Ressource mit mehreren Dateien möchte (nicht nur eine einzelne neue Datei), nutze das " +
     "'createProject'-Feld statt vieler einzelner 'create'-Aktionen: {\"rootFolder\": \"name\", " +

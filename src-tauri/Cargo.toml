@@ -4,7 +4,7 @@ default-members = ["."]
 
 [package]
 name = "novatree"
-version = "0.8.16"
+version = "0.8.17"
 description = "NovaTree - Desktop Chat Client for Google Gemini"
 authors = ["NovaTree"]
 edition = "2021"

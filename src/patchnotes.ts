@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.17",
+    de: [
+      "Fix: Bei kleinen/mittelgroßen Dateien (bis ca. 400-500 Zeilen) zwang der System-Prompt die KI bisher IMMER zu Suchen/Ersetzen-Patches, selbst wenn eine komplette Neuausgabe zuverlässiger gewesen wäre - das führte bei CSS/HTML mit mehreren zusammenhängenden Stellen (z. B. mehrere ähnliche Selektoren) zu Kaskaden-Fehlern, bei denen jeder Fix nur einen Teil traf. Die KI darf solche Dateien jetzt standardmäßig als Ganzes neu ausgeben, Suchen/Ersetzen bleibt nur für wirklich große Dateien reserviert.",
+    ],
+    en: [
+      "Fix: for small/medium files (up to roughly 400-500 lines), the system prompt previously forced the AI to ALWAYS use search/replace patches, even when a full rewrite would have been more reliable - this caused cascading failures with CSS/HTML that has multiple related spots (e.g. several similar selectors), where each fix only caught part of the problem. The AI can now rewrite such files wholesale by default; search/replace is reserved for genuinely large files.",
+    ],
+  },
+  {
     version: "0.8.16",
     de: [
       "Fix: Wenn eine präzise Änderung nicht exakt passte (KI hat sich beim Dateiinhalt vertan), stand die Chat-Antwort trotzdem so da, als wäre alles erledigt worden. NovaTree versucht jetzt automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor es aufgibt - vorher musste man manuell nochmal fragen.",
