@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.16",
+    de: [
+      "Fix: Wenn eine präzise Änderung nicht exakt passte (KI hat sich beim Dateiinhalt vertan), stand die Chat-Antwort trotzdem so da, als wäre alles erledigt worden. NovaTree versucht jetzt automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor es aufgibt - vorher musste man manuell nochmal fragen.",
+    ],
+    en: [
+      "Fix: when a precise edit didn't match exactly (the AI misremembered the file content), the chat reply still read as if everything had been done. NovaTree now automatically retries once with the actual current file content before giving up - previously you had to manually ask again.",
+    ],
+  },
+  {
     version: "0.8.15",
     de: [
       "Neu: Optionaler zweiter, kostenpflichtiger API-Schlüssel - in den Einstellungen konfigurierbar mit drei Prioritäts-Modi (nur kostenlos, nur kostenpflichtig, oder kostenlos zuerst mit automatischem Wechsel bei aufgebrauchtem Free-Kontingent). Antworten, die über den kostenpflichtigen Schlüssel liefen, werden mit einem deutlichen grünen 💲-Badge markiert.",

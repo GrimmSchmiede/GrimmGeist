@@ -833,6 +833,61 @@ function withinRateLimit(): boolean {
   return requestTimestamps.length < PER_MINUTE_REQUEST_LIMIT;
 }
 
+interface EditRetryResult {
+  success: boolean;
+  backup?: string;
+  usedPaidKey?: boolean;
+}
+
+/** When a precise edit's "search" text doesn't match the actual file (stale/guessed context from
+ * the model), automatically asks Gemini to correct itself using the REAL current file content
+ * before giving up - instead of leaving the user with a chat reply that confidently claims the
+ * edit succeeded while the file was never touched. One retry only, to keep cost/latency bounded. */
+async function retryFailedEditWithActualContent(
+  workspacePath: string,
+  filename: string,
+  failedEdit: { search: string; replace: string },
+  failureReason: string,
+  model: string,
+  systemPrompt: string,
+  safetyThreshold: string,
+  apiKeys: ApiKeyCandidate[],
+  fallbackModels: string[]
+): Promise<EditRetryResult> {
+  try {
+    const actualContent = await readWorkspaceFile(workspacePath, filename);
+    const retryPrompt =
+      `Eine vorherige präzise Änderung an der Datei "${filename}" ist fehlgeschlagen: ${failureReason}\n\n` +
+      `Gesuchter Text (hat nicht exakt gepasst):\n---\n${failedEdit.search}\n---\n\n` +
+      `Beabsichtigter Ersetzungstext:\n---\n${failedEdit.replace}\n---\n\n` +
+      `Hier ist der TATSÄCHLICHE aktuelle Inhalt von "${filename}":\n---\n${actualContent}\n---\n\n` +
+      `Liefere eine korrigierte "edit"-Aktion NUR für "${filename}" mit einem "search"-Text, der ` +
+      `WORTWÖRTLICH (exakt wie oben gezeigt) im aktuellen Inhalt vorkommt, um die ursprünglich ` +
+      `beabsichtigte Änderung korrekt umzusetzen.`;
+
+    const result = await sendToGeminiWithRetry(
+      apiKeys,
+      model,
+      systemPrompt,
+      safetyThreshold,
+      [{ role: "user", parts: [{ text: retryPrompt }] }],
+      WORKSPACE_RESPONSE_SCHEMA,
+      fallbackModels
+    );
+
+    const { actions } = parseWorkspaceResponse(result.text);
+    const fixedAction = actions.find((a) => a.action === "edit" && a.filename === filename && a.edits?.length);
+    if (!fixedAction?.edits) return { success: false };
+
+    const { outcomes, backup } = await applyWorkspaceEdits(workspacePath, filename, fixedAction.edits);
+    if (outcomes.some((o) => o.status !== "SUCCESS_PRECISE")) return { success: false };
+
+    return { success: true, backup: backup ?? undefined, usedPaidKey: result.usedPaidKey };
+  } catch {
+    return { success: false };
+  }
+}
+
 async function sendMessage() {
   const text = promptInputEl.value.trim();
   if (!text && pendingAttachments.length === 0 && pendingImages.length === 0) return;
@@ -973,16 +1028,39 @@ async function sendMessage() {
               if (problemIndex !== -1) {
                 const problem = outcomes[problemIndex];
                 const originalEdit = cmd.edits[problemIndex];
-                results.push({
-                  action: cmd.action,
-                  filename: cmd.filename,
-                  success: false,
-                  error: problem.status === "FUZZY_MATCH_NEEDED" ? t.editFuzzyMatch : t.editNotFound,
-                  fuzzySuggestion:
-                    problem.status === "FUZZY_MATCH_NEEDED" && problem.matchedLine !== undefined && problem.matchedText !== undefined
-                      ? { matchedLine: problem.matchedLine, matchedText: problem.matchedText, replace: originalEdit.replace }
-                      : undefined,
-                });
+                const failureReason = problem.status === "FUZZY_MATCH_NEEDED" ? t.editFuzzyMatch : t.editNotFound;
+
+                pendingStatusNote = t.retryingFailedEdit;
+                const retry = await retryFailedEditWithActualContent(
+                  workspacePath,
+                  cmd.filename,
+                  originalEdit,
+                  failureReason,
+                  chat.model,
+                  systemPrompt,
+                  settings.safetyThreshold,
+                  apiKeyCandidates,
+                  fallbackModels
+                );
+                pendingStatusNote = "";
+
+                if (retry.success) {
+                  const newContent = await readWorkspaceFile(workspacePath, cmd.filename);
+                  await resolveTabUpdate(workspacePath, cmd.filename, newContent);
+                  if (retry.usedPaidKey) pendingMessage.servedByPaidKey = true;
+                  results.push({ action: cmd.action, filename: cmd.filename, success: true, backup: retry.backup });
+                } else {
+                  results.push({
+                    action: cmd.action,
+                    filename: cmd.filename,
+                    success: false,
+                    error: failureReason,
+                    fuzzySuggestion:
+                      problem.status === "FUZZY_MATCH_NEEDED" && problem.matchedLine !== undefined && problem.matchedText !== undefined
+                        ? { matchedLine: problem.matchedLine, matchedText: problem.matchedText, replace: originalEdit.replace }
+                        : undefined,
+                  });
+                }
                 continue;
               }
               backup = editBackup ?? undefined;

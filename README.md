@@ -165,7 +165,9 @@ werden im Chat mit einem deutlichen grünen 💲-Badge markiert, damit nie unbem
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
   Suchen/Ersetzen-Paaren geändert (`{"search": "...", "replace": "..."}`). Trifft ein `search`
   nur nach Whitespace-Normalisierung oder gar nicht, wird nichts geschrieben und stattdessen ein
-  Hinweis angezeigt, statt riskant zu raten.
+  Hinweis angezeigt, statt riskant zu raten. Passt `search` gar nicht, versucht NovaTree seit
+  v0.8.16 automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor
+  aufgegeben wird.
 - **Architect Mode:** Für komplett neue Projekte/Ressourcen mit mehreren Dateien liefert Gemini
   ein `createProject`-Objekt (Zielordner + Dateien), die App legt Ordner und Dateien in einem
   Zug an – inklusive einer konsolidierten Freigabe-Ansicht (Dateiliste statt Einzel-Diffs).
@@ -491,7 +493,8 @@ marked in the chat with a green 💲 badge, so costs never sneak up on you unnot
 - **Precise edits:** Existing files are no longer overwritten wholesale, but changed via
   search/replace pairs (`{"search": "...", "replace": "..."}`). If a `search` only matches after
   whitespace normalization or not at all, nothing is written and a notice is shown instead of
-  risky guessing.
+  risky guessing. If `search` doesn't match at all, NovaTree (since v0.8.16) automatically tries
+  once more with the actual current file content before giving up.
 - **Architect Mode:** For entirely new projects/resources with multiple files, Gemini provides a
   `createProject` object (target folder + files); the app creates the folder and files in one go
   - including a consolidated approval view (file list instead of individual diffs).

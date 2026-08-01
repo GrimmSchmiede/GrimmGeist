@@ -123,6 +123,7 @@ interface Dict {
   switchingToPaidKey: string;
   paidKeyUsed: string;
   paidKeyBadgeLabel: string;
+  retryingFailedEdit: string;
 }
 
 const de: Dict = {
@@ -255,6 +256,7 @@ const de: Dict = {
   switchingToPaidKey: "Kostenloses Kontingent aufgebraucht, wechsle zum kostenpflichtigen Schlüssel…",
   paidKeyUsed: "Diese Antwort wurde über deinen kostenpflichtigen API-Schlüssel abgerechnet, da das kostenlose Kontingent aufgebraucht war.",
   paidKeyBadgeLabel: "Kostenpflichtig",
+  retryingFailedEdit: "Änderung hat nicht exakt gepasst, versuche es mit dem echten Dateiinhalt erneut…",
 };
 
 const en: Dict = {
@@ -387,6 +389,7 @@ const en: Dict = {
   switchingToPaidKey: "Free quota exhausted, switching to the paid key…",
   paidKeyUsed: "This response was billed to your paid API key because the free quota was exhausted.",
   paidKeyBadgeLabel: "Paid",
+  retryingFailedEdit: "Change didn't match exactly, retrying with the real file content…",
 };
 
 const dicts: Record<Language, Dict> = { de, en };
