@@ -155,6 +155,13 @@ Host-Systems mit, was auf vielen Distros zuverlässiger läuft als eine unverpac
 Installation: `.flatpak`-Datei herunterladen, dann `flatpak install NovaTree.flatpak` bzw. per
 Doppelklick, falls die Dateimanager-Integration vorhanden ist.
 
+### Arch Linux / AUR
+
+Unter [`aur/novatree-bin/`](aur/novatree-bin/PKGBUILD) liegt eine `PKGBUILD` für ein AUR-Binärpaket
+(installiert die rohe `NovaTree_<version>_linux_amd64`-Datei aus den Releases, kein Kompilieren
+nötig). Das Paket ist noch **nicht** im AUR veröffentlicht – Schritte dafür stehen in
+[`aur/README.md`](aur/README.md), erfordern aber einen persönlichen AUR-Account mit SSH-Key.
+
 > **Hinweis:** Es gibt bewusst **kein AppImage** mehr (entfernt in v0.8.5). Tauris AppImage-Bundler
 > bündelt eine eigene WebKitGTK/GTK/Wayland-Bibliothekskette, deren Startskript zudem
 > bedingungslos `GDK_BACKEND=x11` erzwingt – auf manchen Wayland-Systemen (z. B. CachyOS) führte

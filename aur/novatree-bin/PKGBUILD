@@ -1,0 +1,26 @@
+# Maintainer: <your name> <your email>
+pkgname=novatree-bin
+pkgver=0.8.6
+pkgrel=1
+pkgdesc="Desktop chat client for the Google Gemini API, built with Tauri (Rust + vanilla TypeScript)"
+arch=('x86_64')
+url="https://github.com/State-of-Economy/NovaTree"
+license=('GPL-3.0-or-later')
+depends=('webkit2gtk-4.1' 'gtk3' 'hicolor-icon-theme')
+provides=('novatree')
+conflicts=('novatree' 'novatree-git')
+source=(
+  "novatree-${pkgver}::${url}/releases/download/novatree-v${pkgver}/NovaTree_${pkgver}_linux_amd64"
+  "com.novatree.app.desktop::${url}/raw/main/flatpak/com.novatree.app.desktop"
+  "com.novatree.app.png::${url}/raw/main/flatpak/com.novatree.app.png"
+)
+# Fill in with `updpkgsums` (from pacman-contrib) after downloading the sources once.
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP')
+
+package() {
+  install -Dm755 "${srcdir}/novatree-${pkgver}" "${pkgdir}/usr/bin/novatree"
+  install -Dm644 "${srcdir}/com.novatree.app.desktop" "${pkgdir}/usr/share/applications/com.novatree.app.desktop"
+  install -Dm644 "${srcdir}/com.novatree.app.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/com.novatree.app.png"
+}
