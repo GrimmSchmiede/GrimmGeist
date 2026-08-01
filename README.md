@@ -112,6 +112,22 @@ erstellten Dateien wird die Datei einfach wieder gelöscht). **Das ersetzt kein 
 Git-Repo** (die Sicherungen liegen weiterhin auf derselben Festplatte), ist aber ein zusätzliches
 Sicherheitsnetz gegen versehentlichen Datenverlust im autonomen Modus.
 
+### Fuzzy-Match-Vorschlag bei fehlgeschlagenen Edits (ab v0.8.9)
+
+Findet ein präziser Edit (`search`/`replace`) seinen `search`-Text auch nach Whitespace-
+Normalisierung nicht exakt, sucht NovaTree zusätzlich nach der ähnlichsten Zeilen-Passage in der
+Datei. Wird eine gefunden, erscheint direkt im Chat ein **„Meintest du diese Stelle?"**-Kasten mit
+der tatsächlichen Fundstelle (Zeilennummer + Originaltext) und einem „Änderung anwenden"-Button –
+ein Klick genügt, ohne dass Gemini erneut gefragt werden muss.
+
+### Verlauf einfrieren (ab v0.8.9)
+
+Über das 🔒-Symbol, das beim Hovern über eine Nachricht erscheint, lässt sich der Chat-Verlauf ab
+diesem Punkt "einfrieren": Alles davor bleibt sichtbar, wird aber ab sofort nicht mehr mit an
+Gemini gesendet – nützlich, um lange Architektur-Diskussionen im selben Chat abzuschneiden, ohne
+die Historie zu verlieren oder einen neuen Chat starten zu müssen. Eine gestrichelte Trennlinie
+mit „Auftauen"-Button markiert den eingefrorenen Bereich.
+
 ### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
 
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per

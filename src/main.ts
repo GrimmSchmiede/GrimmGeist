@@ -293,10 +293,26 @@ function renderMessages() {
   if (!chat) return;
 
   chat.messages.forEach((msg, idx) => {
+    if (chat.frozenAtIndex != null && idx === chat.frozenAtIndex) {
+      const divider = document.createElement("div");
+      divider.className = "frozen-history-divider";
+      divider.innerHTML = `<span>${escapeHtml(t.frozenDividerLabel)}</span><button class="unfreeze-btn">${escapeHtml(t.unfreezeTitle)}</button>`;
+      divider.querySelector(".unfreeze-btn")!.addEventListener("click", () => {
+        chat.frozenAtIndex = null;
+        persist();
+        renderMessages();
+      });
+      messagesEl.appendChild(divider);
+    }
+
     const el = document.createElement("div");
     el.className = `message ${msg.role}` + (msg.pending ? " pending" : "") + (msg.error ? " error" : "");
 
     const roleLabel = msg.role === "user" ? t.you : "NovaTree";
+    const freezeHtml =
+      !msg.pending && (chat.frozenAtIndex == null || idx < chat.frozenAtIndex)
+        ? `<button class="freeze-btn" data-idx="${idx}" title="${escapeHtml(t.freezeFromHereTitle)}">🔒</button>`
+        : "";
     let filesHtml = "";
     if (msg.files && msg.files.length) {
       filesHtml = `<div class="file-actions">${msg.files
@@ -329,7 +345,19 @@ function renderMessages() {
             return `<div class="workspace-action-note success">${escapeHtml(wa.filename)}</div>`;
           }
           if (!wa.success) {
-            return `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`;
+            const failedNote = `<div class="workspace-action-note failed">${escapeHtml(t.actionFailed(wa.action, wa.filename, wa.error ?? ""))}</div>`;
+            if (wa.fuzzySuggestion && !wa.fuzzyResolved) {
+              const s = wa.fuzzySuggestion;
+              return (
+                failedNote +
+                `<div class="fuzzy-suggestion">
+                  <div class="fuzzy-suggestion-title">${escapeHtml(t.fuzzySuggestionTitle(s.matchedLine))}</div>
+                  <pre class="fuzzy-suggestion-code">${escapeHtml(s.matchedText)}</pre>
+                  <button class="fuzzy-suggestion-apply" data-msg-idx="${idx}" data-wa-idx="${waIdx}">${escapeHtml(t.applySuggestion)}</button>
+                </div>`
+              );
+            }
+            return failedNote;
           }
           const undoable = wa.action !== "create_project" && (wa.backup || wa.action === "create");
           const undoHtml = wa.undone
@@ -343,7 +371,7 @@ function renderMessages() {
     }
 
     el.innerHTML = `
-      <span class="role-label">${escapeHtml(roleLabel)}</span>
+      <span class="role-label">${escapeHtml(roleLabel)}</span>${freezeHtml}
       ${bubbleHtml}
       ${workspaceActionHtml}
       ${filesHtml}
@@ -358,6 +386,18 @@ function renderMessages() {
 
     el.querySelectorAll<HTMLButtonElement>(".workspace-action-undo").forEach((btn) => {
       btn.addEventListener("click", () => undoWorkspaceAction(Number(btn.dataset.msgIdx), Number(btn.dataset.waIdx)));
+    });
+
+    el.querySelectorAll<HTMLButtonElement>(".fuzzy-suggestion-apply").forEach((btn) => {
+      btn.addEventListener("click", () => applyFuzzySuggestion(Number(btn.dataset.msgIdx), Number(btn.dataset.waIdx)));
+    });
+
+    el.querySelectorAll<HTMLButtonElement>(".freeze-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        chat.frozenAtIndex = Number(btn.dataset.idx);
+        persist();
+        renderMessages();
+      });
     });
 
     // Offer "Datei aktualisieren" for model responses that follow a user message with attachments
@@ -753,7 +793,10 @@ async function sendMessage() {
       }
     }
 
-    const contents = historyToContents(chat.messages.slice(0, -1));
+    const historyWithoutPending = chat.messages.slice(0, -1);
+    const historyForRequest =
+      chat.frozenAtIndex != null ? historyWithoutPending.slice(chat.frozenAtIndex) : historyWithoutPending;
+    const contents = historyToContents(historyForRequest);
     const fallbackModels = MODEL_OPTIONS.filter((o) => !o.disabled && o.value !== chat.model).map((o) => o.value);
     const result = await sendToGeminiWithRetry(
       apiKey,
@@ -804,13 +847,19 @@ async function sendMessage() {
               removeTabIfOpen(cmd.filename);
             } else if (cmd.action === "edit" && cmd.edits && cmd.edits.length) {
               const { outcomes, backup: editBackup } = await applyWorkspaceEdits(workspacePath, cmd.filename, cmd.edits);
-              const problem = outcomes.find((o) => o.status !== "SUCCESS_PRECISE");
-              if (problem) {
+              const problemIndex = outcomes.findIndex((o) => o.status !== "SUCCESS_PRECISE");
+              if (problemIndex !== -1) {
+                const problem = outcomes[problemIndex];
+                const originalEdit = cmd.edits[problemIndex];
                 results.push({
                   action: cmd.action,
                   filename: cmd.filename,
                   success: false,
                   error: problem.status === "FUZZY_MATCH_NEEDED" ? t.editFuzzyMatch : t.editNotFound,
+                  fuzzySuggestion:
+                    problem.status === "FUZZY_MATCH_NEEDED" && problem.matchedLine !== undefined && problem.matchedText !== undefined
+                      ? { matchedLine: problem.matchedLine, matchedText: problem.matchedText, replace: originalEdit.replace }
+                      : undefined,
                 });
                 continue;
               }
@@ -928,6 +977,46 @@ async function undoWorkspaceAction(msgIdx: number, waIdx: number) {
       return;
     }
     wa.undone = true;
+    persist();
+    renderMessages();
+    if (workspaceFilesExpanded) await renderWorkspaceFiles();
+  } catch (err) {
+    alert(t.undoError(err instanceof Error ? err.message : String(err)));
+  } finally {
+    setTabAILock(wa.filename, false);
+  }
+}
+
+/** Applies a fuzzy-match "did you mean this?" suggestion for a failed edit: writes the exact
+ * located text (guaranteed to match now, since it was just read from disk) with the AI's
+ * original replacement, respecting the same approval gate a normal edit would. */
+async function applyFuzzySuggestion(msgIdx: number, waIdx: number) {
+  const chat = activeChat();
+  if (!chat?.workspacePath) return;
+  const msg = chat.messages[msgIdx];
+  const wa = msg?.workspaceActions?.[waIdx];
+  if (!wa || !wa.fuzzySuggestion || wa.fuzzyResolved) return;
+  const workspacePath = chat.workspacePath;
+  const suggestion = wa.fuzzySuggestion;
+  const edits = [{ search: suggestion.matchedText, replace: suggestion.replace }];
+
+  if (actionRequiresApproval("edit", settings.security)) {
+    const approved = await requestApproval({ action: "edit", filename: wa.filename, edits }, workspacePath);
+    if (!approved) return;
+  }
+
+  try {
+    setTabAILock(wa.filename, true);
+    const { outcomes, backup } = await applyWorkspaceEdits(workspacePath, wa.filename, edits);
+    if (outcomes[0]?.status !== "SUCCESS_PRECISE") {
+      alert(t.undoError(t.editFuzzyMatch));
+      return;
+    }
+    const content = await readWorkspaceFile(workspacePath, wa.filename);
+    updateTabContent(wa.filename, content);
+    wa.fuzzyResolved = true;
+    wa.success = true;
+    wa.backup = backup ?? undefined;
     persist();
     renderMessages();
     if (workspaceFilesExpanded) await renderWorkspaceFiles();

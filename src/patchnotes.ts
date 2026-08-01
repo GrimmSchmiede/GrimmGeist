@@ -6,6 +6,17 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.9",
+    de: [
+      "Neu: Fuzzy-Match-Vorschlag - schlägt Gemini der search-Block eines präzisen Edits nicht exakt an, sucht NovaTree die ähnlichste Stelle in der Datei und bietet sie direkt im Chat mit einem Klick zur Übernahme an, statt einfach aufzugeben",
+      "Neu: Verlauf einfrieren - über ein Schloss-Symbol an jeder Nachricht lässt sich der Chat ab diesem Punkt einfrieren, sodass ältere Nachrichten sichtbar bleiben, aber nicht mehr mitgeschickt werden (spart Tokens bei langen Chats)",
+    ],
+    en: [
+      "New: fuzzy-match suggestion - if a precise edit's search block doesn't match exactly, NovaTree now looks for the closest matching spot in the file and offers it right in the chat with a one-click apply, instead of just giving up",
+      "New: freeze history - a lock icon on any message lets you freeze the chat from that point on, so older messages stay visible but stop being sent to the AI (saves tokens on long chats)",
+    ],
+  },
+  {
     version: "0.8.8",
     de: [
       "Neu: Bei „Kontingent aufgebraucht“ (HTTP 429) weicht NovaTree jetzt automatisch auf ein anderes Modell aus, bevor der Cooldown-Timer greift - Free-Tier-Kontingente sind pro Modell getrennt, ein anderes Modell hat oft noch welches übrig",

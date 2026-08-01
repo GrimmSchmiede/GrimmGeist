@@ -94,6 +94,11 @@ interface Dict {
   undoAction: string;
   undoneLabel: string;
   undoError: (err: string) => string;
+  freezeFromHereTitle: string;
+  unfreezeTitle: string;
+  frozenDividerLabel: string;
+  fuzzySuggestionTitle: (line: number) => string;
+  applySuggestion: string;
 }
 
 const de: Dict = {
@@ -195,6 +200,11 @@ const de: Dict = {
   undoAction: "Rückgängig",
   undoneLabel: "Rückgängig gemacht",
   undoError: (err) => `Rückgängig machen fehlgeschlagen: ${err}`,
+  freezeFromHereTitle: "Verlauf davor einfrieren (spart Tokens bei künftigen Anfragen)",
+  unfreezeTitle: "Auftauen",
+  frozenDividerLabel: "Verlauf oberhalb eingefroren - wird nicht an die KI gesendet",
+  fuzzySuggestionTitle: (line) => `Meintest du diese Stelle (Zeile ${line})?`,
+  applySuggestion: "Änderung anwenden",
 };
 
 const en: Dict = {
@@ -296,6 +306,11 @@ const en: Dict = {
   undoAction: "Undo",
   undoneLabel: "Undone",
   undoError: (err) => `Undo failed: ${err}`,
+  freezeFromHereTitle: "Freeze history before this point (saves tokens on future requests)",
+  unfreezeTitle: "Unfreeze",
+  frozenDividerLabel: "History above is frozen - not sent to the AI",
+  fuzzySuggestionTitle: (line) => `Did you mean this spot (line ${line})?`,
+  applySuggestion: "Apply change",
 };
 
 const dicts: Record<Language, Dict> = { de, en };

@@ -257,9 +257,15 @@ struct SearchReplace {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 struct EditOutcome {
     search: String,
     status: String, // "SUCCESS_PRECISE" | "FUZZY_MATCH_NEEDED" | "NOT_FOUND"
+    /// 1-based line number where a fuzzy (whitespace-insensitive) match was located, if any.
+    matched_line: Option<usize>,
+    /// The actual (exact, non-normalized) text at that location, so the frontend can offer it as
+    /// a "did you mean this?" suggestion instead of just giving up.
+    matched_text: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -268,13 +274,47 @@ struct ApplyEditsResult {
     backup: Option<String>,
 }
 
+/// Locates a contiguous block of lines in `content` whose whitespace-stripped text exactly
+/// matches the whitespace-stripped `search` text, trying window sizes close to (but not
+/// necessarily identical to) search's own line count, since a blank-line difference alone
+/// shouldn't prevent a "did you mean this?" suggestion. Returns the 1-based starting line number
+/// and the exact original text of that block.
+fn find_fuzzy_match(content: &str, search: &str) -> Option<(usize, String)> {
+    let target_norm: String = search.chars().filter(|c| !c.is_whitespace()).collect();
+    if target_norm.is_empty() {
+        return None;
+    }
+    let lines: Vec<&str> = content.lines().collect();
+    let search_line_count = search.lines().count().max(1);
+    let candidate_lens = [
+        search_line_count,
+        search_line_count.saturating_sub(1),
+        search_line_count + 1,
+    ];
+
+    for &window_len in &candidate_lens {
+        if window_len == 0 || window_len > lines.len() {
+            continue;
+        }
+        for start in 0..=(lines.len() - window_len) {
+            let window_text = lines[start..start + window_len].join("\n");
+            let window_norm: String = window_text.chars().filter(|c| !c.is_whitespace()).collect();
+            if window_norm == target_norm {
+                return Some((start + 1, window_text));
+            }
+        }
+    }
+    None
+}
+
 /// Applies a sequence of search/replace edits to an existing workspace file (precision editing,
 /// as an alternative to overwriting the whole file). Each edit is matched exactly against the
-/// current content first; if that fails, a whitespace-insensitive check tells the caller whether
-/// the search text exists but only under different whitespace/indentation (FUZZY_MATCH_NEEDED,
-/// not auto-applied since the match position would be ambiguous) or not at all (NOT_FOUND).
-/// Only edits that matched exactly are written to disk; if any were, the workspace-relative
-/// backup path of the pre-edit content is returned too (for the "Undo" button).
+/// current content first; if that fails, a whitespace-insensitive check locates the closest
+/// matching block so the caller can offer it as a "did you mean this?" suggestion
+/// (FUZZY_MATCH_NEEDED, not auto-applied since silently guessing could edit the wrong spot) or
+/// reports the search text as missing entirely (NOT_FOUND). Only edits that matched exactly are
+/// written to disk; if any were, the workspace-relative backup path of the pre-edit content is
+/// returned too (for the "Undo" button).
 #[tauri::command]
 fn workspace_apply_edits(
     workspace: String,
@@ -290,15 +330,26 @@ fn workspace_apply_edits(
         if content.contains(&edit.search) {
             content = content.replacen(&edit.search, &edit.replace, 1);
             changed = true;
-            outcomes.push(EditOutcome { search: edit.search, status: "SUCCESS_PRECISE".into() });
+            outcomes.push(EditOutcome {
+                search: edit.search,
+                status: "SUCCESS_PRECISE".into(),
+                matched_line: None,
+                matched_text: None,
+            });
+        } else if let Some((line, matched_text)) = find_fuzzy_match(&content, &edit.search) {
+            outcomes.push(EditOutcome {
+                search: edit.search,
+                status: "FUZZY_MATCH_NEEDED".into(),
+                matched_line: Some(line),
+                matched_text: Some(matched_text),
+            });
         } else {
-            let clean_content: String = content.chars().filter(|c| !c.is_whitespace()).collect();
-            let clean_search: String = edit.search.chars().filter(|c| !c.is_whitespace()).collect();
-            if !clean_search.is_empty() && clean_content.contains(&clean_search) {
-                outcomes.push(EditOutcome { search: edit.search, status: "FUZZY_MATCH_NEEDED".into() });
-            } else {
-                outcomes.push(EditOutcome { search: edit.search, status: "NOT_FOUND".into() });
-            }
+            outcomes.push(EditOutcome {
+                search: edit.search,
+                status: "NOT_FOUND".into(),
+                matched_line: None,
+                matched_text: None,
+            });
         }
     }
 

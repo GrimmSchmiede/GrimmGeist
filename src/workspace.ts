@@ -50,6 +50,10 @@ export interface SearchReplaceEdit {
 export interface EditOutcome {
   search: string;
   status: "SUCCESS_PRECISE" | "FUZZY_MATCH_NEEDED" | "NOT_FOUND";
+  /** 1-based line number of a located fuzzy match, if status is FUZZY_MATCH_NEEDED. */
+  matchedLine?: number;
+  /** Exact (non-normalized) text at that location - shown as a "did you mean this?" suggestion. */
+  matchedText?: string;
 }
 
 interface ApplyEditsResult {

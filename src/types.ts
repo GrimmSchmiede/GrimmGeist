@@ -17,6 +17,16 @@ export interface WorkspaceActionResult {
   backup?: string;
   /** Set once the user has clicked "Undo" for this action, so the button/label can reflect it. */
   undone?: boolean;
+  /** Set on a failed "edit" whose search text only matched after whitespace normalization - lets
+   * the UI offer the located block as a one-click "did you mean this?" suggestion instead of
+   * just reporting failure. */
+  fuzzySuggestion?: {
+    matchedLine: number;
+    matchedText: string;
+    replace: string;
+  };
+  /** Set once the user has applied (or dismissed) a fuzzy-match suggestion for this action. */
+  fuzzyResolved?: boolean;
 }
 
 /** A pasted/dropped image attached to an outgoing message, already downscaled/compressed
@@ -49,6 +59,10 @@ export interface Chat {
   createdAt: number;
   totalTokens: number;
   workspacePath?: string;
+  /** Index into `messages` marking a "frozen" point: messages before this index are kept visible
+   * in the UI but excluded from what's sent to Gemini on future requests, to save tokens on long
+   * chats without losing the visual history. `undefined`/`null` means nothing is frozen. */
+  frozenAtIndex?: number | null;
 }
 
 export type Language = "de" | "en";
