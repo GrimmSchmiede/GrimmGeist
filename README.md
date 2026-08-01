@@ -42,8 +42,10 @@ This software is provided "as is" without warranty of any kind. Since NovaTree i
 - Sidebar mit Chat-Verlauf, "Neuer Chat"-Button und Einstellungen
 - Modell-Auswahl pro Chat (`gemini-flash-latest`, `gemini-3.1-flash-lite`; `gemini-2.5-pro` ist im
   Free Tier ausgegraut, da Google dafür Kontingent 0 vergibt)
-- Token- und Tageskontingent-Anzeige (Free-Tier-Limit: 1000 Anfragen/Tag, 15/Minute) inkl.
-  automatischem Cooldown-Timer bei HTTP-429-Antworten (Quota exceeded)
+- Token- und Tageskontingent-Anzeige (Free-Tier-Limit: 1000 Anfragen/Tag, 15/Minute). Bei
+  HTTP-429-Antworten (Quota exceeded) weicht die App zuerst automatisch auf ein anderes Modell aus
+  (Free-Tier-Kontingente sind pro Modell getrennt) - erst wenn dabei ebenfalls alle Modelle ihr
+  Kontingent aufgebraucht haben, greift ein Cooldown-Timer
 - Datei-Anhang (Büroklammer) zum Einlesen lokaler Dateien (z. B. `.lua`, `.py`) als Kontext
 - "Datei aktualisieren"-Button, um von Gemini editierten Code direkt auf die Festplatte zurückzuschreiben
 - **Workspace-Ordner pro Chat**: lokalen Projektordner verknüpfen, Gemini sieht die vorhandene

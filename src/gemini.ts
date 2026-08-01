@@ -234,11 +234,20 @@ export function isOverloadedError(err: unknown): boolean {
   return err instanceof GeminiApiError && err.status === 503;
 }
 
+/** True for HTTP 429 responses (quota exceeded / rate limit). Unlike a 503, waiting a few
+ * seconds won't help - but since free-tier quotas are tracked per model, a different model may
+ * still have quota left, so this is worth an immediate fallback instead of a same-model retry. */
+export function isQuotaExceededError(err: unknown): boolean {
+  return err instanceof GeminiApiError && err.status === 429;
+}
+
 export interface RetryStatus {
   attempt: number;
   maxAttempts: number;
   model: string;
   isFallback: boolean;
+  /** Why this attempt is happening on a fallback model, if it is one. */
+  reason?: "overloaded" | "quota";
 }
 
 const OVERLOAD_MAX_ATTEMPTS = 3;
@@ -246,7 +255,9 @@ const OVERLOAD_RETRY_DELAYS_MS = [1000, 2000, 4000];
 
 /** Wraps sendToGemini with automatic retries (with backoff) on HTTP 503 "high demand" errors,
  * and falls back to trying each model in fallbackModels once each if the primary model keeps
- * failing. onStatusUpdate is called before every attempt so the UI can show progress. */
+ * failing or returns HTTP 429 (quota exceeded - free-tier quotas are per model, so a fallback
+ * model may still have quota left even though same-model retries would just fail again).
+ * onStatusUpdate is called before every attempt so the UI can show progress. */
 export async function sendToGeminiWithRetry(
   apiKey: string,
   model: string,
@@ -259,6 +270,7 @@ export async function sendToGeminiWithRetry(
 ): Promise<GeminiResult> {
   const modelsToTry = [model, ...fallbackModels];
   let lastError: unknown;
+  let switchReason: "overloaded" | "quota" | undefined;
 
   for (let modelIndex = 0; modelIndex < modelsToTry.length; modelIndex++) {
     const currentModel = modelsToTry[modelIndex];
@@ -266,12 +278,17 @@ export async function sendToGeminiWithRetry(
     const maxAttempts = isFallback ? 1 : OVERLOAD_MAX_ATTEMPTS;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      onStatusUpdate?.({ attempt, maxAttempts, model: currentModel, isFallback });
+      onStatusUpdate?.({ attempt, maxAttempts, model: currentModel, isFallback, reason: isFallback ? switchReason : undefined });
       try {
         return await sendToGemini(apiKey, currentModel, systemPrompt, safetyThreshold, contents, responseSchema);
       } catch (err) {
         lastError = err;
+        if (isQuotaExceededError(err)) {
+          switchReason = "quota";
+          break; // same model won't recover by waiting - move straight to the next one
+        }
         if (!isOverloadedError(err)) throw err;
+        switchReason = "overloaded";
         if (attempt < maxAttempts) {
           await new Promise((resolve) => setTimeout(resolve, OVERLOAD_RETRY_DELAYS_MS[attempt - 1] ?? 4000));
         }

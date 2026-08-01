@@ -62,6 +62,7 @@ interface Dict {
   thinking: string;
   modelOverloadedRetrying: (attempt: number, max: number) => string;
   modelOverloadedSwitching: (model: string) => string;
+  modelQuotaSwitching: (model: string) => string;
   errorPrefix: (msg: string) => string;
   securitySectionLabel: string;
   securityModeHint: string;
@@ -158,6 +159,7 @@ const de: Dict = {
   thinking: "NovaTree denkt nach",
   modelOverloadedRetrying: (attempt, max) => `Modell überlastet, Versuch ${attempt}/${max}…`,
   modelOverloadedSwitching: (model) => `Modell überlastet, wechsle zu ${model}…`,
+  modelQuotaSwitching: (model) => `Kontingent für dieses Modell aufgebraucht, wechsle zu ${model}…`,
   errorPrefix: (msg) => `Fehler: ${msg}`,
   securitySectionLabel: "KI-Dateizugriff",
   securityModeHint: "Legt fest, ob NovaTree vor Datei-Änderungen im Workspace-Ordner erst deine Freigabe braucht.",
@@ -258,6 +260,7 @@ const en: Dict = {
   thinking: "NovaTree is thinking",
   modelOverloadedRetrying: (attempt, max) => `Model overloaded, attempt ${attempt}/${max}…`,
   modelOverloadedSwitching: (model) => `Model overloaded, switching to ${model}…`,
+  modelQuotaSwitching: (model) => `Quota for this model exhausted, switching to ${model}…`,
   errorPrefix: (msg) => `Error: ${msg}`,
   securitySectionLabel: "AI file access",
   securityModeHint: "Controls whether NovaTree needs your approval before changing files in the workspace folder.",

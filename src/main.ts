@@ -765,7 +765,9 @@ async function sendMessage() {
       fallbackModels,
       (status) => {
         pendingStatusNote = status.isFallback
-          ? t.modelOverloadedSwitching(status.model)
+          ? status.reason === "quota"
+            ? t.modelQuotaSwitching(status.model)
+            : t.modelOverloadedSwitching(status.model)
           : status.attempt > 1
             ? t.modelOverloadedRetrying(status.attempt, status.maxAttempts)
             : "";

@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.8",
+    de: [
+      "Neu: Bei „Kontingent aufgebraucht“ (HTTP 429) weicht NovaTree jetzt automatisch auf ein anderes Modell aus, bevor der Cooldown-Timer greift - Free-Tier-Kontingente sind pro Modell getrennt, ein anderes Modell hat oft noch welches übrig",
+    ],
+    en: [
+      "New: on \"quota exceeded\" (HTTP 429), NovaTree now automatically falls back to a different model before the cooldown timer kicks in - free-tier quotas are tracked per model, so another one often still has quota left",
+    ],
+  },
+  {
     version: "0.8.7",
     de: [
       "Neu: .novatreeignore - schließt Dateien vom KI-Kontext aus, die zwar in Git getrackt sind, aber für Gemini irrelevant/zu groß sind (z. B. Testdaten, generierte Bundles), ohne die eigentliche .gitignore anzufassen. Gleiche Syntax wie .gitignore, auf jeder Verzeichnisebene beachtet.",
