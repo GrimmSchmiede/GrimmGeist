@@ -160,6 +160,14 @@ nur kostenlos, nur kostenpflichtig, oder kostenlos zuerst mit automatischem Wech
 Free-Kontingent aufgebraucht ist. Antworten, die über den kostenpflichtigen Schlüssel liefen,
 werden im Chat mit einem deutlichen grünen 💲-Badge markiert, damit nie unbemerkt Kosten entstehen.
 
+#### Proaktive Datei-Kontext-Injektion (ab v0.8.18)
+
+Bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt NovaTree automatisch den echten
+aktuellen Inhalt der im Live-Editor geöffneten Datei sowie aller im Nachrichtentext namentlich
+genannten Dateien mit – die KI muss den Zustand einer Datei nicht mehr aus dem Chat-Verlauf
+rekonstruieren. Ist keine Datei eindeutig identifizierbar, wird die KI angewiesen, im Zweifel
+nach dem Dateinamen zu fragen statt zu raten.
+
 #### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
 
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
@@ -167,7 +175,8 @@ werden im Chat mit einem deutlichen grünen 💲-Badge markiert, damit nie unbem
   nur nach Whitespace-Normalisierung oder gar nicht, wird nichts geschrieben und stattdessen ein
   Hinweis angezeigt, statt riskant zu raten. Passt `search` gar nicht, versucht NovaTree seit
   v0.8.16 automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor
-  aufgegeben wird.
+  aufgegeben wird. Seit v0.8.17 nutzt die KI bei kleinen/mittelgroßen Dateien standardmäßig eine
+  komplette Neuausgabe statt Suchen/Ersetzen, um Kaskaden-Fehler zu vermeiden.
 - **Architect Mode:** Für komplett neue Projekte/Ressourcen mit mehreren Dateien liefert Gemini
   ein `createProject`-Objekt (Zielordner + Dateien), die App legt Ordner und Dateien in einem
   Zug an – inklusive einer konsolidierten Freigabe-Ansicht (Dateiliste statt Einzel-Diffs).
@@ -488,13 +497,21 @@ billing enabled. Three priority modes are available: free only, paid only, or fr
 automatic switch once the free quota is exhausted. Responses served via the paid key are clearly
 marked in the chat with a green 💲 badge, so costs never sneak up on you unnoticed.
 
+#### Proactive file context injection (from v0.8.18)
+
+Before sending a workspace-related message to Gemini, NovaTree now automatically includes the
+real current content of the file open in the live editor plus any file explicitly named in the
+message text - the AI no longer has to reconstruct a file's state from chat history. If no file
+can be clearly identified, the AI is instructed to ask for the filename instead of guessing.
+
 #### Precise editing, Architect Mode, image attachments (from v0.8.0)
 
 - **Precise edits:** Existing files are no longer overwritten wholesale, but changed via
   search/replace pairs (`{"search": "...", "replace": "..."}`). If a `search` only matches after
   whitespace normalization or not at all, nothing is written and a notice is shown instead of
   risky guessing. If `search` doesn't match at all, NovaTree (since v0.8.16) automatically tries
-  once more with the actual current file content before giving up.
+  once more with the actual current file content before giving up. Since v0.8.17, the AI defaults
+  to a full rewrite instead of search/replace for small/medium files, to avoid cascading errors.
 - **Architect Mode:** For entirely new projects/resources with multiple files, Gemini provides a
   `createProject` object (target folder + files); the app creates the folder and files in one go
   - including a consolidated approval view (file list instead of individual diffs).

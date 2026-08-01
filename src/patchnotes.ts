@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.18",
+    de: [
+      "Neu: Proaktive Datei-Kontext-Injektion - bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt NovaTree jetzt automatisch den echten aktuellen Inhalt der im Live-Editor geöffneten Datei sowie aller im Nachrichtentext namentlich genannten Dateien mit, statt dass die KI aus dem Chat-Verlauf raten muss. Ist keine Datei eindeutig identifizierbar, wird die KI angewiesen, im Zweifel nach dem Dateinamen zu fragen statt zu raten.",
+    ],
+    en: [
+      "New: proactive file context injection - before a workspace-related message goes to Gemini, NovaTree now automatically sends the real current content of the file open in the live editor plus any file explicitly named in the message text, instead of the AI having to guess from chat history. If no file can be clearly identified, the AI is instructed to ask for the filename rather than guess.",
+    ],
+  },
+  {
     version: "0.8.17",
     de: [
       "Fix: Bei kleinen/mittelgroßen Dateien (bis ca. 400-500 Zeilen) zwang der System-Prompt die KI bisher IMMER zu Suchen/Ersetzen-Patches, selbst wenn eine komplette Neuausgabe zuverlässiger gewesen wäre - das führte bei CSS/HTML mit mehreren zusammenhängenden Stellen (z. B. mehrere ähnliche Selektoren) zu Kaskaden-Fehlern, bei denen jeder Fix nur einen Teil traf. Die KI darf solche Dateien jetzt standardmäßig als Ganzes neu ausgeben, Suchen/Ersetzen bleibt nur für wirklich große Dateien reserviert.",

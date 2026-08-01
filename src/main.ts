@@ -42,6 +42,7 @@ import {
 import { t, setLanguage, getLanguage } from "./i18n";
 import { PATCH_NOTES } from "./patchnotes";
 import {
+  getActiveWorkspaceTabPath,
   getDirtyActiveTabContent,
   initEditor,
   markTabSaved,
@@ -960,9 +961,46 @@ async function sendMessage() {
   try {
     let systemPrompt = settings.systemPrompt + buildLanguageSystemPromptAddition(settings.language);
     if (chat.workspacePath) {
+      const workspacePath = chat.workspacePath;
       try {
-        const files = await listWorkspaceFiles(chat.workspacePath);
+        const files = await listWorkspaceFiles(workspacePath);
         systemPrompt += buildWorkspaceSystemPromptAddition(files);
+
+        // Proactively inject the real current content of files the AI is likely about to edit
+        // (the open editor tab, or any file explicitly named in the message) - without this, the
+        // AI only has the bare file list and has to guess/remember content from earlier chat
+        // turns, which is exactly what caused repeated, only-partially-correct edit attempts.
+        const activeTabPath = getActiveWorkspaceTabPath();
+        const mentionedPaths = files.filter((f) => {
+          const base = f.split("/").pop();
+          return base && base.length > 3 && text.toLowerCase().includes(base.toLowerCase());
+        });
+        const candidatePaths = [...new Set([activeTabPath, ...mentionedPaths].filter((p): p is string => !!p))].slice(0, 3);
+
+        const fileBlocks: string[] = [];
+        for (const relPath of candidatePaths) {
+          try {
+            const content = await readWorkspaceFile(workspacePath, relPath);
+            if (content.length <= 20_000) {
+              fileBlocks.push(`### ${relPath} ###\n${content}`);
+            }
+          } catch (err) {
+            console.debug(`Datei für Kontext-Injektion konnte nicht gelesen werden (${relPath}):`, err);
+          }
+        }
+        if (fileBlocks.length) {
+          systemPrompt +=
+            "\n\nAKTUELLER INHALT relevanter Dateien (aus dem geöffneten Editor-Tab bzw. im Nutzertext " +
+            "genannt) - nutze GENAU diesen Text als Grundlage für 'search'/'content', nicht dein " +
+            "Gedächtnis früherer Chat-Antworten:\n\n" +
+            fileBlocks.join("\n\n");
+        } else {
+          systemPrompt +=
+            "\n\nHINWEIS: Für keine Datei liegt dir aktuell garantiert der echte Inhalt vor. Wenn du " +
+            "nicht mit hoher Sicherheit weißt, welche Datei gemeint ist und was genau darin steht, " +
+            "frage im 'reply'-Feld nach dem Dateinamen (oder bitte den Nutzer, die Datei im " +
+            "Live-Editor zu öffnen), statt eine 'edit'-Aktion mit geratenem Inhalt zu liefern.";
+        }
       } catch (err) {
         console.debug("Workspace-Dateiliste konnte nicht gelesen werden:", err);
       }

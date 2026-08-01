@@ -27,6 +27,16 @@ const editorCollapseIconEl = document.getElementById("editor-collapse-icon")!;
 const editorEmptyEl = document.getElementById("editor-empty")!;
 const editorSaveBtnEl = document.getElementById("editor-save-btn") as HTMLButtonElement;
 
+/** The workspace-relative path of the currently active editor tab, if any (absolute/chat-attached
+ * tabs don't count, since those aren't part of the linked workspace). Used to proactively inject
+ * that file's real current content into the next Gemini request, instead of the AI having to
+ * guess it from memory of earlier chat turns. */
+export function getActiveWorkspaceTabPath(): string | null {
+  const activeTab = activeTabs.find((tb) => tb.path === currentActiveTabPath);
+  if (!activeTab || activeTab.absolute) return null;
+  return activeTab.path;
+}
+
 export function getLanguageFromExtension(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase();
   switch (ext) {
