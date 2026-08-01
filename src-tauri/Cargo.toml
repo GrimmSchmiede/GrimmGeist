@@ -1,6 +1,6 @@
 [package]
 name = "novatree"
-version = "0.8.11"
+version = "0.8.12"
 description = "NovaTree - Desktop Chat Client for Google Gemini"
 authors = ["NovaTree"]
 edition = "2021"
@@ -29,3 +29,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 ignore = "0.4"
+
+# Only used by the novatree-cli binary (src/bin/novatree-cli.rs) - the GUI app talks to Gemini
+# entirely from the TypeScript frontend (see src/gemini.ts) and never links these.
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std"] }
+futures-util = "0.3"

@@ -56,15 +56,24 @@ fn save_api_key(key: String) -> Result<(), String> {
     entry.set_password(&key).map_err(|e| e.to_string())
 }
 
-/// Loads the Google Gemini API key from the OS-native secure credential store.
-#[tauri::command]
-fn load_api_key() -> Result<Option<String>, String> {
+/// Reads the stored Google Gemini API key from the OS-native secure credential store. `pub`
+/// (and separate from the `load_api_key` tauri command below, since combining `#[tauri::command]`
+/// with `pub fn` on the same item collides with tauri's generated command-registration macros)
+/// so the novatree-cli binary (src/bin/novatree-cli.rs) can read the same key the GUI app
+/// stores, without needing its own separate credential storage or env vars.
+pub fn read_stored_api_key() -> Result<Option<String>, String> {
     let entry = keyring_entry()?;
     match entry.get_password() {
         Ok(pw) => Ok(Some(pw)),
         Err(keyring::Error::NoEntry) => Ok(None),
         Err(e) => Err(e.to_string()),
     }
+}
+
+/// Loads the Google Gemini API key from the OS-native secure credential store.
+#[tauri::command]
+fn load_api_key() -> Result<Option<String>, String> {
+    read_stored_api_key()
 }
 
 /// Removes the stored Google Gemini API key from the OS-native secure credential store.

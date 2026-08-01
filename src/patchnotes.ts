@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.12",
+    de: [
+      "Neu: novatree-cli - schlankes Terminal-Tool für schnelle Fragen an Gemini ohne die GUI zu öffnen, nutzt denselben API-Schlüssel aus dem Schlüsselbund, streamt die Antwort live. Bewusst reiner Ask-Modus ohne Workspace-Zugriff. Noch nicht Teil der Releases, selbst bauen mit cargo build --bin novatree-cli",
+    ],
+    en: [
+      "New: novatree-cli - lightweight terminal tool for quick questions to Gemini without opening the GUI, uses the same keychain API key, streams the reply live. Deliberately ask-mode only, no workspace access. Not yet part of the releases, build it yourself with cargo build --bin novatree-cli",
+    ],
+  },
+  {
     version: "0.8.11",
     de: [
       "Neu: Konflikt-Erkennung im Live-Editor - schreibt die KI eine Datei, die du gerade mit ungespeicherten Änderungen offen hast, wird nicht mehr blind überschrieben, sondern eine Diff-Ansicht zeigt beide Versionen zur Auswahl (deine Änderung behalten oder KI-Version übernehmen)",

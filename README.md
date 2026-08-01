@@ -15,7 +15,7 @@ Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Taur
 
 **Inhalt:** [Features](#de-features) · [Entwicklung](#de-entwicklung) ·
 [Release via GitHub Actions](#de-release) · [Bekannte Linux-Probleme](#de-linux-probleme) ·
-[API-Schlüssel einrichten](#de-api-key) · [Lizenz](#de-lizenz)
+[API-Schlüssel einrichten](#de-api-key) · [CLI](#de-cli) · [Lizenz](#de-lizenz)
 
 ---
 
@@ -288,6 +288,30 @@ Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`).
   VPN-Anbietern sehr aggressiv, um Bot-Registrierungen zu verhindern. Nach dem Kopieren des
   Schlüssels kannst du dein VPN sofort wieder aktivieren.
 
+<a name="de-cli"></a>
+
+### CLI: `novatree-cli` (ab v0.8.12)
+
+Zusätzlich zur Desktop-App gibt es ein schlankes Terminal-Tool für schnelle Fragen, ohne die
+GUI zu öffnen:
+
+```bash
+novatree-cli "Wie funktioniert ein Docker-Multi-Stage-Build?"
+novatree-cli -m gemini-3.1-flash-lite "Kurze Frage"
+```
+
+Nutzt denselben API-Schlüssel aus dem OS-Schlüsselbund wie die Desktop-App (kein separates Setup
+nötig) und streamt die Antwort live in dein Terminal. **Bewusst reiner Ask-Modus** – kein
+Workspace-/Dateizugriff über die CLI. Der Workspace-Modus mit seiner ganzen Sicherheits-UI
+(Diff-Ansicht, Rückgängig, Konflikt-Erkennung) ist tief an die GUI gebunden; eine gleichwertig
+sichere Terminal-Variante wäre ein deutlich größeres, eigenständiges Vorhaben.
+
+Aktuell noch **nicht** Teil der Releases – selbst bauen mit:
+
+```bash
+cargo build --release --manifest-path src-tauri/Cargo.toml --bin novatree-cli
+```
+
 <a name="de-lizenz"></a>
 
 ### Lizenz
@@ -309,7 +333,7 @@ Desktop chat client (Windows/Linux) for the Google Gemini API, built with [Tauri
 
 **Contents:** [Features](#en-features) · [Development](#en-development) ·
 [Release via GitHub Actions](#en-release) · [Known Linux issues](#en-linux-issues) ·
-[Setting up an API key](#en-api-key) · [License](#en-license)
+[Setting up an API key](#en-api-key) · [CLI](#en-cli) · [License](#en-license)
 
 ---
 
@@ -576,6 +600,30 @@ directly in the app itself (`src-tauri/src/main.rs`).
 - **VPN issue:** If the Google page shows "Not available in your region", briefly turn off your
   VPN to generate the key. Google aggressively blocks datacenter IPs from VPN providers to prevent
   bot registrations. You can turn your VPN back on right after copying the key.
+
+<a name="en-cli"></a>
+
+### CLI: `novatree-cli` (from v0.8.12)
+
+In addition to the desktop app, there's a lightweight terminal tool for quick questions without
+opening the GUI:
+
+```bash
+novatree-cli "How does a Docker multi-stage build work?"
+novatree-cli -m gemini-3.1-flash-lite "Quick question"
+```
+
+Uses the same API key from the OS credential store as the desktop app (no separate setup needed)
+and streams the reply live to your terminal. **Deliberately ask-mode only** - no workspace/file
+access from the CLI. The workspace mode's whole safety UI (diff view, undo, conflict detection) is
+deeply tied to the GUI; an equally safe terminal equivalent would be a significantly larger,
+separate undertaking.
+
+Not yet part of the releases - build it yourself with:
+
+```bash
+cargo build --release --manifest-path src-tauri/Cargo.toml --bin novatree-cli
+```
 
 <a name="en-license"></a>
 
