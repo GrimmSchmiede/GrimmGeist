@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.11",
+    de: [
+      "Neu: Konflikt-Erkennung im Live-Editor - schreibt die KI eine Datei, die du gerade mit ungespeicherten Änderungen offen hast, wird nicht mehr blind überschrieben, sondern eine Diff-Ansicht zeigt beide Versionen zur Auswahl (deine Änderung behalten oder KI-Version übernehmen)",
+    ],
+    en: [
+      "New: live editor conflict detection - if the AI writes a file you have open with unsaved edits, it's no longer silently overwritten; a diff view lets you pick which version wins (keep your edit or take the AI's version)",
+    ],
+  },
+  {
     version: "0.8.10",
     de: [
       "Neu: Sichtbares ⚡-Badge an einer Antwort, wenn sie wegen Überlastung/Kontingent nicht vom gewählten Modell, sondern einem Ausweichmodell kam - vorher war das nur an einer kurzen, schnell verschwindenden Statuszeile während des Wartens erkennbar",

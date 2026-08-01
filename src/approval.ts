@@ -18,6 +18,11 @@ const batchTitleEl = document.getElementById("approval-batch-title")!;
 const batchListEl = document.getElementById("approval-batch-list")!;
 const batchAcceptBtnEl = document.getElementById("approval-batch-accept")!;
 const batchDiscardBtnEl = document.getElementById("approval-batch-discard")!;
+const conflictViewEl = document.getElementById("conflict-view")!;
+const conflictTitleEl = document.getElementById("conflict-title")!;
+const conflictContainerEl = document.getElementById("conflict-diff-container")!;
+const conflictKeepMineBtnEl = document.getElementById("conflict-keep-mine")!;
+const conflictKeepTheirsBtnEl = document.getElementById("conflict-keep-theirs")!;
 
 let diffEditorInstance: monaco.editor.IStandaloneDiffEditor | null = null;
 
@@ -27,9 +32,16 @@ export async function requestApproval(cmd: WorkspaceCommand, workspacePath: stri
   return cmd.action === "delete" ? requestDeleteApproval(cmd.filename) : requestDiffApproval(cmd, workspacePath);
 }
 
-function requestDeleteApproval(filename: string): Promise<boolean> {
-  deleteViewEl.classList.remove("hidden");
+function hideAllApprovalViews() {
+  deleteViewEl.classList.add("hidden");
   diffViewEl.classList.add("hidden");
+  batchViewEl.classList.add("hidden");
+  conflictViewEl.classList.add("hidden");
+}
+
+function requestDeleteApproval(filename: string): Promise<boolean> {
+  hideAllApprovalViews();
+  deleteViewEl.classList.remove("hidden");
   deleteMessageEl.textContent = t.deleteApprovalMessage(filename);
   modalEl.classList.remove("hidden");
 
@@ -65,8 +77,8 @@ async function requestDiffApproval(cmd: WorkspaceCommand, workspacePath: string)
   const modified = cmd.edits ? applyEditsToContent(original, cmd.edits) : cmd.content ?? "";
   const language = getLanguageFromExtension(cmd.filename);
 
+  hideAllApprovalViews();
   diffViewEl.classList.remove("hidden");
-  deleteViewEl.classList.add("hidden");
   diffTitleEl.textContent = t.diffApprovalTitle(cmd.filename);
   modalEl.classList.remove("hidden");
 
@@ -108,9 +120,8 @@ async function requestDiffApproval(cmd: WorkspaceCommand, workspacePath: string)
  * files. Showing an individual diff per file would be pointless (nothing existed before), so this
  * shows one consolidated list of files to be created with a single accept/discard. */
 export function requestBatchCreateApproval(rootFolder: string, files: ProjectFile[]): Promise<boolean> {
+  hideAllApprovalViews();
   batchViewEl.classList.remove("hidden");
-  deleteViewEl.classList.add("hidden");
-  diffViewEl.classList.add("hidden");
   batchTitleEl.textContent = t.batchApprovalTitle(rootFolder);
   batchListEl.innerHTML = "";
   for (const file of files) {
@@ -136,5 +147,51 @@ export function requestBatchCreateApproval(rootFolder: string, files: ProjectFil
     };
     batchAcceptBtnEl.addEventListener("click", onAccept);
     batchDiscardBtnEl.addEventListener("click", onDiscard);
+  });
+}
+
+/** Shown when the AI just wrote a file that's open in the live editor with unsaved local edits -
+ * a genuine conflict, since blindly applying either version would silently lose the other one.
+ * Resolves to "mine" (keep the unsaved editor content, re-save it over the AI's write) or
+ * "theirs" (discard the local edits, load the AI's new content). */
+export function requestConflictResolution(filename: string, mine: string, theirs: string): Promise<"mine" | "theirs"> {
+  const language = getLanguageFromExtension(filename);
+
+  hideAllApprovalViews();
+  conflictViewEl.classList.remove("hidden");
+  conflictTitleEl.textContent = t.conflictTitle(filename);
+  modalEl.classList.remove("hidden");
+
+  const mineModel = monaco.editor.createModel(mine, language);
+  const theirsModel = monaco.editor.createModel(theirs, language);
+
+  diffEditorInstance = monaco.editor.createDiffEditor(conflictContainerEl, {
+    theme: "vs-dark",
+    readOnly: true,
+    renderSideBySide: false,
+    automaticLayout: true,
+  });
+  diffEditorInstance.setModel({ original: mineModel, modified: theirsModel });
+
+  return new Promise((resolve) => {
+    const cleanup = () => {
+      modalEl.classList.add("hidden");
+      diffEditorInstance?.dispose();
+      diffEditorInstance = null;
+      mineModel.dispose();
+      theirsModel.dispose();
+      conflictKeepMineBtnEl.removeEventListener("click", onKeepMine);
+      conflictKeepTheirsBtnEl.removeEventListener("click", onKeepTheirs);
+    };
+    const onKeepMine = () => {
+      cleanup();
+      resolve("mine");
+    };
+    const onKeepTheirs = () => {
+      cleanup();
+      resolve("theirs");
+    };
+    conflictKeepMineBtnEl.addEventListener("click", onKeepMine);
+    conflictKeepTheirsBtnEl.addEventListener("click", onKeepTheirs);
   });
 }

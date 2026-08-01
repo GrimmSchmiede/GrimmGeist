@@ -277,6 +277,29 @@ export function setAllWorkspaceTabsLocked(locked: boolean) {
   updateSaveButton();
 }
 
+/** Returns the live, unsaved editor buffer for `relativePath` if it's both dirty AND the
+ * currently active tab, else null. There's only ever one live Monaco buffer (a single shared
+ * editor instance reused across tabs) - a dirty tab that isn't the active one has no separate
+ * buffer to read, so it isn't considered here. Used to detect a real conflict before an AI write
+ * would otherwise silently discard unsaved local edits. */
+export function getDirtyActiveTabContent(relativePath: string): string | null {
+  if (relativePath !== currentActiveTabPath || !monacoEditorInstance) return null;
+  const tab = activeTabs.find((tb) => tb.path === relativePath && !tb.absolute);
+  if (!tab || !tab.dirty) return null;
+  return monacoEditorInstance.getValue();
+}
+
+/** Marks a tab as saved without touching its displayed content - used after re-writing the
+ * user's own (already-displayed) version back to disk to resolve a conflict with an AI write. */
+export function markTabSaved(relativePath: string, content: string) {
+  const tab = activeTabs.find((tb) => tb.path === relativePath && !tb.absolute);
+  if (!tab) return;
+  tab.content = content;
+  tab.dirty = false;
+  renderTabBar();
+  updateSaveButton();
+}
+
 export function updateTabContent(relativePath: string, content: string) {
   const tab = activeTabs.find((tb) => tb.path === relativePath && !tb.absolute);
   if (!tab) return;

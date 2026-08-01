@@ -39,7 +39,9 @@ import {
 import { t, setLanguage, getLanguage } from "./i18n";
 import { PATCH_NOTES } from "./patchnotes";
 import {
+  getDirtyActiveTabContent,
   initEditor,
+  markTabSaved,
   openAbsoluteFileInEditor,
   openWorkspaceFileInEditor,
   removeTabIfOpen,
@@ -48,7 +50,7 @@ import {
   setWorkspacePath as setEditorWorkspacePath,
   updateTabContent,
 } from "./editor";
-import { requestApproval, requestBatchCreateApproval } from "./approval";
+import { requestApproval, requestBatchCreateApproval, requestConflictResolution } from "./approval";
 import {
   AppSettings,
   AttachedFile,
@@ -868,11 +870,11 @@ async function sendMessage() {
               }
               backup = editBackup ?? undefined;
               const newContent = await readWorkspaceFile(workspacePath, cmd.filename);
-              updateTabContent(cmd.filename, newContent);
+              await resolveTabUpdate(workspacePath, cmd.filename, newContent);
             } else {
               const writeResult = await writeWorkspaceFile(workspacePath, cmd.filename, cmd.content ?? "");
               backup = writeResult.backup ?? undefined;
-              updateTabContent(cmd.filename, cmd.content ?? "");
+              await resolveTabUpdate(workspacePath, cmd.filename, cmd.content ?? "");
             }
             results.push({ action: cmd.action, filename: cmd.filename, success: true, backup });
           } catch (err) {
@@ -957,6 +959,25 @@ async function sendMessage() {
   persist();
   renderMessages();
   updateHeader();
+}
+
+/** Applies the AI's new content to an open editor tab - unless that tab is the active one AND has
+ * unsaved local edits, in which case blindly overwriting it would silently lose the user's work.
+ * In that case, shows a diff and lets the user pick which version wins: their unsaved edits (kept
+ * and re-saved over the AI's write) or the AI's version (local edits discarded). */
+async function resolveTabUpdate(workspacePath: string, filename: string, newContent: string): Promise<void> {
+  const dirtyContent = getDirtyActiveTabContent(filename);
+  if (dirtyContent === null) {
+    updateTabContent(filename, newContent);
+    return;
+  }
+  const choice = await requestConflictResolution(filename, dirtyContent, newContent);
+  if (choice === "mine") {
+    await writeWorkspaceFile(workspacePath, filename, dirtyContent);
+    markTabSaved(filename, dirtyContent);
+  } else {
+    updateTabContent(filename, newContent);
+  }
 }
 
 /** Undoes a single workspace action (create/edit/delete) using the backup snapshot taken right

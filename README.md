@@ -130,6 +130,14 @@ Gemini gesendet – nützlich, um lange Architektur-Diskussionen im selben Chat 
 die Historie zu verlieren oder einen neuen Chat starten zu müssen. Eine gestrichelte Trennlinie
 mit „Auftauen"-Button markiert den eingefrorenen Bereich.
 
+### Konflikt-Erkennung im Live-Editor (ab v0.8.11)
+
+Schreibt die KI eine Datei, die gerade als aktiver Tab im Live-Editor mit ungespeicherten
+Änderungen geöffnet ist, wird nicht mehr blind überschrieben. Stattdessen erscheint eine
+Diff-Ansicht mit deiner ungespeicherten Version gegen die neue KI-Version – du entscheidest, ob
+deine Änderung erhalten bleibt (wird zurück auf die Festplatte geschrieben) oder die KI-Version
+übernommen wird (deine lokalen Änderungen verwerfen).
+
 ### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
 
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
