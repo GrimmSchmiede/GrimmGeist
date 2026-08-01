@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.15",
+    de: [
+      "Neu: Optionaler zweiter, kostenpflichtiger API-Schlüssel - in den Einstellungen konfigurierbar mit drei Prioritäts-Modi (nur kostenlos, nur kostenpflichtig, oder kostenlos zuerst mit automatischem Wechsel bei aufgebrauchtem Free-Kontingent). Antworten, die über den kostenpflichtigen Schlüssel liefen, werden mit einem deutlichen grünen 💲-Badge markiert.",
+    ],
+    en: [
+      "New: optional second, paid API key - configurable in settings with three priority modes (free only, paid only, or free first with automatic switch once the free quota is exhausted). Responses served via the paid key are clearly marked with a green 💲 badge.",
+    ],
+  },
+  {
     version: "0.8.14",
     de: [
       "Neu: Commit & Push direkt aus NovaTree - ein ⬆-Button neben dem Arbeitsordner-Pfad (nur sichtbar, wenn der Ordner ein Git-Repo ist) zeigt geänderte Dateien, lässt eine Commit-Nachricht eingeben und pusht mit einem Klick. Nutzt dein bereits lokal installiertes und eingerichtetes Git, kein separates Login in NovaTree nötig.",

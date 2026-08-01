@@ -643,6 +643,19 @@ body {
   cursor: help;
 }
 
+.paid-key-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #1a7a3a;
+  background: rgba(46, 160, 67, 0.18);
+  border: 1px solid rgba(46, 160, 67, 0.4);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+  cursor: help;
+}
+
 .freeze-btn {
   background: none;
   border: none;

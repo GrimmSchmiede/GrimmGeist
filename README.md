@@ -152,6 +152,14 @@ Ist der verknüpfte Workspace-Ordner ein Git-Repository, erscheint neben dem Ord
 `git add -A`, `git commit` und `git push` aus – mit deinem bereits lokal installierten und
 eingerichteten Git (kein separates Login in NovaTree, keine gespeicherten Zugangsdaten).
 
+#### Zweiter, kostenpflichtiger API-Schlüssel (ab v0.8.15)
+
+In den Einstellungen lässt sich optional ein zweiter API-Schlüssel aus einem separaten
+Google-Cloud-Projekt mit aktiviertem Billing hinterlegen. Drei Prioritäts-Modi stehen zur Wahl:
+nur kostenlos, nur kostenpflichtig, oder kostenlos zuerst mit automatischem Wechsel, sobald das
+Free-Kontingent aufgebraucht ist. Antworten, die über den kostenpflichtigen Schlüssel liefen,
+werden im Chat mit einem deutlichen grünen 💲-Badge markiert, damit nie unbemerkt Kosten entstehen.
+
 #### Präzise Bearbeitung, Architect Mode, Bild-Anhänge (ab v0.8.0)
 
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
@@ -470,6 +478,13 @@ If the linked workspace folder is a Git repository, an ⬆ button appears next t
 It shows the branch and changed files, lets you enter a commit message, and runs `git add -A`,
 `git commit`, and `git push` - using your already-installed and configured local Git (no separate
 sign-in inside NovaTree, no stored credentials).
+
+#### Second, paid API key (from v0.8.15)
+
+Settings let you optionally add a second API key from a separate Google Cloud project with
+billing enabled. Three priority modes are available: free only, paid only, or free first with an
+automatic switch once the free quota is exhausted. Responses served via the paid key are clearly
+marked in the chat with a green 💲 badge, so costs never sneak up on you unnoticed.
 
 #### Precise editing, Architect Mode, image attachments (from v0.8.0)
 

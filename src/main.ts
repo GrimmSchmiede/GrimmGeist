@@ -11,12 +11,15 @@ import {
   saveQuota,
   loadApiKey,
   saveApiKey,
+  loadPaidApiKey,
+  savePaidApiKey,
   loadLastSeenVersion,
   saveLastSeenVersion,
   loadWorkspaceDisclaimerAccepted,
   saveWorkspaceDisclaimerAccepted,
 } from "./storage";
 import {
+  ApiKeyCandidate,
   GeminiApiError,
   WORKSPACE_RESPONSE_SCHEMA,
   historyToContents,
@@ -77,6 +80,7 @@ let chats: Chat[] = [];
 let activeChatId: string | null = null;
 let settings: AppSettings;
 let apiKey: string | null = null;
+let paidApiKey: string | null = null;
 let quota: QuotaState = { date: "", count: 0 };
 let pendingAttachments: AttachedFile[] = [];
 let pendingImages: ChatImage[] = [];
@@ -128,6 +132,8 @@ const patchnotesModalEl = document.getElementById("patchnotes-modal")!;
 const patchnotesCloseEl = document.getElementById("patchnotes-close")!;
 const patchnotesBodyEl = document.getElementById("patchnotes-body")!;
 const apiKeyInputEl = document.getElementById("api-key-input") as HTMLInputElement;
+const paidApiKeyInputEl = document.getElementById("paid-api-key-input") as HTMLInputElement;
+const keyPrioritySelectEl = document.getElementById("key-priority-select") as HTMLSelectElement;
 const systemPromptInputEl = document.getElementById("system-prompt-input") as HTMLTextAreaElement;
 const safetySelectEl = document.getElementById("safety-select") as HTMLSelectElement;
 const securityModeSelectEl = document.getElementById("security-mode-select") as HTMLSelectElement;
@@ -329,6 +335,9 @@ function renderMessages() {
     const fallbackBadgeHtml = msg.servedByModel
       ? `<span class="model-fallback-badge" title="${escapeHtml(t.fallbackModelUsed(msg.servedByModel))}">⚡ ${escapeHtml(msg.servedByModel)}</span>`
       : "";
+    const paidKeyBadgeHtml = msg.servedByPaidKey
+      ? `<span class="paid-key-badge" title="${escapeHtml(t.paidKeyUsed)}">💲 ${escapeHtml(t.paidKeyBadgeLabel)}</span>`
+      : "";
     let filesHtml = "";
     if (msg.files && msg.files.length) {
       filesHtml = `<div class="file-actions">${msg.files
@@ -387,7 +396,7 @@ function renderMessages() {
     }
 
     el.innerHTML = `
-      <span class="role-label">${escapeHtml(roleLabel)}</span>${fallbackBadgeHtml}${freezeHtml}
+      <span class="role-label">${escapeHtml(roleLabel)}</span>${fallbackBadgeHtml}${paidKeyBadgeHtml}${freezeHtml}
       ${bubbleHtml}
       ${workspaceActionHtml}
       ${filesHtml}
@@ -839,6 +848,19 @@ async function sendMessage() {
     return;
   }
 
+  if (settings.keyPriority === "payOnly" && !paidApiKey) {
+    alert(t.needPaidApiKey);
+    openSettings();
+    return;
+  }
+
+  const apiKeyCandidates: ApiKeyCandidate[] =
+    settings.keyPriority === "payOnly"
+      ? [{ apiKey: paidApiKey!, isPaid: true }]
+      : settings.keyPriority === "freeThenPay" && paidApiKey
+        ? [{ apiKey, isPaid: false }, { apiKey: paidApiKey, isPaid: true }]
+        : [{ apiKey, isPaid: false }];
+
   if (quota.date === todayStr() && quota.count >= DAILY_REQUEST_LIMIT) {
     alert(t.dailyLimitReached);
     return;
@@ -897,7 +919,7 @@ async function sendMessage() {
     const contents = historyToContents(historyForRequest);
     const fallbackModels = MODEL_OPTIONS.filter((o) => !o.disabled && o.value !== chat.model).map((o) => o.value);
     const result = await sendToGeminiWithRetry(
-      apiKey,
+      apiKeyCandidates,
       chat.model,
       systemPrompt,
       settings.safetyThreshold,
@@ -905,13 +927,15 @@ async function sendMessage() {
       chat.workspacePath ? WORKSPACE_RESPONSE_SCHEMA : undefined,
       fallbackModels,
       (status) => {
-        pendingStatusNote = status.isFallback
-          ? status.reason === "quota"
-            ? t.modelQuotaSwitching(status.model)
-            : t.modelOverloadedSwitching(status.model)
-          : status.attempt > 1
-            ? t.modelOverloadedRetrying(status.attempt, status.maxAttempts)
-            : "";
+        pendingStatusNote = status.usingPaidKey && status.reason === "quota"
+          ? t.switchingToPaidKey
+          : status.isFallback
+            ? status.reason === "quota"
+              ? t.modelQuotaSwitching(status.model)
+              : t.modelOverloadedSwitching(status.model)
+            : status.attempt > 1
+              ? t.modelOverloadedRetrying(status.attempt, status.maxAttempts)
+              : "";
       }
     );
     pendingStatusNote = "";
@@ -1024,6 +1048,9 @@ async function sendMessage() {
 
     if (result.model !== chat.model) {
       pendingMessage.servedByModel = result.model;
+    }
+    if (result.usedPaidKey) {
+      pendingMessage.servedByPaidKey = true;
     }
     pendingMessage.pending = false;
     pendingMessage.usage = {
@@ -1172,6 +1199,8 @@ function updateSecurityCheckboxesDisabled() {
 
 function openSettings() {
   apiKeyInputEl.value = apiKey ?? "";
+  paidApiKeyInputEl.value = paidApiKey ?? "";
+  keyPrioritySelectEl.value = settings.keyPriority;
   systemPromptInputEl.value = settings.systemPrompt;
   safetySelectEl.value = settings.safetyThreshold;
   const security = settings.security ?? DEFAULT_SECURITY_SETTINGS;
@@ -1211,6 +1240,11 @@ async function saveSettingsFromModal() {
     await saveApiKey(newKey);
     apiKey = newKey || null;
   }
+  const newPaidKey = paidApiKeyInputEl.value.trim();
+  if (newPaidKey !== (paidApiKey ?? "")) {
+    await savePaidApiKey(newPaidKey);
+    paidApiKey = newPaidKey || null;
+  }
   let mode = securityModeSelectEl.value as SecurityMode;
   if (mode !== "always" && mode !== settings.security.mode) {
     if (!(await ensureWorkspaceDisclaimerAccepted())) {
@@ -1222,6 +1256,7 @@ async function saveSettingsFromModal() {
     ...settings,
     systemPrompt: systemPromptInputEl.value,
     safetyThreshold: safetySelectEl.value,
+    keyPriority: keyPrioritySelectEl.value as AppSettings["keyPriority"],
     security: {
       mode,
       requireApprovalFor: {
@@ -1265,6 +1300,15 @@ function applyStaticTranslations() {
   document.getElementById("api-key-hint")!.textContent = t.apiKeyHint;
   getApiKeyBtnEl.textContent = t.getApiKeyBtn;
   apiKeyDetectedNoteEl.textContent = t.apiKeyDetectedNote;
+  document.getElementById("paid-api-key-label")!.textContent = t.paidApiKeyLabel;
+  document.getElementById("paid-api-key-hint")!.textContent = t.paidApiKeyHint;
+  document.getElementById("key-priority-label")!.textContent = t.keyPriorityLabel;
+  document.getElementById("key-priority-hint")!.textContent = t.keyPriorityHint;
+  if (keyPrioritySelectEl.options.length >= 3) {
+    keyPrioritySelectEl.options[0].textContent = t.keyPriorityFreeOnly;
+    keyPrioritySelectEl.options[1].textContent = t.keyPriorityFreeThenPay;
+    keyPrioritySelectEl.options[2].textContent = t.keyPriorityPayOnly;
+  }
   document.getElementById("system-prompt-label")!.textContent = t.systemPromptLabel;
   document.getElementById("safety-label")!.textContent = t.safetyLabel;
   settingsSaveEl.textContent = t.save;
@@ -1327,6 +1371,7 @@ async function init() {
   applyStaticTranslations();
 
   apiKey = await loadApiKey();
+  paidApiKey = await loadPaidApiKey();
   workspaceDisclaimerAccepted = await loadWorkspaceDisclaimerAccepted();
   chats = await loadChats();
   quota = await loadQuota();

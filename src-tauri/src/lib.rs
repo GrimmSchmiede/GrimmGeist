@@ -8,6 +8,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const KEYRING_SERVICE: &str = "com.novatree.app";
 const KEYRING_USER: &str = "gemini_api_key";
+const KEYRING_USER_PAID: &str = "gemini_api_key_paid";
 
 // Directories always skipped when scanning a workspace, even if the project has no .gitignore
 // (or doesn't gitignore them) - on top of that, list_workspace_files also honors the project's
@@ -26,6 +27,10 @@ struct FileContent {
 
 fn keyring_entry() -> Result<Entry, String> {
     Entry::new(KEYRING_SERVICE, KEYRING_USER).map_err(|e| e.to_string())
+}
+
+fn keyring_entry_paid() -> Result<Entry, String> {
+    Entry::new(KEYRING_SERVICE, KEYRING_USER_PAID).map_err(|e| e.to_string())
 }
 
 /// Reads a local text file from disk and returns its path, file name and content.
@@ -81,6 +86,38 @@ fn load_api_key() -> Result<Option<String>, String> {
 #[tauri::command]
 fn delete_api_key() -> Result<(), String> {
     let entry = keyring_entry()?;
+    match entry.delete_credential() {
+        Ok(_) | Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+/// Stores the optional paid/billed Gemini API key (from a separate Google Cloud project with
+/// billing enabled) in its own keychain entry, kept fully separate from the free-tier key so
+/// both can be configured independently and NovaTree can choose which one to use per request.
+#[tauri::command]
+fn save_paid_api_key(key: String) -> Result<(), String> {
+    let entry = keyring_entry_paid()?;
+    if key.trim().is_empty() {
+        entry.delete_credential().ok();
+        return Ok(());
+    }
+    entry.set_password(&key).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+fn load_paid_api_key() -> Result<Option<String>, String> {
+    let entry = keyring_entry_paid()?;
+    match entry.get_password() {
+        Ok(pw) => Ok(Some(pw)),
+        Err(keyring::Error::NoEntry) => Ok(None),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+fn delete_paid_api_key() -> Result<(), String> {
+    let entry = keyring_entry_paid()?;
     match entry.delete_credential() {
         Ok(_) | Err(keyring::Error::NoEntry) => Ok(()),
         Err(e) => Err(e.to_string()),
@@ -494,6 +531,9 @@ pub fn run() {
             save_api_key,
             load_api_key,
             delete_api_key,
+            save_paid_api_key,
+            load_paid_api_key,
+            delete_paid_api_key,
             list_workspace_files,
             workspace_read_file,
             workspace_write_file,

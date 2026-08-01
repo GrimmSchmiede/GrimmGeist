@@ -52,6 +52,9 @@ export interface ChatMessage {
   /** Set when this response actually came from a fallback model (overload/quota switch) instead
    * of the chat's normally selected one, so the UI can show which model really answered. */
   servedByModel?: string;
+  /** Set when this response was generated using the paid/billed API key instead of the free-tier
+   * one (only relevant with keyPriority "freeThenPay"), so the UI can show a clear cost warning. */
+  servedByPaidKey?: boolean;
 }
 
 export interface Chat {
@@ -88,11 +91,19 @@ export const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
   requireApprovalFor: { create: false, edit: true, delete: true },
 };
 
+/** How NovaTree chooses between the free-tier key and an optional paid/billed key:
+ * "freeOnly" never touches the paid key even if configured (safe default - no surprise costs),
+ * "payOnly" always uses the paid key, "freeThenPay" uses the free key until its quota is
+ * exhausted (HTTP 429 across all fallback models) and then automatically switches to the paid
+ * key for the rest of that request. */
+export type ApiKeyPriority = "freeOnly" | "payOnly" | "freeThenPay";
+
 export interface AppSettings {
   systemPrompt: string;
   safetyThreshold: string;
   language: Language;
   security: SecuritySettings;
+  keyPriority: ApiKeyPriority;
 }
 
 export function actionRequiresApproval(

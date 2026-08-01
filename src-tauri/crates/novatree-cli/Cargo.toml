@@ -1,6 +1,6 @@
 [package]
 name = "novatree-cli"
-version = "0.8.14"
+version = "0.8.15"
 description = "NovaTree CLI - ask-only terminal companion for the NovaTree desktop app"
 edition = "2021"
 

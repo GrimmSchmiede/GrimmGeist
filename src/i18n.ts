@@ -112,6 +112,17 @@ interface Dict {
   gitPushPending: string;
   gitPushSuccess: string;
   gitPushError: (err: string) => string;
+  paidApiKeyLabel: string;
+  paidApiKeyHint: string;
+  keyPriorityLabel: string;
+  keyPriorityHint: string;
+  keyPriorityFreeOnly: string;
+  keyPriorityFreeThenPay: string;
+  keyPriorityPayOnly: string;
+  needPaidApiKey: string;
+  switchingToPaidKey: string;
+  paidKeyUsed: string;
+  paidKeyBadgeLabel: string;
 }
 
 const de: Dict = {
@@ -231,6 +242,19 @@ const de: Dict = {
   gitPushPending: "Wird gepusht…",
   gitPushSuccess: "Änderungen committet und gepusht.",
   gitPushError: (err) => `Fehler: ${err}`,
+  paidApiKeyLabel: "Kostenpflichtiger API-Schlüssel (optional)",
+  paidApiKeyHint:
+    "Optionaler zweiter Schlüssel aus einem separaten Google-Cloud-Projekt mit aktiviertem Billing. Wird genauso sicher gespeichert wie der erste Schlüssel.",
+  keyPriorityLabel: "API-Schlüssel-Priorität",
+  keyPriorityHint:
+    "\"Kostenlos zuerst\" wechselt erst dann zum kostenpflichtigen Schlüssel, wenn das kostenlose Kontingent aufgebraucht ist - jede so beantwortete Nachricht wird deutlich markiert.",
+  keyPriorityFreeOnly: "Nur kostenlosen Schlüssel nutzen",
+  keyPriorityFreeThenPay: "Kostenlos zuerst, dann automatisch kostenpflichtig",
+  keyPriorityPayOnly: "Nur kostenpflichtigen Schlüssel nutzen",
+  needPaidApiKey: "Bitte zuerst einen kostenpflichtigen API-Schlüssel in den Einstellungen hinterlegen.",
+  switchingToPaidKey: "Kostenloses Kontingent aufgebraucht, wechsle zum kostenpflichtigen Schlüssel…",
+  paidKeyUsed: "Diese Antwort wurde über deinen kostenpflichtigen API-Schlüssel abgerechnet, da das kostenlose Kontingent aufgebraucht war.",
+  paidKeyBadgeLabel: "Kostenpflichtig",
 };
 
 const en: Dict = {
@@ -350,6 +374,19 @@ const en: Dict = {
   gitPushPending: "Pushing…",
   gitPushSuccess: "Changes committed and pushed.",
   gitPushError: (err) => `Error: ${err}`,
+  paidApiKeyLabel: "Paid API key (optional)",
+  paidApiKeyHint:
+    "Optional second key from a separate Google Cloud project with billing enabled. Stored just as securely as the first key.",
+  keyPriorityLabel: "API key priority",
+  keyPriorityHint:
+    '"Free first" only switches to the paid key once the free quota is exhausted - any response answered this way is clearly marked.',
+  keyPriorityFreeOnly: "Only use the free key",
+  keyPriorityFreeThenPay: "Free first, then automatically paid",
+  keyPriorityPayOnly: "Only use the paid key",
+  needPaidApiKey: "Please add a paid API key in settings first.",
+  switchingToPaidKey: "Free quota exhausted, switching to the paid key…",
+  paidKeyUsed: "This response was billed to your paid API key because the free quota was exhausted.",
+  paidKeyBadgeLabel: "Paid",
 };
 
 const dicts: Record<Language, Dict> = { de, en };

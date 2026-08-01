@@ -17,6 +17,14 @@ export interface GeminiResult {
   /** The model that actually generated this response - only differs from the requested model
    * when sendToGeminiWithRetry fell back to another one (overload or quota exceeded). */
   model: string;
+  /** True when this response was generated using the paid/billed API key, because the free-tier
+   * key's quota was exhausted and keyPriority allowed falling back to it. */
+  usedPaidKey: boolean;
+}
+
+export interface ApiKeyCandidate {
+  apiKey: string;
+  isPaid: boolean;
 }
 
 const DEFAULT_RATE_LIMIT_COOLDOWN_SECONDS = 40;
@@ -229,6 +237,7 @@ export async function sendToGemini(
     promptTokens: usage.promptTokenCount ?? 0,
     candidatesTokens: usage.candidatesTokenCount ?? 0,
     model,
+    usedPaidKey: false,
   };
 }
 
@@ -252,6 +261,8 @@ export interface RetryStatus {
   isFallback: boolean;
   /** Why this attempt is happening on a fallback model, if it is one. */
   reason?: "overloaded" | "quota";
+  /** True while attempts are running against the paid/billed key. */
+  usingPaidKey: boolean;
 }
 
 const OVERLOAD_MAX_ATTEMPTS = 3;
@@ -261,9 +272,15 @@ const OVERLOAD_RETRY_DELAYS_MS = [1000, 2000, 4000];
  * and falls back to trying each model in fallbackModels once each if the primary model keeps
  * failing or returns HTTP 429 (quota exceeded - free-tier quotas are per model, so a fallback
  * model may still have quota left even though same-model retries would just fail again).
+ *
+ * apiKeys is tried in order (e.g. free key first, then an optional paid key per keyPriority) -
+ * a key is only abandoned for the next one once ALL of its models returned 429 (quota exceeded).
+ * Any other error (invalid key, bad request, etc.) is thrown immediately without trying further
+ * keys, since a quota problem is the only failure a different key can actually fix.
+ *
  * onStatusUpdate is called before every attempt so the UI can show progress. */
 export async function sendToGeminiWithRetry(
-  apiKey: string,
+  apiKeys: ApiKeyCandidate[],
   model: string,
   systemPrompt: string,
   safetyThreshold: string,
@@ -274,30 +291,48 @@ export async function sendToGeminiWithRetry(
 ): Promise<GeminiResult> {
   const modelsToTry = [model, ...fallbackModels];
   let lastError: unknown;
-  let switchReason: "overloaded" | "quota" | undefined;
 
-  for (let modelIndex = 0; modelIndex < modelsToTry.length; modelIndex++) {
-    const currentModel = modelsToTry[modelIndex];
-    const isFallback = modelIndex > 0;
-    const maxAttempts = isFallback ? 1 : OVERLOAD_MAX_ATTEMPTS;
+  for (let keyIndex = 0; keyIndex < apiKeys.length; keyIndex++) {
+    const { apiKey, isPaid } = apiKeys[keyIndex];
+    let switchReason: "overloaded" | "quota" | undefined;
+    let quotaExceededOnEveryModel = true;
 
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      onStatusUpdate?.({ attempt, maxAttempts, model: currentModel, isFallback, reason: isFallback ? switchReason : undefined });
-      try {
-        return await sendToGemini(apiKey, currentModel, systemPrompt, safetyThreshold, contents, responseSchema);
-      } catch (err) {
-        lastError = err;
-        if (isQuotaExceededError(err)) {
-          switchReason = "quota";
-          break; // same model won't recover by waiting - move straight to the next one
-        }
-        if (!isOverloadedError(err)) throw err;
-        switchReason = "overloaded";
-        if (attempt < maxAttempts) {
-          await new Promise((resolve) => setTimeout(resolve, OVERLOAD_RETRY_DELAYS_MS[attempt - 1] ?? 4000));
+    for (let modelIndex = 0; modelIndex < modelsToTry.length; modelIndex++) {
+      const currentModel = modelsToTry[modelIndex];
+      const isFallback = modelIndex > 0;
+      const maxAttempts = isFallback ? 1 : OVERLOAD_MAX_ATTEMPTS;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        onStatusUpdate?.({
+          attempt,
+          maxAttempts,
+          model: currentModel,
+          isFallback,
+          reason: isFallback ? switchReason : undefined,
+          usingPaidKey: isPaid,
+        });
+        try {
+          const result = await sendToGemini(apiKey, currentModel, systemPrompt, safetyThreshold, contents, responseSchema);
+          return { ...result, usedPaidKey: isPaid };
+        } catch (err) {
+          lastError = err;
+          if (isQuotaExceededError(err)) {
+            switchReason = "quota";
+            break; // same model won't recover by waiting - move straight to the next one
+          }
+          quotaExceededOnEveryModel = false;
+          if (!isOverloadedError(err)) throw err;
+          switchReason = "overloaded";
+          if (attempt < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, OVERLOAD_RETRY_DELAYS_MS[attempt - 1] ?? 4000));
+          }
         }
       }
     }
+
+    if (!quotaExceededOnEveryModel) throw lastError;
+    // Every model on this key hit its quota - worth trying the next key (if any), since a
+    // different key/project has entirely separate quotas.
   }
 
   throw lastError;

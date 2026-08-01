@@ -132,6 +132,31 @@
             Manager / Linux Secret Service), niemals im Quellcode oder Klartext.
           </p>
 
+          <label class="field-label" id="paid-api-key-label" for="paid-api-key-input">Kostenpflichtiger API-Schlüssel (optional)</label>
+          <input
+            id="paid-api-key-input"
+            class="text-input"
+            type="password"
+            placeholder="AIza…"
+            autocomplete="off"
+          />
+          <p class="field-hint" id="paid-api-key-hint">
+            Optionaler zweiter Schlüssel aus einem separaten Google-Cloud-Projekt mit aktiviertem
+            Billing. Wird genauso sicher gespeichert wie der erste Schlüssel.
+          </p>
+
+          <label class="field-label" id="key-priority-label" for="key-priority-select">API-Schlüssel-Priorität</label>
+          <select id="key-priority-select" class="text-input">
+            <option value="freeOnly">Nur kostenlosen Schlüssel nutzen</option>
+            <option value="freeThenPay">Kostenlos zuerst, dann automatisch kostenpflichtig</option>
+            <option value="payOnly">Nur kostenpflichtigen Schlüssel nutzen</option>
+          </select>
+          <p class="field-hint" id="key-priority-hint">
+            "Kostenlos zuerst" wechselt erst dann zum kostenpflichtigen Schlüssel, wenn das
+            kostenlose Kontingent aufgebraucht ist - jede so beantwortete Nachricht wird deutlich
+            markiert.
+          </p>
+
           <label class="field-label" id="system-prompt-label" for="system-prompt-input">System-Prompt</label>
           <textarea id="system-prompt-input" class="text-input" rows="6"></textarea>
 

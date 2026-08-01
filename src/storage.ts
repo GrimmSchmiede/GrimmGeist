@@ -28,7 +28,8 @@ export async function loadSettings(): Promise<AppSettings> {
   const security: SecuritySettings = storedSecurity
     ? { ...DEFAULT_SECURITY_SETTINGS, ...storedSecurity, requireApprovalFor: { ...DEFAULT_SECURITY_SETTINGS.requireApprovalFor, ...storedSecurity.requireApprovalFor } }
     : DEFAULT_SECURITY_SETTINGS;
-  return { systemPrompt, safetyThreshold, language, security };
+  const keyPriority = (await store.get<AppSettings["keyPriority"]>("keyPriority")) ?? "freeOnly";
+  return { systemPrompt, safetyThreshold, language, security, keyPriority };
 }
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
@@ -37,6 +38,7 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
   await store.set("safetyThreshold", settings.safetyThreshold);
   await store.set("language", settings.language);
   await store.set("security", settings.security);
+  await store.set("keyPriority", settings.keyPriority);
   await store.save();
 }
 
@@ -68,6 +70,14 @@ export async function loadApiKey(): Promise<string | null> {
 
 export async function saveApiKey(key: string): Promise<void> {
   await invoke("save_api_key", { key });
+}
+
+export async function loadPaidApiKey(): Promise<string | null> {
+  return await invoke<string | null>("load_paid_api_key");
+}
+
+export async function savePaidApiKey(key: string): Promise<void> {
+  await invoke("save_paid_api_key", { key });
 }
 
 export async function loadWorkspaceDisclaimerAccepted(): Promise<boolean> {
