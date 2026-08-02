@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.19",
+    de: [
+      "Fix: Commit & Push hat bisher auch den lokalen `.novatree-backups`-Ordner mit ins Git-Repo gepusht. Der Ordner wird jetzt automatisch zur `.gitignore` hinzugefügt und, falls bereits committet, beim nächsten Commit & Push aus dem Repo entfernt (die Backups bleiben lokal auf der Festplatte erhalten).",
+    ],
+    en: [
+      "Fix: Commit & Push used to also push the local `.novatree-backups` folder into the Git repo. That folder is now automatically added to `.gitignore` and, if it was already committed, untracked on the next Commit & Push (the backups stay on your local disk).",
+    ],
+  },
+  {
     version: "0.8.18",
     de: [
       "Neu: Proaktive Datei-Kontext-Injektion - bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt NovaTree jetzt automatisch den echten aktuellen Inhalt der im Live-Editor geöffneten Datei sowie aller im Nachrichtentext namentlich genannten Dateien mit, statt dass die KI aus dem Chat-Verlauf raten muss. Ist keine Datei eindeutig identifizierbar, wird die KI angewiesen, im Zweifel nach dem Dateinamen zu fragen statt zu raten.",

@@ -494,6 +494,28 @@ fn git_status(workspace: String) -> Result<GitStatus, String> {
     })
 }
 
+/// Ensures `.novatree-backups/` (the local automatic-backup folder created before every AI/editor
+/// write) is listed in the workspace's `.gitignore`, creating the file or appending the entry if
+/// needed. These are purely local safety copies, never meant to be committed.
+fn ensure_backups_gitignored(dir: &Path) -> Result<(), String> {
+    const ENTRY: &str = ".novatree-backups/";
+    let gitignore_path = dir.join(".gitignore");
+    let existing = fs::read_to_string(&gitignore_path).unwrap_or_default();
+    if existing.lines().any(|line| {
+        let trimmed = line.trim().trim_end_matches('/');
+        trimmed == ".novatree-backups"
+    }) {
+        return Ok(());
+    }
+    let mut updated = existing;
+    if !updated.is_empty() && !updated.ends_with('\n') {
+        updated.push('\n');
+    }
+    updated.push_str(ENTRY);
+    updated.push('\n');
+    fs::write(&gitignore_path, updated).map_err(|e| format!("Konnte .gitignore nicht aktualisieren: {e}"))
+}
+
 /// Stages all changes, commits with the given message and pushes to the current branch's
 /// upstream. Deliberately no auto-generated commit messages or force-push - this is meant as a
 /// convenience for "I'm done, ship it", not a replacement for actually reviewing what's staged.
@@ -506,6 +528,16 @@ fn git_commit_and_push(workspace: String, message: String) -> Result<String, Str
     if message.trim().is_empty() {
         return Err("Commit-Nachricht darf nicht leer sein.".to_string());
     }
+
+    ensure_backups_gitignored(&dir)?;
+
+    // If .novatree-backups was already committed before this fix existed, untrack it now (the
+    // files stay on disk as backups, they just stop being part of the repo going forward).
+    let tracked_backups = run_git(&dir, &["ls-files", ".novatree-backups"]).unwrap_or_default();
+    if !tracked_backups.trim().is_empty() {
+        run_git(&dir, &["rm", "-r", "--cached", "--ignore-unmatch", ".novatree-backups"])?;
+    }
+
     run_git(&dir, &["add", "-A"])?;
     let status = run_git(&dir, &["status", "--porcelain"])?;
     if status.trim().is_empty() {
