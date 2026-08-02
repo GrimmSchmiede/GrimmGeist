@@ -102,10 +102,11 @@ const SAFETY_CATEGORIES = [
 export const WORKSPACE_RESPONSE_SCHEMA = {
   type: "OBJECT",
   properties: {
-    reply: {
-      type: "STRING",
-      description: "Normale Chat-Antwort an den Nutzer (Erklärung, Rückfrage, o.ä.). Leer lassen, wenn nur Datei-Aktionen zurückgegeben werden.",
-    },
+    // Deliberately BEFORE 'reply': the Gemini API's Structured Output mode generates JSON fields
+    // in schema-declaration order, so putting the file actions first forces the model to commit
+    // to what it's actually going to do before it writes a word of chat explanation. This avoids
+    // the failure mode where the model confidently describes an edit in 'reply' while 'actions'
+    // stays empty/wrong, because it "used up" its reasoning on the prose first.
     actions: {
       type: "ARRAY",
       description: "Datei-Aktionen im verknüpften Workspace-Ordner. Leer lassen, wenn keine Datei geändert werden soll.",
@@ -169,8 +170,14 @@ export const WORKSPACE_RESPONSE_SCHEMA = {
       },
       required: ["rootFolder", "files"],
     },
+    // Deliberately LAST: see the comment on 'actions' above - by the time the model writes this
+    // field, it has already committed to the actual file changes (or the absence of any).
+    reply: {
+      type: "STRING",
+      description: "Normale Chat-Antwort an den Nutzer (Erklärung, Rückfrage, o.ä.). Leer lassen, wenn nur Datei-Aktionen zurückgegeben werden.",
+    },
   },
-  required: ["reply", "actions"],
+  required: ["actions", "reply"],
 };
 
 export async function sendToGemini(

@@ -6,6 +6,15 @@ export interface PatchNoteEntry {
 
 export const PATCH_NOTES: PatchNoteEntry[] = [
   {
+    version: "0.8.20",
+    de: [
+      "Fix: Im strukturierten Antwortformat stand 'reply' (die Chat-Antwort) im Schema vor 'actions' (die Datei-Änderungen) - Gemini generiert JSON-Felder aber genau in dieser Reihenfolge, wodurch die KI sich gelegentlich schon beim Formulieren der Erklärung 'verausgabt' hat und 'actions' dann leer/falsch blieb, obwohl der Chat-Text von einer erfolgreichen Änderung sprach. 'actions' steht jetzt vor 'reply', damit die KI sich zuerst auf die tatsächliche Datei-Änderung festlegt.",
+    ],
+    en: [
+      "Fix: in the structured response format, 'reply' (the chat text) was declared before 'actions' (the file changes) in the schema - but Gemini generates JSON fields in that exact order, so the AI sometimes 'spent' its reasoning on the explanation first and left 'actions' empty/wrong, even though the reply confidently described a successful change. 'actions' now comes before 'reply', so the AI commits to the actual file change first.",
+    ],
+  },
+  {
     version: "0.8.19",
     de: [
       "Fix: Commit & Push hat bisher auch den lokalen `.novatree-backups`-Ordner mit ins Git-Repo gepusht. Der Ordner wird jetzt automatisch zur `.gitignore` hinzugefügt und, falls bereits committet, beim nächsten Commit & Push aus dem Repo entfernt (die Backups bleiben lokal auf der Festplatte erhalten).",
