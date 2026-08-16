@@ -1,15 +1,15 @@
 [package]
-name = "novatree-cli"
+name = "grimmgeist-cli"
 version = "0.8.20"
-description = "NovaTree CLI - ask-only terminal companion for the NovaTree desktop app"
+description = "GrimmGeist CLI - ask-only terminal companion for the GrimmGeist desktop app"
 edition = "2021"
 
 [[bin]]
-name = "novatree-cli"
+name = "grimmgeist-cli"
 path = "src/main.rs"
 
 [dependencies]
-novatree_lib = { path = "../..", package = "novatree" }
+grimmgeist_lib = { path = "../..", package = "grimmgeist" }
 serde_json = "1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "io-std"] }

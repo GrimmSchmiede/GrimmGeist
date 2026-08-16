@@ -17,19 +17,19 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     version: "0.8.19",
     de: [
-      "Fix: Commit & Push hat bisher auch den lokalen `.novatree-backups`-Ordner mit ins Git-Repo gepusht. Der Ordner wird jetzt automatisch zur `.gitignore` hinzugefügt und, falls bereits committet, beim nächsten Commit & Push aus dem Repo entfernt (die Backups bleiben lokal auf der Festplatte erhalten).",
+      "Fix: Commit & Push hat bisher auch den lokalen `.grimmgeist-backups`-Ordner mit ins Git-Repo gepusht. Der Ordner wird jetzt automatisch zur `.gitignore` hinzugefügt und, falls bereits committet, beim nächsten Commit & Push aus dem Repo entfernt (die Backups bleiben lokal auf der Festplatte erhalten).",
     ],
     en: [
-      "Fix: Commit & Push used to also push the local `.novatree-backups` folder into the Git repo. That folder is now automatically added to `.gitignore` and, if it was already committed, untracked on the next Commit & Push (the backups stay on your local disk).",
+      "Fix: Commit & Push used to also push the local `.grimmgeist-backups` folder into the Git repo. That folder is now automatically added to `.gitignore` and, if it was already committed, untracked on the next Commit & Push (the backups stay on your local disk).",
     ],
   },
   {
     version: "0.8.18",
     de: [
-      "Neu: Proaktive Datei-Kontext-Injektion - bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt NovaTree jetzt automatisch den echten aktuellen Inhalt der im Live-Editor geöffneten Datei sowie aller im Nachrichtentext namentlich genannten Dateien mit, statt dass die KI aus dem Chat-Verlauf raten muss. Ist keine Datei eindeutig identifizierbar, wird die KI angewiesen, im Zweifel nach dem Dateinamen zu fragen statt zu raten.",
+      "Neu: Proaktive Datei-Kontext-Injektion - bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt GrimmGeist jetzt automatisch den echten aktuellen Inhalt der im Live-Editor geöffneten Datei sowie aller im Nachrichtentext namentlich genannten Dateien mit, statt dass die KI aus dem Chat-Verlauf raten muss. Ist keine Datei eindeutig identifizierbar, wird die KI angewiesen, im Zweifel nach dem Dateinamen zu fragen statt zu raten.",
     ],
     en: [
-      "New: proactive file context injection - before a workspace-related message goes to Gemini, NovaTree now automatically sends the real current content of the file open in the live editor plus any file explicitly named in the message text, instead of the AI having to guess from chat history. If no file can be clearly identified, the AI is instructed to ask for the filename rather than guess.",
+      "New: proactive file context injection - before a workspace-related message goes to Gemini, GrimmGeist now automatically sends the real current content of the file open in the live editor plus any file explicitly named in the message text, instead of the AI having to guess from chat history. If no file can be clearly identified, the AI is instructed to ask for the filename rather than guess.",
     ],
   },
   {
@@ -44,10 +44,10 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     version: "0.8.16",
     de: [
-      "Fix: Wenn eine präzise Änderung nicht exakt passte (KI hat sich beim Dateiinhalt vertan), stand die Chat-Antwort trotzdem so da, als wäre alles erledigt worden. NovaTree versucht jetzt automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor es aufgibt - vorher musste man manuell nochmal fragen.",
+      "Fix: Wenn eine präzise Änderung nicht exakt passte (KI hat sich beim Dateiinhalt vertan), stand die Chat-Antwort trotzdem so da, als wäre alles erledigt worden. GrimmGeist versucht jetzt automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor es aufgibt - vorher musste man manuell nochmal fragen.",
     ],
     en: [
-      "Fix: when a precise edit didn't match exactly (the AI misremembered the file content), the chat reply still read as if everything had been done. NovaTree now automatically retries once with the actual current file content before giving up - previously you had to manually ask again.",
+      "Fix: when a precise edit didn't match exactly (the AI misremembered the file content), the chat reply still read as if everything had been done. GrimmGeist now automatically retries once with the actual current file content before giving up - previously you had to manually ask again.",
     ],
   },
   {
@@ -62,28 +62,28 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     version: "0.8.14",
     de: [
-      "Neu: Commit & Push direkt aus NovaTree - ein ⬆-Button neben dem Arbeitsordner-Pfad (nur sichtbar, wenn der Ordner ein Git-Repo ist) zeigt geänderte Dateien, lässt eine Commit-Nachricht eingeben und pusht mit einem Klick. Nutzt dein bereits lokal installiertes und eingerichtetes Git, kein separates Login in NovaTree nötig.",
+      "Neu: Commit & Push direkt aus GrimmGeist - ein ⬆-Button neben dem Arbeitsordner-Pfad (nur sichtbar, wenn der Ordner ein Git-Repo ist) zeigt geänderte Dateien, lässt eine Commit-Nachricht eingeben und pusht mit einem Klick. Nutzt dein bereits lokal installiertes und eingerichtetes Git, kein separates Login in GrimmGeist nötig.",
     ],
     en: [
-      "New: Commit & Push directly from NovaTree - an ⬆ button next to the workspace path (only shown when the folder is a Git repo) lists changed files, lets you enter a commit message, and pushes with one click. Uses your already-installed and configured local Git, no separate sign-in inside NovaTree required.",
+      "New: Commit & Push directly from GrimmGeist - an ⬆ button next to the workspace path (only shown when the folder is a Git repo) lists changed files, lets you enter a commit message, and pushes with one click. Uses your already-installed and configured local Git, no separate sign-in inside GrimmGeist required.",
     ],
   },
   {
     version: "0.8.13",
     de: [
-      "Fix: Windows-Installer/Auto-Updater installierten seit 0.8.12 fälschlich das novatree-cli-Binary statt der eigentlichen GUI (App öffnete kurz ein Fenster und stürzte sofort ab). Ursache war, dass GUI und CLI im selben Cargo-Package lagen und der Tauri-Bundler bei mehreren Binaries das falsche auswählte. novatree-cli lebt jetzt als eigenes Package in einem Cargo-Workspace (crates/novatree-cli), damit der GUI-Build gar nicht mehr mehrdeutig sein kann.",
+      "Fix: Windows-Installer/Auto-Updater installierten seit 0.8.12 fälschlich das grimmgeist-cli-Binary statt der eigentlichen GUI (App öffnete kurz ein Fenster und stürzte sofort ab). Ursache war, dass GUI und CLI im selben Cargo-Package lagen und der Tauri-Bundler bei mehreren Binaries das falsche auswählte. grimmgeist-cli lebt jetzt als eigenes Package in einem Cargo-Workspace (crates/grimmgeist-cli), damit der GUI-Build gar nicht mehr mehrdeutig sein kann.",
     ],
     en: [
-      "Fix: since 0.8.12, the Windows installer/auto-updater incorrectly installed the novatree-cli binary instead of the actual GUI (app flashed a window open and crashed immediately). Caused by the GUI and CLI sharing one Cargo package, which made the Tauri bundler pick the wrong binary when multiple existed. novatree-cli now lives in its own package inside a Cargo workspace (crates/novatree-cli), so the GUI build can no longer be ambiguous.",
+      "Fix: since 0.8.12, the Windows installer/auto-updater incorrectly installed the grimmgeist-cli binary instead of the actual GUI (app flashed a window open and crashed immediately). Caused by the GUI and CLI sharing one Cargo package, which made the Tauri bundler pick the wrong binary when multiple existed. grimmgeist-cli now lives in its own package inside a Cargo workspace (crates/grimmgeist-cli), so the GUI build can no longer be ambiguous.",
     ],
   },
   {
     version: "0.8.12",
     de: [
-      "Neu: novatree-cli - schlankes Terminal-Tool für schnelle Fragen an Gemini ohne die GUI zu öffnen, nutzt denselben API-Schlüssel aus dem Schlüsselbund, streamt die Antwort live. Bewusst reiner Ask-Modus ohne Workspace-Zugriff. Noch nicht Teil der Releases, selbst bauen mit cargo build -p novatree-cli",
+      "Neu: grimmgeist-cli - schlankes Terminal-Tool für schnelle Fragen an Gemini ohne die GUI zu öffnen, nutzt denselben API-Schlüssel aus dem Schlüsselbund, streamt die Antwort live. Bewusst reiner Ask-Modus ohne Workspace-Zugriff. Noch nicht Teil der Releases, selbst bauen mit cargo build -p grimmgeist-cli",
     ],
     en: [
-      "New: novatree-cli - lightweight terminal tool for quick questions to Gemini without opening the GUI, uses the same keychain API key, streams the reply live. Deliberately ask-mode only, no workspace access. Not yet part of the releases, build it yourself with cargo build -p novatree-cli",
+      "New: grimmgeist-cli - lightweight terminal tool for quick questions to Gemini without opening the GUI, uses the same keychain API key, streams the reply live. Deliberately ask-mode only, no workspace access. Not yet part of the releases, build it yourself with cargo build -p grimmgeist-cli",
     ],
   },
   {
@@ -107,30 +107,30 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     version: "0.8.9",
     de: [
-      "Neu: Fuzzy-Match-Vorschlag - schlägt Gemini der search-Block eines präzisen Edits nicht exakt an, sucht NovaTree die ähnlichste Stelle in der Datei und bietet sie direkt im Chat mit einem Klick zur Übernahme an, statt einfach aufzugeben",
+      "Neu: Fuzzy-Match-Vorschlag - schlägt Gemini der search-Block eines präzisen Edits nicht exakt an, sucht GrimmGeist die ähnlichste Stelle in der Datei und bietet sie direkt im Chat mit einem Klick zur Übernahme an, statt einfach aufzugeben",
       "Neu: Verlauf einfrieren - über ein Schloss-Symbol an jeder Nachricht lässt sich der Chat ab diesem Punkt einfrieren, sodass ältere Nachrichten sichtbar bleiben, aber nicht mehr mitgeschickt werden (spart Tokens bei langen Chats)",
     ],
     en: [
-      "New: fuzzy-match suggestion - if a precise edit's search block doesn't match exactly, NovaTree now looks for the closest matching spot in the file and offers it right in the chat with a one-click apply, instead of just giving up",
+      "New: fuzzy-match suggestion - if a precise edit's search block doesn't match exactly, GrimmGeist now looks for the closest matching spot in the file and offers it right in the chat with a one-click apply, instead of just giving up",
       "New: freeze history - a lock icon on any message lets you freeze the chat from that point on, so older messages stay visible but stop being sent to the AI (saves tokens on long chats)",
     ],
   },
   {
     version: "0.8.8",
     de: [
-      "Neu: Bei „Kontingent aufgebraucht“ (HTTP 429) weicht NovaTree jetzt automatisch auf ein anderes Modell aus, bevor der Cooldown-Timer greift - Free-Tier-Kontingente sind pro Modell getrennt, ein anderes Modell hat oft noch welches übrig",
+      "Neu: Bei „Kontingent aufgebraucht“ (HTTP 429) weicht GrimmGeist jetzt automatisch auf ein anderes Modell aus, bevor der Cooldown-Timer greift - Free-Tier-Kontingente sind pro Modell getrennt, ein anderes Modell hat oft noch welches übrig",
     ],
     en: [
-      "New: on \"quota exceeded\" (HTTP 429), NovaTree now automatically falls back to a different model before the cooldown timer kicks in - free-tier quotas are tracked per model, so another one often still has quota left",
+      "New: on \"quota exceeded\" (HTTP 429), GrimmGeist now automatically falls back to a different model before the cooldown timer kicks in - free-tier quotas are tracked per model, so another one often still has quota left",
     ],
   },
   {
     version: "0.8.7",
     de: [
-      "Neu: .novatreeignore - schließt Dateien vom KI-Kontext aus, die zwar in Git getrackt sind, aber für Gemini irrelevant/zu groß sind (z. B. Testdaten, generierte Bundles), ohne die eigentliche .gitignore anzufassen. Gleiche Syntax wie .gitignore, auf jeder Verzeichnisebene beachtet.",
+      "Neu: .grimmgeistignore - schließt Dateien vom KI-Kontext aus, die zwar in Git getrackt sind, aber für Gemini irrelevant/zu groß sind (z. B. Testdaten, generierte Bundles), ohne die eigentliche .gitignore anzufassen. Gleiche Syntax wie .gitignore, auf jeder Verzeichnisebene beachtet.",
     ],
     en: [
-      "New: .novatreeignore - excludes files from the AI's context that are tracked in git but still irrelevant/too large for Gemini (e.g. test fixtures, generated bundles), without touching the actual .gitignore. Same syntax as .gitignore, honored at every directory level.",
+      "New: .grimmgeistignore - excludes files from the AI's context that are tracked in git but still irrelevant/too large for Gemini (e.g. test fixtures, generated bundles), without touching the actual .gitignore. Same syntax as .gitignore, honored at every directory level.",
     ],
   },
   {
@@ -156,11 +156,11 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
   {
     version: "0.8.4",
     de: [
-      "Neu: Automatisches Backup - jede Datei, die im Workspace-Ordner überschrieben, bearbeitet oder gelöscht wird (durch die KI oder dich selbst im Live-Editor), wird zuerst unsichtbar nach .novatree-backups/ gesichert (kein Git nötig, letzte 20 Versionen pro Datei, älteres wird automatisch entfernt)",
+      "Neu: Automatisches Backup - jede Datei, die im Workspace-Ordner überschrieben, bearbeitet oder gelöscht wird (durch die KI oder dich selbst im Live-Editor), wird zuerst unsichtbar nach .grimmgeist-backups/ gesichert (kein Git nötig, letzte 20 Versionen pro Datei, älteres wird automatisch entfernt)",
       "Neu: „↺ Rückgängig\"-Button direkt bei jeder erfolgreichen Datei-Aktion der KI im Chat - setzt genau diese eine Änderung zurück",
     ],
     en: [
-      "New: automatic backup - every file overwritten, edited, or deleted in the workspace folder (by the AI or by you in the live editor) is first saved to a hidden .novatree-backups/ folder (no Git required, last 20 versions per file, older ones pruned automatically)",
+      "New: automatic backup - every file overwritten, edited, or deleted in the workspace folder (by the AI or by you in the live editor) is first saved to a hidden .grimmgeist-backups/ folder (no Git required, last 20 versions per file, older ones pruned automatically)",
       "New: an \"↺ Undo\" button right on every successful AI file action in the chat - reverts exactly that one change",
     ],
   },
@@ -199,13 +199,13 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     version: "0.8.0",
     de: [
       "Neu: Präzise Datei-Bearbeitung per Suchen/Ersetzen statt vollständigem Datei-Überschreiben - schützt bestehenden Code (CSS, Animationen, Logik) vor versehentlichem Löschen/Vereinfachen",
-      "Neu: „Architect Mode\" - NovaTree kann komplett neue Projektstrukturen mit mehreren Dateien in einem eigenen Unterordner in einem Zug anlegen",
+      "Neu: „Architect Mode\" - GrimmGeist kann komplett neue Projektstrukturen mit mehreren Dateien in einem eigenen Unterordner in einem Zug anlegen",
       "Neu: Bilder per Einfügen (Strg+V) oder Drag & Drop in den Chat anhängen - werden automatisch verkleinert/komprimiert und an Gemini mitgeschickt",
       "Robustere JSON-Verarbeitung: abgeschnittene/fehlerhafte Antworten (z. B. bei Erreichen des Ausgabe-Limits) werden jetzt automatisch repariert, statt als Rohtext im Chat zu landen",
     ],
     en: [
       "New: precise file edits via search/replace instead of overwriting the whole file - protects existing code (CSS, animations, logic) from accidental deletion/simplification",
-      "New: \"Architect Mode\" - NovaTree can scaffold a whole new project structure with multiple files in its own subfolder in one go",
+      "New: \"Architect Mode\" - GrimmGeist can scaffold a whole new project structure with multiple files in its own subfolder in one go",
       "New: attach images to the chat via paste (Ctrl+V) or drag & drop - automatically downscaled/compressed before being sent to Gemini",
       "More robust JSON handling: truncated/malformed responses (e.g. from hitting the output limit) are now automatically repaired instead of leaking as raw text into the chat",
     ],
@@ -215,37 +215,37 @@ export const PATCH_NOTES: PatchNoteEntry[] = [
     de: [
       "Neu: Granulare Sicherheit für den KI-Dateizugriff im Workspace-Ordner (Einstellungen → „KI-Dateizugriff“)",
       "Drei Modi: Immer nachfragen, Teil-Autonom (einzeln pro Aktionstyp konfigurierbar), Voll-Autonom",
-      "Beim Löschen fragt NovaTree jetzt mit einer deutlichen Warnung nach, bevor eine Datei unwiderruflich entfernt wird (wenn aktiviert)",
-      "Beim Erstellen/Bearbeiten zeigt NovaTree einen Diff (Monacos nativer Diff-Editor) zwischen aktuellem und vorgeschlagenem Inhalt, bevor die Datei geschrieben wird (wenn aktiviert)",
+      "Beim Löschen fragt GrimmGeist jetzt mit einer deutlichen Warnung nach, bevor eine Datei unwiderruflich entfernt wird (wenn aktiviert)",
+      "Beim Erstellen/Bearbeiten zeigt GrimmGeist einen Diff (Monacos nativer Diff-Editor) zwischen aktuellem und vorgeschlagenem Inhalt, bevor die Datei geschrieben wird (wenn aktiviert)",
     ],
     en: [
       "New: granular security for AI file access in the workspace folder (Settings → \"AI file access\")",
       "Three modes: always ask, partially autonomous (configurable per action type), fully autonomous",
-      "On delete, NovaTree now asks for confirmation with a clear warning before a file is permanently removed (if enabled)",
-      "On create/edit, NovaTree shows a diff (Monaco's native diff editor) between the current and proposed content before writing the file (if enabled)",
+      "On delete, GrimmGeist now asks for confirmation with a clear warning before a file is permanently removed (if enabled)",
+      "On create/edit, GrimmGeist shows a diff (Monaco's native diff editor) between the current and proposed content before writing the file (if enabled)",
     ],
   },
   {
     version: "0.6.1",
     de: [
       "Neu: Smarter API-Key-Import - Button „API-Schlüssel holen“ in den Einstellungen öffnet Google AI Studio im Standard-Browser",
-      "Sobald du dort einen Schlüssel kopierst, erkennt NovaTree ihn automatisch aus der Zwischenablage und trägt ihn ein (nur während das Einstellungsfenster offen ist)",
+      "Sobald du dort einen Schlüssel kopierst, erkennt GrimmGeist ihn automatisch aus der Zwischenablage und trägt ihn ein (nur während das Einstellungsfenster offen ist)",
     ],
     en: [
       "New: smart API key import - a \"Get API key\" button in Settings opens Google AI Studio in the default browser",
-      "As soon as you copy a key there, NovaTree automatically detects it from the clipboard and fills it in (only while the settings window is open)",
+      "As soon as you copy a key there, GrimmGeist automatically detects it from the clipboard and fills it in (only while the settings window is open)",
     ],
   },
   {
     version: "0.6.0",
     de: [
-      "App aus Markenrechtsgründen von „NovaTwin\" in „NovaTree\" umbenannt (App-ID, Repository, Datenablage, Schlüsselbund-Eintrag)",
+      "App aus Markenrechtsgründen von „NovaTwin\" in „GrimmGeist\" umbenannt (App-ID, Repository, Datenablage, Schlüsselbund-Eintrag)",
       "Hinweis: Chats/Einstellungen aus älteren Versionen werden dadurch nicht automatisch übernommen, der API-Schlüssel muss einmalig neu eingetragen werden",
       "Fehler behoben: über die Büroklammer angehängte Dateien ließen sich nicht im Live-Editor öffnen - jetzt sowohl direkt in der Anhang-Vorschau als auch nach dem Senden anklickbar",
       "Sperre für Dateien im Live-Editor gilt jetzt über die gesamte Dauer einer Anfrage (nicht nur den kurzen Schreibvorgang), damit das Schloss-Symbol tatsächlich sichtbar wird",
     ],
     en: [
-      "App renamed from \"NovaTwin\" to \"NovaTree\" for trademark reasons (app ID, repository, data storage, keychain entry)",
+      "App renamed from \"NovaTwin\" to \"GrimmGeist\" for trademark reasons (app ID, repository, data storage, keychain entry)",
       "Note: chats/settings from older versions are not carried over automatically because of this, the API key needs to be re-entered once",
       "Fixed: files attached via the paperclip couldn't be opened in the live editor - now clickable both in the attachment preview and after sending",
       "The live editor's file lock now spans the whole duration of a request (not just the brief disk write) so the lock icon is actually visible",

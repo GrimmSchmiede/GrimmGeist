@@ -19,5 +19,5 @@ fn main() {
         std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
     }
 
-    novatree_lib::run()
+    grimmgeist_lib::run()
 }

@@ -1,0 +1,26 @@
+# Maintainer: <your name> <your email>
+pkgname=grimmgeist-bin
+pkgver=0.8.6
+pkgrel=1
+pkgdesc="Desktop chat client for the Google Gemini API, built with Tauri (Rust + vanilla TypeScript)"
+arch=('x86_64')
+url="https://github.com/GrimmSchmiede/GrimmGeist"
+license=('GPL-3.0-or-later')
+depends=('webkit2gtk-4.1' 'gtk3' 'hicolor-icon-theme')
+provides=('grimmgeist')
+conflicts=('grimmgeist' 'grimmgeist-git')
+source=(
+  "grimmgeist-${pkgver}::${url}/releases/download/grimmgeist-v${pkgver}/GrimmGeist_${pkgver}_linux_amd64"
+  "com.grimmgeist.app.desktop::${url}/raw/main/flatpak/com.grimmgeist.app.desktop"
+  "com.grimmgeist.app.png::${url}/raw/main/flatpak/com.grimmgeist.app.png"
+)
+# Fill in with `updpkgsums` (from pacman-contrib) after downloading the sources once.
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP')
+
+package() {
+  install -Dm755 "${srcdir}/grimmgeist-${pkgver}" "${pkgdir}/usr/bin/grimmgeist"
+  install -Dm644 "${srcdir}/com.grimmgeist.app.desktop" "${pkgdir}/usr/share/applications/com.grimmgeist.app.desktop"
+  install -Dm644 "${srcdir}/com.grimmgeist.app.png" "${pkgdir}/usr/share/icons/hicolor/512x512/apps/com.grimmgeist.app.png"
+}

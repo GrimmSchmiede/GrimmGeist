@@ -53,12 +53,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: novatree-v__VERSION__
-          releaseName: "NovaTree v__VERSION__"
+          tagName: grimmgeist-v__VERSION__
+          releaseName: "GrimmGeist v__VERSION__"
           releaseBody: |
             Automatisch von GitHub Actions gebauter Release.
             Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.deb`/`.rpm`/`.flatpak`).
-            Bereits installierte NovaTree-Versionen aktualisieren sich automatisch auf diese Version.
+            Bereits installierte GrimmGeist-Versionen aktualisieren sich automatisch auf diese Version.
           releaseDraft: false
           prerelease: false
 
@@ -67,8 +67,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           version=$(node -p "require('./package.json').version")
-          cp src-tauri/target/release/novatree "NovaTree_${version}_linux_amd64"
-          gh release upload "novatree-v${version}" "NovaTree_${version}_linux_amd64" --clobber --repo "${{ github.repository }}"
+          cp src-tauri/target/release/grimmgeist "GrimmGeist_${version}_linux_amd64"
+          gh release upload "grimmgeist-v${version}" "GrimmGeist_${version}_linux_amd64" --clobber --repo "${{ github.repository }}"
 
   publish-tauri-windows:
     needs: publish-tauri-linux
@@ -95,12 +95,12 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: novatree-v__VERSION__
-          releaseName: "NovaTree v__VERSION__"
+          tagName: grimmgeist-v__VERSION__
+          releaseName: "GrimmGeist v__VERSION__"
           releaseBody: |
             Automatisch von GitHub Actions gebauter Release.
             Lade die passende Installationsdatei für dein Betriebssystem herunter (Windows: `.exe`/`.msi`, Linux: `.deb`/`.rpm`/`.flatpak`).
-            Bereits installierte NovaTree-Versionen aktualisieren sich automatisch auf diese Version.
+            Bereits installierte GrimmGeist-Versionen aktualisieren sich automatisch auf diese Version.
           releaseDraft: false
           prerelease: false
 
@@ -137,7 +137,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .flatpak-builder
-          key: flatpak-builder-${{ hashFiles('flatpak/com.novatree.app.yaml', 'flatpak/cargo-sources.json', 'flatpak/node-sources.json', 'src-tauri/Cargo.lock', 'package-lock.json') }}
+          key: flatpak-builder-${{ hashFiles('flatpak/com.grimmgeist.app.yaml', 'flatpak/cargo-sources.json', 'flatpak/node-sources.json', 'src-tauri/Cargo.lock', 'package-lock.json') }}
           restore-keys: |
             flatpak-builder-
 
@@ -152,8 +152,8 @@ jobs:
 
       - name: Build Flatpak bundle
         run: |
-          flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.novatree.app.yaml
-          flatpak build-bundle flatpak-repo NovaTree.flatpak com.novatree.app
+          flatpak-builder --user --force-clean --repo=flatpak-repo flatpak-build flatpak/com.grimmgeist.app.yaml
+          flatpak build-bundle flatpak-repo GrimmGeist.flatpak com.grimmgeist.app
 
       - name: Read app version
         id: app_version
@@ -163,4 +163,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "novatree-v${{ steps.app_version.outputs.version }}" NovaTree.flatpak --clobber --repo "${{ github.repository }}"
+          gh release upload "grimmgeist-v${{ steps.app_version.outputs.version }}" GrimmGeist.flatpak --clobber --repo "${{ github.repository }}"

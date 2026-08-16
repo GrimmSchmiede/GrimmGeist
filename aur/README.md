@@ -1,7 +1,7 @@
-# AUR-Paket (`novatree-bin`)
+# AUR-Paket (`grimmgeist-bin`)
 
 Dieser Ordner enthält die `PKGBUILD` für ein AUR-Binärpaket, das die bereits fertig gebaute
-`NovaTree_<version>_linux_amd64`-Datei aus den GitHub-Releases installiert (kein Kompilieren nötig,
+`GrimmGeist_<version>_linux_amd64`-Datei aus den GitHub-Releases installiert (kein Kompilieren nötig,
 analog zu z. B. `visual-studio-code-bin`).
 
 **Wichtig:** Ich (Claude) kann dieses Paket nicht selbst auf's AUR hochladen - das braucht einen
@@ -28,15 +28,15 @@ Arch-basierten System) durchgeführt werden.
    ```
 6. AUR-Git-Repo initialisieren und pushen:
    ```bash
-   git clone ssh://aur@aur.archlinux.org/novatree-bin.git aur-novatree-bin
-   cp PKGBUILD .SRCINFO aur-novatree-bin/
-   cd aur-novatree-bin
+   git clone ssh://aur@aur.archlinux.org/grimmgeist-bin.git aur-grimmgeist-bin
+   cp PKGBUILD .SRCINFO aur-grimmgeist-bin/
+   cd aur-grimmgeist-bin
    git add PKGBUILD .SRCINFO
-   git commit -m "Initial import: novatree-bin 0.8.6"
+   git commit -m "Initial import: grimmgeist-bin 0.8.6"
    git push
    ```
 
-## Bei jedem neuen NovaTree-Release aktualisieren
+## Bei jedem neuen GrimmGeist-Release aktualisieren
 
 1. `pkgver` in der `PKGBUILD` auf die neue Version anheben, `pkgrel` zurück auf `1`.
 2. `updpkgsums` erneut ausführen (lädt die neuen Release-Dateien und aktualisiert die Prüfsummen).

@@ -146,7 +146,7 @@ const de: Dict = {
   attachFileTitle: "Datei anhängen",
   attachFileDialogTitle: "Datei anhängen",
   removeAttachmentTitle: "Entfernen",
-  promptPlaceholder: "Nachricht an NovaTree…",
+  promptPlaceholder: "Nachricht an GrimmGeist…",
   sendTitle: "Senden",
   tokens: (n) => `Tokens: ${n}`,
   requestsToday: (n, limit) => `Anfragen heute: ${n} / ${limit}`,
@@ -186,13 +186,13 @@ const de: Dict = {
   save: "Speichern",
   patchNotesTitle: "Was ist neu",
   patchNotesClose: "Schließen",
-  thinking: "NovaTree denkt nach",
+  thinking: "GrimmGeist denkt nach",
   modelOverloadedRetrying: (attempt, max) => `Modell überlastet, Versuch ${attempt}/${max}…`,
   modelOverloadedSwitching: (model) => `Modell überlastet, wechsle zu ${model}…`,
   modelQuotaSwitching: (model) => `Kontingent für dieses Modell aufgebraucht, wechsle zu ${model}…`,
   errorPrefix: (msg) => `Fehler: ${msg}`,
   securitySectionLabel: "KI-Dateizugriff",
-  securityModeHint: "Legt fest, ob NovaTree vor Datei-Änderungen im Workspace-Ordner erst deine Freigabe braucht.",
+  securityModeHint: "Legt fest, ob GrimmGeist vor Datei-Änderungen im Workspace-Ordner erst deine Freigabe braucht.",
   securityModeAlways: "Immer nachfragen",
   securityModePartial: "Teil-Autonom",
   securityModeNone: "Voll-Autonom",
@@ -218,7 +218,7 @@ const de: Dict = {
     "Sie stehen im Begriff, der KI Zugriff auf ein lokales Verzeichnis zu gewähren. Je nach " +
     "Freigabe-Modus kann die KI selbstständig Dateien erstellen, verändern oder unwiderruflich löschen.",
   disclaimerCheckboxLabel:
-    "Ich verstehe, dass die Nutzung auf eigene Gefahr erfolgt und die Entwickler von NovaTree " +
+    "Ich verstehe, dass die Nutzung auf eigene Gefahr erfolgt und die Entwickler von GrimmGeist " +
     "nicht für Datenverlust oder Schäden an meinem System haftbar gemacht werden können.",
   disclaimerCancel: "Abbrechen",
   disclaimerAccept: "Workspace aktivieren",
@@ -279,7 +279,7 @@ const en: Dict = {
   attachFileTitle: "Attach file",
   attachFileDialogTitle: "Attach file",
   removeAttachmentTitle: "Remove",
-  promptPlaceholder: "Message NovaTree…",
+  promptPlaceholder: "Message GrimmGeist…",
   sendTitle: "Send",
   tokens: (n) => `Tokens: ${n}`,
   requestsToday: (n, limit) => `Requests today: ${n} / ${limit}`,
@@ -319,13 +319,13 @@ const en: Dict = {
   save: "Save",
   patchNotesTitle: "What's new",
   patchNotesClose: "Close",
-  thinking: "NovaTree is thinking",
+  thinking: "GrimmGeist is thinking",
   modelOverloadedRetrying: (attempt, max) => `Model overloaded, attempt ${attempt}/${max}…`,
   modelOverloadedSwitching: (model) => `Model overloaded, switching to ${model}…`,
   modelQuotaSwitching: (model) => `Quota for this model exhausted, switching to ${model}…`,
   errorPrefix: (msg) => `Error: ${msg}`,
   securitySectionLabel: "AI file access",
-  securityModeHint: "Controls whether NovaTree needs your approval before changing files in the workspace folder.",
+  securityModeHint: "Controls whether GrimmGeist needs your approval before changing files in the workspace folder.",
   securityModeAlways: "Always ask",
   securityModePartial: "Partially autonomous",
   securityModeNone: "Fully autonomous",
@@ -351,7 +351,7 @@ const en: Dict = {
     "You are about to grant the AI access to a local directory. Depending on the approval mode, " +
     "the AI can create, modify, or permanently delete files on its own.",
   disclaimerCheckboxLabel:
-    "I understand that use is entirely at my own risk and that the NovaTree developers cannot be " +
+    "I understand that use is entirely at my own risk and that the GrimmGeist developers cannot be " +
     "held liable for data loss or damage to my system.",
   disclaimerCancel: "Cancel",
   disclaimerAccept: "Enable workspace",

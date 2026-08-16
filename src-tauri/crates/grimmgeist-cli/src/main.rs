@@ -1,16 +1,16 @@
-//! NovaTree CLI - "ask" mode only (v1): streams a one-shot prompt's reply from Gemini to stdout.
+//! GrimmGeist CLI - "ask" mode only (v1): streams a one-shot prompt's reply from Gemini to stdout.
 //!
-//! Deliberately does NOT touch the workspace/file-action side of NovaTree. That machinery
+//! Deliberately does NOT touch the workspace/file-action side of GrimmGeist. That machinery
 //! (precise edits, backups, approval flows, diff review, undo, conflict detection) is deeply
 //! tied to the GUI (Monaco editor, DOM confirmation dialogs) - reimplementing an equivalent
 //! safety experience in a terminal is a separate, larger effort, not a v1 add-on. This binary
 //! reuses only what's genuinely shared: reading the same API key from the OS keychain that the
-//! GUI app stores (see `novatree_lib::load_api_key`), so there's no separate credential setup.
+//! GUI app stores (see `grimmgeist_lib::load_api_key`), so there's no separate credential setup.
 //!
-//! Usage: novatree-cli [-m|--model <name>] "<prompt>"
+//! Usage: grimmgeist-cli [-m|--model <name>] "<prompt>"
 
 use futures_util::StreamExt;
-use novatree_lib::read_stored_api_key;
+use grimmgeist_lib::read_stored_api_key;
 use serde_json::{json, Value};
 use std::io::Write;
 
@@ -23,10 +23,10 @@ const SAFETY_CATEGORIES: &[&str] = &[
 ];
 
 fn print_usage() {
-    eprintln!("Usage: novatree-cli [-m|--model <name>] \"<prompt>\"");
+    eprintln!("Usage: grimmgeist-cli [-m|--model <name>] \"<prompt>\"");
     eprintln!();
     eprintln!("Sends a one-shot prompt to Gemini using the API key already stored by the");
-    eprintln!("NovaTree desktop app (Settings -> API key) and streams the reply to stdout.");
+    eprintln!("GrimmGeist desktop app (Settings -> API key) and streams the reply to stdout.");
     eprintln!("Ask-mode only - no workspace/file access from the CLI.");
 }
 
@@ -71,7 +71,7 @@ async fn main() {
     let api_key = match read_stored_api_key() {
         Ok(Some(key)) => key,
         Ok(None) => {
-            eprintln!("Kein API-Schlüssel gefunden. Trag ihn zuerst in der NovaTree-App unter Einstellungen ein.");
+            eprintln!("Kein API-Schlüssel gefunden. Trag ihn zuerst in der GrimmGeist-App unter Einstellungen ein.");
             std::process::exit(1);
         }
         Err(e) => {

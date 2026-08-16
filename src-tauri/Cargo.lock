@@ -1546,6 +1546,35 @@ dependencies = [
 ]
 
 [[package]]
+name = "grimmgeist"
+version = "0.8.20"
+dependencies = [
+ "ignore",
+ "keyring",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-dialog",
+ "tauri-plugin-opener",
+ "tauri-plugin-process",
+ "tauri-plugin-store",
+ "tauri-plugin-updater",
+]
+
+[[package]]
+name = "grimmgeist-cli"
+version = "0.8.20"
+dependencies = [
+ "futures-util",
+ "grimmgeist",
+ "reqwest 0.12.28",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "gtk"
 version = "0.18.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2371,35 +2400,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "novatree"
-version = "0.8.18"
-dependencies = [
- "ignore",
- "keyring",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-dialog",
- "tauri-plugin-opener",
- "tauri-plugin-process",
- "tauri-plugin-store",
- "tauri-plugin-updater",
-]
-
-[[package]]
-name = "novatree-cli"
-version = "0.8.18"
-dependencies = [
- "futures-util",
- "novatree",
- "reqwest 0.12.28",
- "serde_json",
- "tokio",
 ]
 
 [[package]]

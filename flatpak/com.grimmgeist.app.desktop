@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=GrimmGeist
+Comment=GrimmGeist - Desktop Chat Client for Google Gemini
+Exec=grimmgeist
+Icon=com.grimmgeist.app
+Terminal=false
+Type=Application
+Categories=Network;Chat;Utility;
+StartupWMClass=GrimmGeist

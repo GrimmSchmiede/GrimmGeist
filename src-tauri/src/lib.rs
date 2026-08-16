@@ -6,7 +6,7 @@ use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-const KEYRING_SERVICE: &str = "com.novatree.app";
+const KEYRING_SERVICE: &str = "com.grimmgeist.app";
 const KEYRING_USER: &str = "gemini_api_key";
 const KEYRING_USER_PAID: &str = "gemini_api_key_paid";
 
@@ -65,7 +65,7 @@ fn save_api_key(key: String) -> Result<(), String> {
 /// Reads the stored Google Gemini API key from the OS-native secure credential store. `pub`
 /// (and separate from the `load_api_key` tauri command below, since combining `#[tauri::command]`
 /// with `pub fn` on the same item collides with tauri's generated command-registration macros)
-/// so the novatree-cli binary (src/bin/novatree-cli.rs) can read the same key the GUI app
+/// so the grimmgeist-cli binary (src/bin/grimmgeist-cli.rs) can read the same key the GUI app
 /// stores, without needing its own separate credential storage or env vars.
 pub fn read_stored_api_key() -> Result<Option<String>, String> {
     let entry = keyring_entry()?;
@@ -94,7 +94,7 @@ fn delete_api_key() -> Result<(), String> {
 
 /// Stores the optional paid/billed Gemini API key (from a separate Google Cloud project with
 /// billing enabled) in its own keychain entry, kept fully separate from the free-tier key so
-/// both can be configured independently and NovaTree can choose which one to use per request.
+/// both can be configured independently and GrimmGeist can choose which one to use per request.
 #[tauri::command]
 fn save_paid_api_key(key: String) -> Result<(), String> {
     let entry = keyring_entry_paid()?;
@@ -139,7 +139,7 @@ fn safe_workspace_join(workspace: &str, filename: &str) -> Result<PathBuf, Strin
     Ok(Path::new(workspace).join(filename_path))
 }
 
-const BACKUP_DIR_NAME: &str = ".novatree-backups";
+const BACKUP_DIR_NAME: &str = ".grimmgeist-backups";
 // Keeps disk usage bounded without needing a separate cleanup UI - oldest snapshots beyond this
 // count are pruned automatically every time a new one is taken for the same file.
 const MAX_BACKUPS_PER_FILE: usize = 20;
@@ -160,7 +160,7 @@ fn prune_old_backups(backup_dir: &Path) {
     }
 }
 
-/// Copies a workspace file's current content into `.novatree-backups/<relative-path>/<timestamp>`
+/// Copies a workspace file's current content into `.grimmgeist-backups/<relative-path>/<timestamp>`
 /// before it gets overwritten or deleted, so a bad AI edit/delete can be recovered - either
 /// manually or via the "Undo" button, which restores the exact snapshot path returned here. A
 /// no-op (returns None) if the file doesn't exist yet (nothing to back up). The backup folder is
@@ -186,7 +186,7 @@ fn backup_before_write(workspace: &str, filename: &str) -> Result<Option<String>
 }
 
 /// Restores a file from a specific backup snapshot (as returned by `backup_before_write`),
-/// recreating the file if it was deleted. Rejects any path outside `.novatree-backups/` so this
+/// recreating the file if it was deleted. Rejects any path outside `.grimmgeist-backups/` so this
 /// can't be abused to copy arbitrary files into the workspace.
 #[tauri::command]
 fn workspace_restore_backup(workspace: String, filename: String, backup: String) -> Result<(), String> {
@@ -209,7 +209,7 @@ fn workspace_restore_backup(workspace: String, filename: String, backup: String)
 /// the project's own `.gitignore` / `.git/info/exclude` / global gitignore (via the `ignore`
 /// crate, the same one ripgrep uses) so build artifacts, dependency folders and anything the user
 /// has explicitly excluded (e.g. `.env` files with secrets) never reach Gemini as context. On top
-/// of that, a `.novatreeignore` file (same gitignore syntax, checked at every directory level)
+/// of that, a `.grimmgeistignore` file (same gitignore syntax, checked at every directory level)
 /// lets the user exclude files that ARE tracked in git but are still irrelevant/huge for AI
 /// context (large fixtures, generated bundles, lockfiles, ...) without touching the real
 /// `.gitignore`. Hidden (dot-prefixed) entries and a small fixed list of common build/dependency
@@ -228,7 +228,7 @@ fn list_workspace_files(workspace: String) -> Result<Vec<String>, String> {
         .git_ignore(true)
         .git_global(true)
         .git_exclude(true)
-        .add_custom_ignore_filename(".novatreeignore")
+        .add_custom_ignore_filename(".grimmgeistignore")
         .filter_entry(|entry| {
             entry
                 .file_name()
@@ -494,16 +494,16 @@ fn git_status(workspace: String) -> Result<GitStatus, String> {
     })
 }
 
-/// Ensures `.novatree-backups/` (the local automatic-backup folder created before every AI/editor
+/// Ensures `.grimmgeist-backups/` (the local automatic-backup folder created before every AI/editor
 /// write) is listed in the workspace's `.gitignore`, creating the file or appending the entry if
 /// needed. These are purely local safety copies, never meant to be committed.
 fn ensure_backups_gitignored(dir: &Path) -> Result<(), String> {
-    const ENTRY: &str = ".novatree-backups/";
+    const ENTRY: &str = ".grimmgeist-backups/";
     let gitignore_path = dir.join(".gitignore");
     let existing = fs::read_to_string(&gitignore_path).unwrap_or_default();
     if existing.lines().any(|line| {
         let trimmed = line.trim().trim_end_matches('/');
-        trimmed == ".novatree-backups"
+        trimmed == ".grimmgeist-backups"
     }) {
         return Ok(());
     }
@@ -531,11 +531,11 @@ fn git_commit_and_push(workspace: String, message: String) -> Result<String, Str
 
     ensure_backups_gitignored(&dir)?;
 
-    // If .novatree-backups was already committed before this fix existed, untrack it now (the
+    // If .grimmgeist-backups was already committed before this fix existed, untrack it now (the
     // files stay on disk as backups, they just stop being part of the repo going forward).
-    let tracked_backups = run_git(&dir, &["ls-files", ".novatree-backups"]).unwrap_or_default();
+    let tracked_backups = run_git(&dir, &["ls-files", ".grimmgeist-backups"]).unwrap_or_default();
     if !tracked_backups.trim().is_empty() {
-        run_git(&dir, &["rm", "-r", "--cached", "--ignore-unmatch", ".novatree-backups"])?;
+        run_git(&dir, &["rm", "-r", "--cached", "--ignore-unmatch", ".grimmgeist-backups"])?;
     }
 
     run_git(&dir, &["add", "-A"])?;

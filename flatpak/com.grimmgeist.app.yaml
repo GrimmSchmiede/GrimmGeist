@@ -1,9 +1,9 @@
-id: com.novatree.app
+id: com.grimmgeist.app
 runtime: org.gnome.Platform
 runtime-version: '50'
 sdk: org.gnome.Sdk
-command: novatree
-rename-icon: com.novatree.app
+command: grimmgeist
+rename-icon: com.grimmgeist.app
 
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.node24
@@ -34,22 +34,22 @@ build-options:
   append-path: /usr/lib/sdk/node24/bin:/usr/lib/sdk/rust-stable/bin
 
 modules:
-  - name: novatree
+  - name: grimmgeist
     buildsystem: simple
     build-options:
       env:
-        CARGO_HOME: /run/build/novatree/cargo
-        XDG_CACHE_HOME: /run/build/novatree/flatpak-node/cache
-        npm_config_cache: /run/build/novatree/flatpak-node/npm-cache
+        CARGO_HOME: /run/build/grimmgeist/cargo
+        XDG_CACHE_HOME: /run/build/grimmgeist/flatpak-node/cache
+        npm_config_cache: /run/build/grimmgeist/flatpak-node/npm-cache
         npm_config_offline: 'true'
     build-commands:
       - npm ci --offline
       - cargo --offline fetch --manifest-path src-tauri/Cargo.toml
       - npm run tauri build -- --no-bundle -v
-      - install -Dm755 -t /app/bin/ src-tauri/target/release/novatree
-      - install -Dm644 -t /app/share/applications/ flatpak/com.novatree.app.desktop
-      - install -Dm644 -t /app/share/metainfo/ flatpak/com.novatree.app.metainfo.xml
-      - install -Dm644 flatpak/com.novatree.app.png /app/share/icons/hicolor/512x512/apps/com.novatree.app.png
+      - install -Dm755 -t /app/bin/ src-tauri/target/release/grimmgeist
+      - install -Dm644 -t /app/share/applications/ flatpak/com.grimmgeist.app.desktop
+      - install -Dm644 -t /app/share/metainfo/ flatpak/com.grimmgeist.app.metainfo.xml
+      - install -Dm644 flatpak/com.grimmgeist.app.png /app/share/icons/hicolor/512x512/apps/com.grimmgeist.app.png
     sources:
       - type: dir
         path: ..
@@ -61,11 +61,11 @@ modules:
       - cargo-sources.json
       - node-sources.json
       - type: file
-        path: com.novatree.app.desktop
+        path: com.grimmgeist.app.desktop
         dest: flatpak
       - type: file
-        path: com.novatree.app.metainfo.xml
+        path: com.grimmgeist.app.metainfo.xml
         dest: flatpak
       - type: file
-        path: com.novatree.app.png
+        path: com.grimmgeist.app.png
         dest: flatpak

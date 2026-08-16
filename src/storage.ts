@@ -14,7 +14,7 @@ let storePromise: Promise<Store> | null = null;
 
 function getStore(): Promise<Store> {
   if (!storePromise) {
-    storePromise = Store.load("novatree.json");
+    storePromise = Store.load("grimmgeist.json");
   }
   return storePromise;
 }

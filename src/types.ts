@@ -91,7 +91,7 @@ export const DEFAULT_SECURITY_SETTINGS: SecuritySettings = {
   requireApprovalFor: { create: false, edit: true, delete: true },
 };
 
-/** How NovaTree chooses between the free-tier key and an optional paid/billed key:
+/** How GrimmGeist chooses between the free-tier key and an optional paid/billed key:
  * "freeOnly" never touches the paid key even if configured (safe default - no surprise costs),
  * "payOnly" always uses the paid key, "freeThenPay" uses the free key until its quota is
  * exhausted (HTTP 429 across all fallback models) and then automatically switches to the paid
@@ -121,7 +121,7 @@ export interface QuotaState {
 }
 
 export const DEFAULT_SYSTEM_PROMPT =
-  "Du bist NovaTree, ein Assistent zur Analyse und Bearbeitung von Code-Dateien (u.a. Lua, Python). " +
+  "Du bist GrimmGeist, ein Assistent zur Analyse und Bearbeitung von Code-Dateien (u.a. Lua, Python). " +
   "Wenn der Nutzer eine Datei anhängt und um eine Änderung bittet, antworte mit dem VOLLSTÄNDIGEN neuen " +
   "Dateiinhalt als reinen Text, OHNE Markdown-Codeblöcke (keine ``` Backticks), ohne Erklärungen davor " +
   "oder danach. Wenn keine Datei bearbeitet werden soll, antworte normal in Klartext.";

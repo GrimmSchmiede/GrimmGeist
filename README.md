@@ -1,6 +1,6 @@
-![NovaTree](docs/banner.png)
+![GrimmGeist](docs/banner.png)
 
-# NovaTree
+# GrimmGeist
 
 **🇩🇪 [Deutsch](#deutsch) | 🇬🇧 [English](#english)**
 
@@ -21,19 +21,19 @@ Desktop-Chat-Client (Windows/Linux) für die Google Gemini API, gebaut mit [Taur
 
 ### ⚠️ WICHTIGER RECHTLICHER HINWEIS / DISCLAIMER
 
-Diese Software wird "wie besehen" (AS IS) und ohne jegliche Gewährleistung oder Garantie bereitgestellt. Da NovaTree im "Workspace-Modus" autonom Dateien auf Ihrer Festplatte erstellen, bearbeiten oder löschen kann, erfolgt die Nutzung komplett auf eigene Gefahr. Die Entwickler übernehmen keinerlei Haftung für Datenverlust, Systemschäden, Fehlfunktionen oder daraus resultierende Folgeschäden. Mit der Nutzung der App erklären Sie sich mit diesem Haftungsausschluss einverstanden.
+Diese Software wird "wie besehen" (AS IS) und ohne jegliche Gewährleistung oder Garantie bereitgestellt. Da GrimmGeist im "Workspace-Modus" autonom Dateien auf Ihrer Festplatte erstellen, bearbeiten oder löschen kann, erfolgt die Nutzung komplett auf eigene Gefahr. Die Entwickler übernehmen keinerlei Haftung für Datenverlust, Systemschäden, Fehlfunktionen oder daraus resultierende Folgeschäden. Mit der Nutzung der App erklären Sie sich mit diesem Haftungsausschluss einverstanden.
 
 ---
 
 > **Hinweis (v0.6.0):** Die App hieß bis v0.5.1 „NovaTwin" und wurde aus Markenrechtsgründen in
-> „NovaTree" umbenannt (App-Identifier, Repo, Datenablage). Wer eine ältere Version installiert
+> „GrimmGeist" umbenannt (App-Identifier, Repo, Datenablage). Wer eine ältere Version installiert
 > hatte: Chats/Einstellungen werden **nicht automatisch übernommen** (neue App-ID = neuer
 > Datenpfad) und der Google-API-Schlüssel muss einmalig neu in den Einstellungen eingetragen
 > werden (neuer Schlüsselbund-Eintrag).
 
 > [!IMPORTANT]
 > **🛡️ Wichtiger Hinweis für Windows-Nutzer ("Computer wurde geschützt"):**
-> <br>Da NovaTree ein unabhängiges Open-Source-Projekt ist und nicht kostenpflichtig digital signiert wurde, zeigt Windows SmartScreen beim ersten Start die Warnung *"Der Computer wurde durch Windows geschützt"* an.
+> <br>Da GrimmGeist ein unabhängiges Open-Source-Projekt ist und nicht kostenpflichtig digital signiert wurde, zeigt Windows SmartScreen beim ersten Start die Warnung *"Der Computer wurde durch Windows geschützt"* an.
 >
 > Die App ist zu 100 % sicher! Du kannst die Meldung einfach überspringen:
 > 1. Klicke im blauen Fenster auf **"Weitere Informationen"**.
@@ -75,7 +75,7 @@ globaler Gitignore-Regeln) beachtet – über die `ignore`-Crate, dieselbe Bibli
 `__pycache__` werden zusätzlich immer übersprungen, auch ohne `.gitignore`. So landen z. B.
 `.env`-Dateien mit echten Zugangsdaten nicht versehentlich im an Gemini gesendeten Kontext.
 
-Zusätzlich wird - auf jeder Verzeichnisebene, wie `.gitignore` selbst - eine `.novatreeignore`
+Zusätzlich wird - auf jeder Verzeichnisebene, wie `.gitignore` selbst - eine `.grimmgeistignore`
 (gleiche Syntax) beachtet. Damit lassen sich Dateien ausschließen, die zwar in Git getrackt sind,
 aber für die KI trotzdem irrelevant oder unnötig groß sind (z. B. große Testdaten, generierte
 Bundles, Lockfiles), ohne die eigentliche `.gitignore` dafür anzufassen.
@@ -93,13 +93,13 @@ dem gewählten Ordner ausbrechen können.
 
 #### KI-Dateizugriff (Freigabe-Modi)
 
-Unter Einstellungen → **„KI-Dateizugriff"** lässt sich steuern, ob NovaTree Datei-Aktionen im
+Unter Einstellungen → **„KI-Dateizugriff"** lässt sich steuern, ob GrimmGeist Datei-Aktionen im
 Workspace-Ordner sofort ausführt oder erst deine Bestätigung braucht:
 
 - **Immer nachfragen** – jede Aktion (create/edit/delete) muss bestätigt werden.
 - **Teil-Autonom** – einzeln pro Aktionstyp konfigurierbar (Standard: Erstellen automatisch,
   Bearbeiten/Löschen mit Nachfrage).
-- **Voll-Autonom** – NovaTree schreibt ohne Rückfrage direkt durch.
+- **Voll-Autonom** – GrimmGeist schreibt ohne Rückfrage direkt durch.
 
 Bei **Löschen** erscheint eine rote Warnung mit Dateipfad, bei **Erstellen/Bearbeiten** ein
 Diff-Ansicht (Monacos nativer `createDiffEditor()`) zwischen aktuellem und vorgeschlagenem
@@ -109,7 +109,7 @@ Inhalt, in einem eigenständigen Modal – unabhängig davon, ob der Live-Editor
 
 Jede Datei im Workspace-Ordner, die überschrieben, bearbeitet oder gelöscht wird – egal ob durch
 die KI oder durch dich selbst im Live-Editor (Speichern-Button/Strg+S) – wird vorher automatisch
-in einen versteckten Ordner `.novatree-backups/<relativer Pfad>/<Zeitstempel>` gesichert, ganz
+in einen versteckten Ordner `.grimmgeist-backups/<relativer Pfad>/<Zeitstempel>` gesichert, ganz
 ohne Git. Dieser Ordner taucht weder in der Dateiliste der App noch im an Gemini gesendeten
 Workspace-Kontext auf (Ordner mit führendem `.` werden dort grundsätzlich übersprungen). Pro Datei
 werden die letzten 20 Versionen aufbewahrt, ältere werden automatisch entfernt, sobald eine neue
@@ -124,7 +124,7 @@ Sicherheitsnetz gegen versehentlichen Datenverlust im autonomen Modus.
 #### Fuzzy-Match-Vorschlag bei fehlgeschlagenen Edits (ab v0.8.9)
 
 Findet ein präziser Edit (`search`/`replace`) seinen `search`-Text auch nach Whitespace-
-Normalisierung nicht exakt, sucht NovaTree zusätzlich nach der ähnlichsten Zeilen-Passage in der
+Normalisierung nicht exakt, sucht GrimmGeist zusätzlich nach der ähnlichsten Zeilen-Passage in der
 Datei. Wird eine gefunden, erscheint direkt im Chat ein **„Meintest du diese Stelle?"**-Kasten mit
 der tatsächlichen Fundstelle (Zeilennummer + Originaltext) und einem „Änderung anwenden"-Button –
 ein Klick genügt, ohne dass Gemini erneut gefragt werden muss.
@@ -150,7 +150,7 @@ deine Änderung erhalten bleibt (wird zurück auf die Festplatte geschrieben) od
 Ist der verknüpfte Workspace-Ordner ein Git-Repository, erscheint neben dem Ordner-Pfad ein
 ⬆-Button. Er zeigt Branch und geänderte Dateien, lässt eine Commit-Nachricht eingeben und führt
 `git add -A`, `git commit` und `git push` aus – mit deinem bereits lokal installierten und
-eingerichteten Git (kein separates Login in NovaTree, keine gespeicherten Zugangsdaten).
+eingerichteten Git (kein separates Login in GrimmGeist, keine gespeicherten Zugangsdaten).
 
 #### Zweiter, kostenpflichtiger API-Schlüssel (ab v0.8.15)
 
@@ -162,7 +162,7 @@ werden im Chat mit einem deutlichen grünen 💲-Badge markiert, damit nie unbem
 
 #### Proaktive Datei-Kontext-Injektion (ab v0.8.18)
 
-Bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt NovaTree automatisch den echten
+Bevor eine Nachricht mit Workspace-Bezug an Gemini geht, schickt GrimmGeist automatisch den echten
 aktuellen Inhalt der im Live-Editor geöffneten Datei sowie aller im Nachrichtentext namentlich
 genannten Dateien mit – die KI muss den Zustand einer Datei nicht mehr aus dem Chat-Verlauf
 rekonstruieren. Ist keine Datei eindeutig identifizierbar, wird die KI angewiesen, im Zweifel
@@ -173,7 +173,7 @@ nach dem Dateinamen zu fragen statt zu raten.
 - **Präzise Edits:** Bestehende Dateien werden nicht mehr komplett überschrieben, sondern per
   Suchen/Ersetzen-Paaren geändert (`{"search": "...", "replace": "..."}`). Trifft ein `search`
   nur nach Whitespace-Normalisierung oder gar nicht, wird nichts geschrieben und stattdessen ein
-  Hinweis angezeigt, statt riskant zu raten. Passt `search` gar nicht, versucht NovaTree seit
+  Hinweis angezeigt, statt riskant zu raten. Passt `search` gar nicht, versucht GrimmGeist seit
   v0.8.16 automatisch einmal, mit dem tatsächlichen aktuellen Dateiinhalt zu korrigieren, bevor
   aufgegeben wird. Seit v0.8.17 nutzt die KI bei kleinen/mittelgroßen Dateien standardmäßig eine
   komplette Neuausgabe statt Suchen/Ersetzen, um Kaskaden-Fehler zu vermeiden.
@@ -214,22 +214,22 @@ Bei jedem Push auf `main` bauen zwei Jobs in `.github/workflows/release.yml`
 
 - Windows: `.exe` (NSIS) / `.msi`
 - Linux: `.deb` / `.rpm`
-- Zusätzlich wird die rohe Linux-ELF-Binärdatei (`NovaTree_<version>_linux_amd64`, unverpackt, ohne
-  Installer) direkt mit hochgeladen – nützlich zum Debuggen (z. B. `./NovaTree_*_linux_amd64` im
+- Zusätzlich wird die rohe Linux-ELF-Binärdatei (`GrimmGeist_<version>_linux_amd64`, unverpackt, ohne
+  Installer) direkt mit hochgeladen – nützlich zum Debuggen (z. B. `./GrimmGeist_*_linux_amd64` im
   Terminal starten, um echte Fehlerausgaben zu sehen) oder für Distros ohne `.deb`/`.rpm`.
   Benötigt die gleichen System-Bibliotheken wie das `.deb`/`.rpm` (u. a. `webkit2gtk-4.1`) und
   bekommt **keine** automatischen Updates (nur die gebündelten Formate mit Signatur tun das).
 
-Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `NovaTree.flatpak` gegen die
+Zusätzlich baut ein zweiter Job (`flatpak-bundle`) im Anschluss ein `GrimmGeist.flatpak` gegen die
 `org.gnome.Platform`-Runtime (bringt eine feste, getestete WebKitGTK-Version mit statt der des
 Host-Systems mit, was auf vielen Distros zuverlässiger läuft als eine unverpackte Binary).
-Installation: `.flatpak`-Datei herunterladen, dann `flatpak install NovaTree.flatpak` bzw. per
+Installation: `.flatpak`-Datei herunterladen, dann `flatpak install GrimmGeist.flatpak` bzw. per
 Doppelklick, falls die Dateimanager-Integration vorhanden ist.
 
 #### Arch Linux / AUR
 
-Unter [`aur/novatree-bin/`](aur/novatree-bin/PKGBUILD) liegt eine `PKGBUILD` für ein AUR-Binärpaket
-(installiert die rohe `NovaTree_<version>_linux_amd64`-Datei aus den Releases, kein Kompilieren
+Unter [`aur/grimmgeist-bin/`](aur/grimmgeist-bin/PKGBUILD) liegt eine `PKGBUILD` für ein AUR-Binärpaket
+(installiert die rohe `GrimmGeist_<version>_linux_amd64`-Datei aus den Releases, kein Kompilieren
 nötig). Das Paket ist noch **nicht** im AUR veröffentlicht – Schritte dafür stehen in
 [`aur/README.md`](aur/README.md), erfordern aber einen persönlichen AUR-Account mit SSH-Key.
 
@@ -250,7 +250,7 @@ damit der Workflow Releases erstellen darf.
 <details>
 <summary><strong>Auto-Updater</strong> (Details ausklappen)</summary>
 
-Die App prüft bei jedem Start `https://github.com/State-of-Economy/NovaTree/releases/latest/download/latest.json`.
+Die App prüft bei jedem Start `https://github.com/GrimmSchmiede/GrimmGeist/releases/latest/download/latest.json`.
 Ist die dort verzeichnete Version neuer als die installierte, erscheint ein Update-Banner.
 Damit ein neuer Push tatsächlich ein Update auslöst, **muss die Versionsnummer** in
 `src-tauri/tauri.conf.json` (Feld `version`) und `package.json` vor dem Push erhöht werden –
@@ -278,7 +278,7 @@ Updates werden mit einem lokal erzeugten Minisign-Schlüsselpaar signiert:
 Problem in den meisten Fällen behebt. Tritt es trotzdem noch auf, testweise manuell setzen:
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTree_*_linux_amd64
+WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./GrimmGeist_*_linux_amd64
 ```
 
 **Weißes Fenster mit "could not connect to localhost" (Flatpak oder nativ):**
@@ -307,7 +307,7 @@ Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`).
 #### 💡 Tipps zur Einrichtung
 
 - **Smarter Import:** Sobald du auf Google AI Studio einen Schlüssel generierst und kopierst,
-  erkennt NovaTree ihn automatisch aus der Zwischenablage und trägt ihn direkt im
+  erkennt GrimmGeist ihn automatisch aus der Zwischenablage und trägt ihn direkt im
   Einstellungsfenster ein (nur während das Fenster offen ist – kein Hintergrund-Polling).
 - **VPN-Problem:** Zeigt die Google-Seite „Not available in your region“, schalte für das
   Generieren des Schlüssels kurz dein VPN aus. Google blockiert Rechenzentrum-IPs von
@@ -316,14 +316,14 @@ Flatpak-Manifest als auch direkt in der App selbst (`src-tauri/src/main.rs`).
 
 <a name="de-cli"></a>
 
-### CLI: `novatree-cli` (ab v0.8.12)
+### CLI: `grimmgeist-cli` (ab v0.8.12)
 
 Zusätzlich zur Desktop-App gibt es ein schlankes Terminal-Tool für schnelle Fragen, ohne die
 GUI zu öffnen:
 
 ```bash
-novatree-cli "Wie funktioniert ein Docker-Multi-Stage-Build?"
-novatree-cli -m gemini-3.1-flash-lite "Kurze Frage"
+grimmgeist-cli "Wie funktioniert ein Docker-Multi-Stage-Build?"
+grimmgeist-cli -m gemini-3.1-flash-lite "Kurze Frage"
 ```
 
 Nutzt denselben API-Schlüssel aus dem OS-Schlüsselbund wie die Desktop-App (kein separates Setup
@@ -335,7 +335,7 @@ sichere Terminal-Variante wäre ein deutlich größeres, eigenständiges Vorhabe
 Aktuell noch **nicht** Teil der Releases – selbst bauen mit:
 
 ```bash
-cargo build --release --manifest-path src-tauri/Cargo.toml -p novatree-cli
+cargo build --release --manifest-path src-tauri/Cargo.toml -p grimmgeist-cli
 ```
 
 <a name="de-lizenz"></a>
@@ -346,7 +346,7 @@ Dieses Projekt steht unter der [GNU General Public License v3.0](LICENSE). Wer d
 kopiert oder verändert, muss sein eigenes Werk ebenfalls vollständig quelloffen und unter GPLv3
 weitergeben – ein geschlossener, kommerzieller Weiterverkauf ist damit ausgeschlossen.
 
-[⬆️ Zurück zur Sprachauswahl](#novatree)
+[⬆️ Zurück zur Sprachauswahl](#grimmgeist)
 
 ---
 
@@ -365,18 +365,18 @@ Desktop chat client (Windows/Linux) for the Google Gemini API, built with [Tauri
 
 ### ⚠️ IMPORTANT LEGAL NOTICE / DISCLAIMER
 
-This software is provided "as is" without warranty of any kind. Since NovaTree is capable of autonomously creating, editing, or deleting files on your local drive in "Workspace Mode", you use this software entirely at your own risk. The developers shall not be held liable for any data loss, system damage, malfunctions, or consequential damages. By using this app, you agree to this disclaimer.
+This software is provided "as is" without warranty of any kind. Since GrimmGeist is capable of autonomously creating, editing, or deleting files on your local drive in "Workspace Mode", you use this software entirely at your own risk. The developers shall not be held liable for any data loss, system damage, malfunctions, or consequential damages. By using this app, you agree to this disclaimer.
 
 ---
 
-> **Note (v0.6.0):** The app was called "NovaTwin" up to v0.5.1 and was renamed to "NovaTree" for
+> **Note (v0.6.0):** The app was called "NovaTwin" up to v0.5.1 and was renamed to "GrimmGeist" for
 > trademark reasons (app identifier, repository, data storage). If you had an older version
 > installed: chats/settings are **not carried over automatically** (new app ID = new data path)
 > and the Google API key needs to be re-entered once in settings (new keychain entry).
 
 > [!IMPORTANT]
 > **🛡️ Important note for Windows users ("Windows protected your PC"):**
-> <br>Since NovaTree is an independent open-source project and hasn't been paid-signed, Windows SmartScreen shows the warning *"Windows protected your PC"* on first launch.
+> <br>Since GrimmGeist is an independent open-source project and hasn't been paid-signed, Windows SmartScreen shows the warning *"Windows protected your PC"* on first launch.
 >
 > The app is 100% safe! You can simply skip the warning:
 > 1. Click **"More info"** in the blue window.
@@ -417,7 +417,7 @@ via the `ignore` crate - the same library `ripgrep` uses. Hidden files/folders a
 `.gitignore`. This means `.env` files with real credentials, for example, never accidentally end
 up in the context sent to Gemini.
 
-On top of that, a `.novatreeignore` (same syntax, checked at every directory level just like
+On top of that, a `.grimmgeistignore` (same syntax, checked at every directory level just like
 `.gitignore` itself) is also honored. This lets you exclude files that ARE tracked in git but are
 still irrelevant or unnecessarily large for the AI (e.g. large test fixtures, generated bundles,
 lockfiles) without touching the actual `.gitignore`.
@@ -435,13 +435,13 @@ folder.
 
 #### AI file access (approval modes)
 
-Under Settings → **"AI file access"** you can control whether NovaTree executes file actions in
+Under Settings → **"AI file access"** you can control whether GrimmGeist executes file actions in
 the workspace folder immediately or asks for your confirmation first:
 
 - **Always ask** - every action (create/edit/delete) must be confirmed.
 - **Partially autonomous** - configurable individually per action type (default: create
   automatically, edit/delete with confirmation).
-- **Fully autonomous** - NovaTree writes straight through without asking.
+- **Fully autonomous** - GrimmGeist writes straight through without asking.
 
 On **delete**, a red warning with the file path appears; on **create/edit**, a diff view (Monaco's
 native `createDiffEditor()`) between the current and proposed content appears in a standalone
@@ -451,7 +451,7 @@ modal - independent of whether the live editor is currently visible.
 
 Every file in the workspace folder that gets overwritten, edited, or deleted - whether by the AI
 or by you in the live editor (save button/Ctrl+S) - is automatically backed up beforehand into a
-hidden `.novatree-backups/<relative path>/<timestamp>` folder, no Git required. This folder never
+hidden `.grimmgeist-backups/<relative path>/<timestamp>` folder, no Git required. This folder never
 shows up in the app's file list or in the workspace context sent to Gemini (folders with a leading
 `.` are always skipped there). The last 20 versions per file are kept; older ones are removed
 automatically once a new one is added - no manual cleanup needed.
@@ -464,7 +464,7 @@ disk), but it's an extra safety net against accidental data loss in autonomous m
 #### Fuzzy-match suggestion for failed edits (from v0.8.9)
 
 If a precise edit's (`search`/`replace`) `search` text doesn't match exactly even after whitespace
-normalization, NovaTree also searches for the closest matching line block in the file. If one is
+normalization, GrimmGeist also searches for the closest matching line block in the file. If one is
 found, a **"Did you mean this spot?"** box appears right in the chat, with the actual location
 (line number + original text) and an "Apply change" button - one click is enough, without needing
 to ask Gemini again.
@@ -488,7 +488,7 @@ or the AI's version is applied (discarding your local changes).
 If the linked workspace folder is a Git repository, an ⬆ button appears next to the folder path.
 It shows the branch and changed files, lets you enter a commit message, and runs `git add -A`,
 `git commit`, and `git push` - using your already-installed and configured local Git (no separate
-sign-in inside NovaTree, no stored credentials).
+sign-in inside GrimmGeist, no stored credentials).
 
 #### Second, paid API key (from v0.8.15)
 
@@ -499,7 +499,7 @@ marked in the chat with a green 💲 badge, so costs never sneak up on you unnot
 
 #### Proactive file context injection (from v0.8.18)
 
-Before sending a workspace-related message to Gemini, NovaTree now automatically includes the
+Before sending a workspace-related message to Gemini, GrimmGeist now automatically includes the
 real current content of the file open in the live editor plus any file explicitly named in the
 message text - the AI no longer has to reconstruct a file's state from chat history. If no file
 can be clearly identified, the AI is instructed to ask for the filename instead of guessing.
@@ -509,7 +509,7 @@ can be clearly identified, the AI is instructed to ask for the filename instead 
 - **Precise edits:** Existing files are no longer overwritten wholesale, but changed via
   search/replace pairs (`{"search": "...", "replace": "..."}`). If a `search` only matches after
   whitespace normalization or not at all, nothing is written and a notice is shown instead of
-  risky guessing. If `search` doesn't match at all, NovaTree (since v0.8.16) automatically tries
+  risky guessing. If `search` doesn't match at all, GrimmGeist (since v0.8.16) automatically tries
   once more with the actual current file content before giving up. Since v0.8.17, the AI defaults
   to a full rewrite instead of search/replace for small/medium files, to avoid cascading errors.
 - **Architect Mode:** For entirely new projects/resources with multiple files, Gemini provides a
@@ -549,23 +549,23 @@ On every push to `main`, two jobs in `.github/workflows/release.yml` (`publish-t
 
 - Windows: `.exe` (NSIS) / `.msi`
 - Linux: `.deb` / `.rpm`
-- Additionally, the raw Linux ELF binary (`NovaTree_<version>_linux_amd64`, unpackaged, no
+- Additionally, the raw Linux ELF binary (`GrimmGeist_<version>_linux_amd64`, unpackaged, no
   installer) is uploaded directly - useful for debugging (e.g. running
-  `./NovaTree_*_linux_amd64` in a terminal to see real error output) or for distros without
+  `./GrimmGeist_*_linux_amd64` in a terminal to see real error output) or for distros without
   `.deb`/`.rpm` support. Requires the same system libraries as the `.deb`/`.rpm` (among others
   `webkit2gtk-4.1`) and does **not** receive automatic updates (only the bundled, signed formats
   do).
 
-A second job (`flatpak-bundle`) then also builds a `NovaTree.flatpak` against the
+A second job (`flatpak-bundle`) then also builds a `GrimmGeist.flatpak` against the
 `org.gnome.Platform` runtime (bundles a fixed, tested WebKitGTK version instead of the host
 system's, which is more reliable on many distros than an unpackaged binary). Installation:
-download the `.flatpak` file, then `flatpak install NovaTree.flatpak`, or double-click if file
+download the `.flatpak` file, then `flatpak install GrimmGeist.flatpak`, or double-click if file
 manager integration is available.
 
 #### Arch Linux / AUR
 
-[`aur/novatree-bin/`](aur/novatree-bin/PKGBUILD) contains a `PKGBUILD` for an AUR binary package
-(installs the raw `NovaTree_<version>_linux_amd64` file from the releases, no compiling needed).
+[`aur/grimmgeist-bin/`](aur/grimmgeist-bin/PKGBUILD) contains a `PKGBUILD` for an AUR binary package
+(installs the raw `GrimmGeist_<version>_linux_amd64` file from the releases, no compiling needed).
 The package is **not** yet published on the AUR - steps for that are documented in
 [`aur/README.md`](aur/README.md), but require a personal AUR account with an SSH key.
 
@@ -586,7 +586,7 @@ workflow is allowed to create releases.
 <details>
 <summary><strong>Auto-updater</strong> (expand for details)</summary>
 
-The app checks `https://github.com/State-of-Economy/NovaTree/releases/latest/download/latest.json`
+The app checks `https://github.com/GrimmSchmiede/GrimmGeist/releases/latest/download/latest.json`
 on every start. If the version listed there is newer than the installed one, an update banner
 appears. For a new push to actually trigger an update, **the version number must be bumped** in
 `src-tauri/tauri.conf.json` (the `version` field) and `package.json` before pushing - otherwise the
@@ -615,7 +615,7 @@ certain Mesa/GPU driver combos, some Wayland setups). Since v0.3.1 the app autom
 the problem in most cases. If it still occurs, try setting it manually:
 
 ```bash
-WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./NovaTree_*_linux_amd64
+WEBKIT_DISABLE_COMPOSITING_MODE=1 WEBKIT_DISABLE_DMABUF_RENDERER=1 ./GrimmGeist_*_linux_amd64
 ```
 
 **Blank window with "could not connect to localhost" (Flatpak or native):**
@@ -643,7 +643,7 @@ directly in the app itself (`src-tauri/src/main.rs`).
 
 #### 💡 Setup tips
 
-- **Smart import:** As soon as you generate and copy a key on Google AI Studio, NovaTree
+- **Smart import:** As soon as you generate and copy a key on Google AI Studio, GrimmGeist
   automatically detects it from the clipboard and fills it in directly in the settings window
   (only while the window is open - no background polling).
 - **VPN issue:** If the Google page shows "Not available in your region", briefly turn off your
@@ -652,14 +652,14 @@ directly in the app itself (`src-tauri/src/main.rs`).
 
 <a name="en-cli"></a>
 
-### CLI: `novatree-cli` (from v0.8.12)
+### CLI: `grimmgeist-cli` (from v0.8.12)
 
 In addition to the desktop app, there's a lightweight terminal tool for quick questions without
 opening the GUI:
 
 ```bash
-novatree-cli "How does a Docker multi-stage build work?"
-novatree-cli -m gemini-3.1-flash-lite "Quick question"
+grimmgeist-cli "How does a Docker multi-stage build work?"
+grimmgeist-cli -m gemini-3.1-flash-lite "Quick question"
 ```
 
 Uses the same API key from the OS credential store as the desktop app (no separate setup needed)
@@ -671,7 +671,7 @@ separate undertaking.
 Not yet part of the releases - build it yourself with:
 
 ```bash
-cargo build --release --manifest-path src-tauri/Cargo.toml -p novatree-cli
+cargo build --release --manifest-path src-tauri/Cargo.toml -p grimmgeist-cli
 ```
 
 <a name="en-license"></a>
@@ -682,4 +682,4 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE). A
 or modifies the source code must also release their own work fully open-source under GPLv3 -
 closed-source commercial resale is thereby excluded.
 
-[⬆️ Back to language selection](#novatree)
+[⬆️ Back to language selection](#grimmgeist)

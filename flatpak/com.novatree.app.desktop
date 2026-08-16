@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=NovaTree
-Comment=NovaTree - Desktop Chat Client for Google Gemini
-Exec=novatree
-Icon=com.novatree.app
-Terminal=false
-Type=Application
-Categories=Network;Chat;Utility;
-StartupWMClass=NovaTree

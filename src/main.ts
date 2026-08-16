@@ -328,7 +328,7 @@ function renderMessages() {
     const el = document.createElement("div");
     el.className = `message ${msg.role}` + (msg.pending ? " pending" : "") + (msg.error ? " error" : "");
 
-    const roleLabel = msg.role === "user" ? t.you : "NovaTree";
+    const roleLabel = msg.role === "user" ? t.you : "GrimmGeist";
     const freezeHtml =
       !msg.pending && (chat.frozenAtIndex == null || idx < chat.frozenAtIndex)
         ? `<button class="freeze-btn" data-idx="${idx}" title="${escapeHtml(t.freezeFromHereTitle)}">🔒</button>`
